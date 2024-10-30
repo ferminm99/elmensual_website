@@ -1,0 +1,42 @@
+# Dependencias del node
+node_modules/
+
+# Archivos de lock de dependencias
+yarn.lock
+package-lock.json
+
+# Salidas de compilación de Vite
+dist/
+
+# Archivos de entorno local
+.env
+.env.local
+.env.*.local
+
+# Directorios de logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Sistema operativo específico
+.DS_Store
+Thumbs.db
+
+# Directorios temporales de Yarn
+.pnp
+.pnp.js
+
+# VS Code config
+.vscode/
+
+# Archivos de cache de Vite
+.cache/
+*.cache
+
+# Directorios de prueba de cobertura
+coverage/
+
+# Archivos temporales
+*.tmp
+*.swp
