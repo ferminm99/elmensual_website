@@ -1,6 +1,9 @@
 # Dependencias del node
 node_modules/
 
+api/node_modules/
+client/node_modules/
+
 # Archivos de lock de dependencias
 yarn.lock
 package-lock.json

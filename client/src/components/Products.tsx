@@ -92,7 +92,7 @@ const Products: React.FC<ProductsProps> = ({ cat, filters = {}, sort }) => {
     <Container>
       {(cat ? filteredProducts : products.slice(0, 8)).map((item) => (
         <Product
-          item={{ ...item, id: parseInt(item._id, 10) }}
+          item={{ ...item, _id: parseInt(item._id, 10) }}
           key={item._id}
         />
       ))}
