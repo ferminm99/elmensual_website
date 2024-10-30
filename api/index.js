@@ -12,7 +12,10 @@ const orderRoute = require("./routes/order");
 const cors = require("cors");
 
 mongoose
-  .connect(process.env.MONGO_URL)
+  .connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log("DB Connection succesful!"))
   .catch((err) => console.log(err));
 
