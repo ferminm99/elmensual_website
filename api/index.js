@@ -37,6 +37,19 @@ app.use("/api/products", productRoute);
 app.use("/api/carts", cartRoute);
 app.use("/api/orders", orderRoute);
 
+app.get("/api/check-products", async (req, res) => {
+  try {
+    const products = await mongoose.connection.db
+      .collection("products")
+      .find()
+      .toArray();
+    res.status(200).json(products);
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    res.status(500).json({ error: "Failed to fetch products" });
+  }
+});
+
 // app.use("/api/checkout", stripeRoute);
 
 app.listen(process.env.PORT || 5000, () => {
