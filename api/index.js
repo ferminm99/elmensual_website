@@ -16,7 +16,17 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => console.log("DB Connection succesful!"))
+  .then(() => {
+    console.log("DB Connection successful!");
+    // Prueba de conexión a la base de datos
+    mongoose.connection.db.listCollections().toArray((err, collections) => {
+      if (err) {
+        console.error("Error fetching collections:", err);
+      } else {
+        console.log("Collections in database:", collections);
+      }
+    });
+  })
   .catch((err) => console.log(err));
 
 app.use(cors());
