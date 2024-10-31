@@ -38,7 +38,7 @@ const Products: React.FC<ProductsProps> = ({ cat, filters = {}, sort }) => {
     const getProducts = async () => {
       try {
         console.log("Fetching products for category:", cat);
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL; // Usamos la variable de entorno
+        const baseUrl = "https://elmensual-website.onrender.com/api"; // Usamos la variable de entorno
         const url = cat
           ? `${baseUrl}/products?category=${cat}`
           : `${baseUrl}/products`;
