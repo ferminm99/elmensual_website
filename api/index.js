@@ -26,10 +26,6 @@ app.use("/api/users", userRoute);
 app.use("/api/products", productRoute);
 app.use("/api/carts", cartRoute);
 app.use("/api/orders", orderRoute);
-app.get("/api/test", (req, res) => {
-  console.log("API TEST LOADING ", req);
-  res.send("API is working");
-});
 
 // app.use("/api/checkout", stripeRoute);
 
