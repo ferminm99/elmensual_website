@@ -38,11 +38,11 @@ const Products: React.FC<ProductsProps> = ({ cat, filters = {}, sort }) => {
     const getProducts = async () => {
       try {
         console.log("Fetching products for category:", cat);
-        const res = await axios.get(
-          cat
-            ? `http://localhost:5000/api/products?category=${cat}`
-            : "http://localhost:5000/api/products"
-        );
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL; // Usamos la variable de entorno
+        const url = cat
+          ? `${baseUrl}/products?category=${cat}`
+          : `${baseUrl}/products`;
+        const res = await axios.get(url);
         setProducts(res.data);
         console.log("API response data:", res.data);
       } catch (err) {
