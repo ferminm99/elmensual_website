@@ -38,7 +38,8 @@ const Products: React.FC<ProductsProps> = ({ cat, filters = {}, sort }) => {
     const getProducts = async () => {
       try {
         console.log("Fetching products for category:", cat);
-        const baseUrl = import.meta.env.VITE_API_URL; // Usamos la variable de entorno
+        const baseUrl =
+          import.meta.env.VITE_API_URL || "http://localhost:5000/api"; // Usamos la variable de entorno
         const url = cat
           ? `${baseUrl}/products?category=${cat}`
           : `${baseUrl}/products`;

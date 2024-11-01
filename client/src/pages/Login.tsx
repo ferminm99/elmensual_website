@@ -2,7 +2,9 @@ import { useState } from "react";
 import styled from "styled-components";
 import { mobile } from "../responsive";
 import { useDispatch, useSelector } from "react-redux";
-// import { RootState } from "../redux/store"; // Asegúrate de tener el tipo `RootState` definido en tu store para tipar `useSelector`
+import { login } from "../redux/actions";
+import { RootState } from "../redux/store";
+import { useNavigate } from "react-router-dom";
 
 const Container = styled.div`
   width: 100vw;
@@ -71,12 +73,22 @@ const Error = styled.span`
 const Login: React.FC = () => {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  //   const dispatch = useDispatch();
-  //   const { isFetching, error } = useSelector((state: RootState) => state.user);
+  const dispatch = useDispatch();
+  const { isFetching, error, currentUser } = useSelector(
+    (state: RootState) => state.user
+  );
+  const navigate = useNavigate();
 
   const handleClick = (e: React.FormEvent) => {
     e.preventDefault();
-    // login(dispatch, { username, password });
+    login(dispatch, { username, password });
+
+    // Verifica si el usuario es administrador
+    if (currentUser?.isAdmin) {
+      navigate("/admin");
+    } else {
+      navigate("/");
+    }
   };
 
   return (
@@ -94,7 +106,7 @@ const Login: React.FC = () => {
             onChange={(e) => setPassword(e.target.value)}
           />
           <Button onClick={handleClick}>LOGIN</Button>
-          {/* {error && <Error>Something went wrong...</Error>} */}
+          {error && <Error>Something went wrong...</Error>}
           <Link>NO RECORDAS TU CONTRASEÑA?</Link>
           <Link>CREAR NUEVA CUENTA</Link>
         </Form>

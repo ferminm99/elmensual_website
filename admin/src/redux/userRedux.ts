@@ -1,17 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-// Define el tipo de usuario (ajusta los campos según tus necesidades)
-interface User {
-  _id: string;
-  isAdmin: boolean;
-  username: string;
-  email: string;
-  // Otros campos según el modelo de usuario
-}
-
-// Estado inicial con sus tipos
 interface UserState {
-  currentUser: User | null;
+  currentUser: any;
   isFetching: boolean;
   error: boolean;
 }
@@ -29,7 +19,7 @@ const userSlice = createSlice({
     loginStart: (state) => {
       state.isFetching = true;
     },
-    loginSuccess: (state, action: PayloadAction<User>) => {
+    loginSuccess: (state, action: PayloadAction<any>) => {
       state.isFetching = false;
       state.currentUser = action.payload;
     },

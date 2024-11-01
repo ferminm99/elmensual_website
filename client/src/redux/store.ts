@@ -1,6 +1,6 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import cartReducer from "./cartRedux";
-import userReducer from "./userRedux";
+import userReducer from "./userRedux"; // Asegúrate de importar desde la ruta correcta
 import {
   persistStore,
   persistReducer,
@@ -10,12 +10,12 @@ import {
   PERSIST,
   PURGE,
   REGISTER,
+  PersistConfig,
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-import { PersistConfig } from "redux-persist";
 
 // Configuración del almacenamiento persistente
-const persistConfig: PersistConfig<any> = {
+const persistConfig: PersistConfig<ReturnType<typeof rootReducer>> = {
   key: "root",
   version: 1,
   storage,
@@ -26,7 +26,18 @@ const rootReducer = combineReducers({
   cart: cartReducer,
 });
 
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+// Define RootState para incluir manualmente la propiedad _persist
+export type RootState = ReturnType<typeof rootReducer> & {
+  _persist: {
+    version: number;
+    rehydrated: boolean;
+  };
+};
+
+const persistedReducer = persistReducer<ReturnType<typeof rootReducer>>(
+  persistConfig,
+  rootReducer
+);
 
 export const store = configureStore({
   reducer: persistedReducer,
@@ -38,8 +49,7 @@ export const store = configureStore({
     }),
 });
 
-// Tipos para el state y el dispatch
-export type RootState = ReturnType<typeof rootReducer>;
+// Tipos para el dispatch
 export type AppDispatch = typeof store.dispatch;
 
 export let persistor = persistStore(store);

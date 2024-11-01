@@ -1,13 +1,17 @@
-// App.tsx
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import Home from "./pages/Home";
 import ProductList from "./pages/ProductList";
 import Product from "./pages/Product";
 import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Success from "./pages/Success";
+import Success from "./pages/Success"; // Asegúrate de importar el componente
 
 const App: React.FC = () => {
   return (
@@ -20,6 +24,7 @@ const App: React.FC = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/success" element={<Success />} />
+        <Route path="/admin" element={<Navigate to="/admin" />} />
       </Routes>
     </Router>
   );

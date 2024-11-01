@@ -3,8 +3,10 @@ import styled from "styled-components";
 import { Search, ShoppingCartOutlined } from "@material-ui/icons";
 import Badge from "@mui/material/Badge";
 import { mobile } from "../responsive";
-
-// Definición de tipos para styled-components
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import { RootState } from "../redux/store"; // Importa el tipo RootState
+import { logout } from "../redux/userRedux"; // Asegúrate de tener la acción de logout configurada en Redux
 
 const Container = styled.div`
   height: 60px;
@@ -73,8 +75,17 @@ const MenuItem = styled.div`
   ${mobile({ fontSize: "12px", marginLeft: "10px" })}
 `;
 
-// Definición del componente Navbar
 const Navbar: React.FC = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const quantity = useSelector((state: RootState) => state.cart.quantity);
+  const currentUser = useSelector((state: RootState) => state.user.currentUser);
+
+  const handleLogout = () => {
+    dispatch(logout()); // Despacha la acción de cerrar sesión
+    navigate("/"); // Redirige a la página principal
+  };
+
   return (
     <Container>
       <Wrapper>
@@ -89,13 +100,33 @@ const Navbar: React.FC = () => {
           <Logo>El Mensual</Logo>
         </Center>
         <Right>
-          <MenuItem>REGISTER</MenuItem>
-          <MenuItem>SIGN IN</MenuItem>
-          <MenuItem>
-            <Badge badgeContent={4} color="primary">
-              <ShoppingCartOutlined />
-            </Badge>
-          </MenuItem>
+          {currentUser ? (
+            <>
+              <MenuItem>Hola, {currentUser.username}</MenuItem>
+              {currentUser.isAdmin && (
+                <Link to="/admin">
+                  <MenuItem>Dashboard</MenuItem>
+                </Link>
+              )}
+              <MenuItem onClick={handleLogout}>Logout</MenuItem>
+            </>
+          ) : (
+            <>
+              <Link to="/register">
+                <MenuItem>REGISTER</MenuItem>
+              </Link>
+              <Link to="/login">
+                <MenuItem>SIGN IN</MenuItem>
+              </Link>
+            </>
+          )}
+          <Link to="/cart">
+            <MenuItem>
+              <Badge badgeContent={quantity} color="primary">
+                <ShoppingCartOutlined />
+              </Badge>
+            </MenuItem>
+          </Link>
         </Right>
       </Wrapper>
     </Container>

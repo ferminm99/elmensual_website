@@ -174,18 +174,28 @@ const Product: React.FC = () => {
   };
 
   const handleClick = () => {
-    if (product) {
-      console.log("Agregando al carrito:", {
-        ...product,
-        quantity,
-        color,
-        size,
-      });
-      dispatch(addProduct({ ...product, quantity, color, size }));
-    } else {
-      console.log("El producto no se cargo todavia!");
-    }
-  };
+  if (product) {
+    const completeProduct = {
+      ...product,
+      quantity,
+      color,
+      size,
+      _id: product._id || "default_id", // Asigna un ID predeterminado si falta
+      title: product.title || "default_title",
+      desc: product.desc || "default_description",
+      price: product.price || 0, // Asigna un precio predeterminado si falta
+      inStock: product.inStock ?? true, // Asigna un valor booleano por defecto si falta
+      createdAt: product.createdAt || new Date().toISOString(),
+      updatedAt: product.updatedAt || new Date().toISOString(),
+    };
+
+    console.log("Agregando al carrito:", completeProduct);
+    dispatch(addProduct(completeProduct));
+  } else {
+    console.log("El producto no se cargó todavía!");
+  }
+};
+
 
   return (
     <Container>

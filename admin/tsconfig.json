@@ -3,7 +3,7 @@
     "module": "esnext",
     "target": "es2016",
     "lib": ["dom", "dom.iterable", "esnext"],
-    "outDir": "./dist",
+    "outDir": "./dist", // Añade esta línea
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
@@ -13,11 +13,11 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "skipLibCheck": true,
-    "paths": {
-      "@/*": ["./*"],
-      "react": ["./node_modules/@types/react"]
-    }
+    "skipLibCheck": true
+  },
+  "paths": {
+    "@/*": ["./*"],
+    "react": ["./node_modules/@types/react"]
   },
   "include": ["src", "vite-env.d.ts"]
 }
