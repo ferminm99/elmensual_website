@@ -6,13 +6,47 @@ import {
 import React from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
-// Define la interfaz para los props de Product
+
 interface ProductProps {
   item: {
-    _id: number;
+    _id: string;
     img: string;
+    title: string;
+    categories: string[];
+    price: number;
   };
 }
+
+const ImageContainer = styled.div`
+  width: 100%;
+  height: 300px;
+  background-color: #f0f0f0;
+  position: relative;
+  transition: filter 0.3s ease; /* Suaviza el efecto de oscurecimiento */
+`;
+
+const Card = styled.div`
+  width: 300px;
+  background-color: white;
+  overflow: hidden;
+  text-align: center;
+  position: relative;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.1); /* Fondo gris al hacer hover */
+  }
+
+  &:hover ${ImageContainer} {
+    filter: brightness(0.85); /* Oscurecer imagen */
+  }
+`;
+
+const Image = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
 
 const Info = styled.div`
   opacity: 0;
@@ -21,78 +55,87 @@ const Info = styled.div`
   position: absolute;
   top: 0;
   left: 0;
-  background-color: rgba(0, 0, 0, 0.2);
-  z-index: 3;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.5s ease;
-  cursor: pointer;
-`;
+  transition: opacity 0.3s ease;
 
-const Container = styled.div`
-  flex: 1; /* Ajusta el ancho de cada producto a aproximadamente 25% con espacio para el margen */
-  margin: 5px;
-  min-width: 280px;
-  height: 350px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f5fbfd;
-  position: relative;
-  &:hover ${Info} {
+  ${Card}:hover & {
     opacity: 1;
   }
 `;
 
-const Circle = styled.div`
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  background-color: white;
-  position: absolute;
-`;
-const Image = styled.img`
-  height: 75%;
-  z-index: 2;
+const IconContainer = styled.div`
+  display: flex;
+  gap: 10px;
 `;
 
 const Icon = styled.div`
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: white;
-  align-items: center;
+  background-color: #f5fbfd;
   display: flex;
+  align-items: center;
   justify-content: center;
-  margin: 10px;
-  transition: all 0.23s ease;
+  transition: all 0.3s ease;
+  cursor: pointer;
+
   &:hover {
     background-color: #e9f5f5;
     transform: scale(1.1);
   }
 `;
 
-// Componente Product
+const Details = styled.div`
+  padding: 10px;
+`;
+
+const Title = styled.h3`
+  font-size: 18px;
+  font-weight: 600;
+  margin: 5px 0;
+`;
+
+const Subtitle = styled.p`
+  font-size: 16px;
+  color: gray;
+  margin-bottom: 5px;
+`;
+
+const Price = styled.span`
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+`;
+
 const Product: React.FC<ProductProps> = ({ item }) => {
   return (
-    <Container>
-      <Circle />
-      <Image src={item.img} alt={`Product ${item._id}`} />
-      <Info>
-        <Icon>
-          <ShoppingCartOutlined />
-        </Icon>
-        <Icon>
-          <Link to={`/product/${item._id}`}>
-            <SearchOutlined />
-          </Link>
-        </Icon>
-        <Icon>
-          <FavoriteBorderOutlined />
-        </Icon>
-      </Info>
-    </Container>
+    <Card>
+      <ImageContainer>
+        <Image src={item.img} alt={item.title} />
+        <Info>
+          <IconContainer>
+            <Icon>
+              <ShoppingCartOutlined />
+            </Icon>
+            <Icon>
+              <Link to={`/product/${item._id}`}>
+                <SearchOutlined />
+              </Link>
+            </Icon>
+            <Icon>
+              <FavoriteBorderOutlined />
+            </Icon>
+          </IconContainer>
+        </Info>
+      </ImageContainer>
+      <Details>
+        <Title>{item.title}</Title>
+        <Subtitle>{item.categories[0]}</Subtitle>
+        <Price>${item.price}</Price>
+      </Details>
+    </Card>
   );
 };
 

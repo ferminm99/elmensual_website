@@ -4,10 +4,11 @@ interface Product {
   _id: string;
   title: string;
   desc: string;
-  img: string;
   categories: string[];
   size: string[];
-  color: string[];
+  colors: string[]; // Lista de colores
+  images: { [color: string]: string }; // Mapa de color a URL de imagen
+  img: string;
   price: number;
   inStock: boolean;
   createdAt: string;
@@ -85,6 +86,7 @@ export const productSlice = createSlice({
       state.error = false;
     },
     addProductSuccess: (state, action: PayloadAction<Product>) => {
+      console.log("Payload recibido en addProductSuccess:", action.payload);
       state.isFetching = false;
       state.products.push(action.payload);
     },

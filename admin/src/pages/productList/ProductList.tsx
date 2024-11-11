@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "./productList.css";
 import { DataGrid, GridColDef } from "@material-ui/data-grid";
 import { DeleteOutline } from "@material-ui/icons";
@@ -23,6 +23,9 @@ interface RootState {
 const ProductList: React.FC = () => {
   const dispatch = useDispatch();
   const products = useSelector((state: RootState) => state.product.products);
+
+  // Estados para manejar la paginación y el tamaño de página
+  const [pageSize, setPageSize] = useState<number>(10);
 
   useEffect(() => {
     getProducts(dispatch);
@@ -86,7 +89,10 @@ const ProductList: React.FC = () => {
         disableSelectionOnClick
         columns={columns}
         getRowId={(row) => row._id}
-        pageSize={8}
+        pageSize={pageSize}
+        onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+        pagination
+        rowsPerPageOptions={[5, 10, 20]}
         checkboxSelection
       />
     </div>

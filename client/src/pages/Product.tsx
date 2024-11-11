@@ -10,6 +10,8 @@ import { useLocation } from "react-router-dom";
 import { publicRequest } from "../requestMethods";
 import { addProduct } from "../redux/cartRedux";
 import { useDispatch } from "react-redux";
+// Importa Product desde types.ts en tus componentes y archivos donde sea necesario
+import { ProductType } from "../types";
 
 const Container = styled.div``;
 
@@ -122,24 +124,10 @@ const Button = styled.button`
   }
 `;
 
-interface Product {
-  _id: string;
-  title: string;
-  desc: string;
-  img: string;
-  categories: string[];
-  size: string[];
-  color: string[];
-  price: number;
-  inStock: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
 const Product: React.FC = () => {
   const location = useLocation();
   const id = location.pathname.split("/")[2];
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<ProductType | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [color, setColor] = useState("");
   const [size, setSize] = useState("");
@@ -174,28 +162,27 @@ const Product: React.FC = () => {
   };
 
   const handleClick = () => {
-  if (product) {
-    const completeProduct = {
-      ...product,
-      quantity,
-      color,
-      size,
-      _id: product._id || "default_id", // Asigna un ID predeterminado si falta
-      title: product.title || "default_title",
-      desc: product.desc || "default_description",
-      price: product.price || 0, // Asigna un precio predeterminado si falta
-      inStock: product.inStock ?? true, // Asigna un valor booleano por defecto si falta
-      createdAt: product.createdAt || new Date().toISOString(),
-      updatedAt: product.updatedAt || new Date().toISOString(),
-    };
+    if (product) {
+      const completeProduct = {
+        ...product,
+        quantity,
+        color,
+        size,
+        _id: product._id || "default_id", // Asigna un ID predeterminado si falta
+        title: product.title || "default_title",
+        desc: product.desc || "default_description",
+        price: product.price || 0, // Asigna un precio predeterminado si falta
+        inStock: product.inStock ?? true, // Asigna un valor booleano por defecto si falta
+        createdAt: product.createdAt || new Date().toISOString(),
+        updatedAt: product.updatedAt || new Date().toISOString(),
+      };
 
-    console.log("Agregando al carrito:", completeProduct);
-    dispatch(addProduct(completeProduct));
-  } else {
-    console.log("El producto no se cargó todavía!");
-  }
-};
-
+      console.log("Agregando al carrito:", completeProduct);
+      dispatch(addProduct(completeProduct));
+    } else {
+      console.log("El producto no se cargó todavía!");
+    }
+  };
 
   return (
     <Container>

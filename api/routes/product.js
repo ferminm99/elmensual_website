@@ -7,15 +7,17 @@ const {
 
 const router = require("express").Router();
 
-//CREATE
+// router.post("/", verifyTokenAndAdmin, async (req, res) => {
+router.post("/", async (req, res) => {
+  console.log("Datos recibidos en el servidor:", req.body); // Asegúrate de que ves esto en la consola
 
-router.post("/", verifyTokenAndAdmin, async (req, res) => {
   const newProduct = new Product(req.body);
 
   try {
     const savedProduct = await newProduct.save();
     res.status(200).json(savedProduct);
   } catch (err) {
+    console.error("Error al guardar el producto:", err);
     res.status(500).json(err);
   }
 });
@@ -49,7 +51,6 @@ router.delete("/:id", verifyTokenAndAdmin, async (req, res) => {
 //GET PRODUCT
 router.get("/find/:id", async (req, res) => {
   const productId = req.params.id;
-  console.log("Fetching product with ID:", productId); // Log para verificar el ID
 
   try {
     const product = await Product.findById(productId);
@@ -57,7 +58,6 @@ router.get("/find/:id", async (req, res) => {
       console.log("Product not found"); // Log si no encuentra el producto
       return res.status(404).json("Product not found");
     }
-    console.log("Product found:", product); // Log para ver el producto que encontró
     res.status(200).json(product);
   } catch (error) {
     console.error("Error fetching product:", error); // Log del error

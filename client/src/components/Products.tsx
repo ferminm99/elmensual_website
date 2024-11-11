@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import axios from "axios";
 import Product from "./Product";
+import axios from "axios";
+import baseUrl from "../apiConfig";
 
 const Container = styled.div`
   padding: 20px;
@@ -10,62 +11,54 @@ const Container = styled.div`
   gap: 20px;
 `;
 
-interface Product {
-  _id: string;
-  title: string;
-  desc: string;
-  img: string;
-  categories: string[];
-  size: string[];
-  color: string[];
-  price: number;
-  inStock: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface ProductsProps {
-  cat?: string;
+interface ProductProps {
+  products?: Product[]; // Productos opcionales que pueden ser pasados desde el padre
   filters?: { [key: string]: string };
   sort?: string;
 }
 
-const Products: React.FC<ProductsProps> = ({ cat, filters = {}, sort }) => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+const Products: React.FC<ProductProps> = ({
+  products: initialProducts = [], // Inicialmente vacío, si no se pasa
+  filters = {},
+  sort,
+}) => {
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [filteredProducts, setFilteredProducts] =
+    useState<Product[]>(initialProducts);
 
+  // Obtener productos predeterminados si no se pasan como prop
   useEffect(() => {
-    const getProducts = async () => {
-      try {
-        console.log("Fetching products for category:", cat);
-        const baseUrl =
-          import.meta.env.VITE_API_URL || "http://localhost:5000/api"; // Usamos la variable de entorno
-        const url = cat
-          ? `${baseUrl}/products?category=${cat}`
-          : `${baseUrl}/products`;
-        const res = await axios.get(url);
-        setProducts(res.data);
-        console.log("API response data:", res.data);
-      } catch (err) {
-        console.error("Error fetching products:", err);
-      }
-    };
-    getProducts();
-  }, [cat]);
+    if (initialProducts.length === 0) {
+      const getDefaultProducts = async () => {
+        try {
+          const res = await axios.get(`${baseUrl}/products?category=bombacha`);
+          setProducts(res.data);
+        } catch (err) {
+          console.error("Error fetching default products:", err);
+        }
+      };
+      getDefaultProducts();
+    } else {
+      setProducts(initialProducts); // Usar los productos iniciales si se pasan como prop
+    }
+  }, [initialProducts]);
 
   // Filtrar productos en función de los filtros de color y tamaño
   useEffect(() => {
     let tempProducts = products;
+
     if (filters.color) {
       tempProducts = tempProducts.filter((product) =>
         product.color.includes(filters.color.toLowerCase())
       );
     }
+
     if (filters.size) {
       tempProducts = tempProducts.filter((product) =>
         product.size.includes(filters.size)
       );
     }
+
     setFilteredProducts(tempProducts);
   }, [products, filters]);
 
@@ -91,12 +84,14 @@ const Products: React.FC<ProductsProps> = ({ cat, filters = {}, sort }) => {
 
   return (
     <Container>
-      {(cat ? filteredProducts : products.slice(0, 8)).map((item) => (
-        <Product
-          item={{ ...item, _id: parseInt(item._id, 10) }}
-          key={item._id}
-        />
-      ))}
+      {filteredProducts.length > 0 ? (
+        filteredProducts.map((item) => <Product key={item._id} item={item} />)
+      ) : (
+        <p>
+          No se encontraron productos que coincidan con los filtros
+          seleccionados.
+        </p>
+      )}
     </Container>
   );
 };

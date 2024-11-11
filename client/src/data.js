@@ -1,23 +1,23 @@
 export const sliderItems = [
   {
     id: 1,
-    img: "https://pampasway.com/wp-content/uploads/2023/02/0001s_0002_IMG_8323-1.png.webp",
-    title: "ROPA DE CAMPO DE HOMBRE",
-    desc: "CONSEGUÍ YA TU BOMBACHA DE POPLIN PARA EL VERANO AL MEJOR PRECIO.",
+    img: "https://res.cloudinary.com/djovvsorv/image/upload/t_yo/v1730822712/cailxbv7cdmp4ubj5ae0.png",
+    title: "BOMBACHAS DE GRAFA",
+    desc: "EXPLORA NUESTRAS OPCIONES DE BOMBACHA DE CAMPO DE GRAFA PESADA O LIVIANA",
     bg: "f5fafd",
   },
   {
     id: 2,
-    img: "https://arandu.com.ar/media/2020/06/24636CL_a.jpg",
-    title: "ROPA DE CAMPO DE MUJER",
-    desc: "CONSEGUÍ YA TU BOMBACHA DE CORDEROY PARA INVIERNO AL MEJOR PRECIO.",
+    img: "https://res.cloudinary.com/djovvsorv/image/upload/v1731250027/blob_qrh1xq.png",
+    title: "BOMBACHAS DE POPLIN/GRAFIL",
+    desc: "LAS BOMBACHAS DE CAMPO DE POPLIN SON LA COMBINACION IDEAL DE ALGODON Y POLIESTER PARA NO SUFRIR EL CALOR",
     bg: "f5fafd",
   },
   {
     id: 3,
-    img: "https://acdn.mitiendanube.com/stores/001/218/661/products/15229-13-61-db68976fe6b88c958516916787562640-1024-1024.jpg",
-    title: "ROPA DE CAMPO DE NIÑOS Y ADOLESCENTES",
-    desc: "CONSEGUÍ YA TU BOMBACHA DE GRAFA",
+    img: "https://res.cloudinary.com/djovvsorv/image/upload/t_Menu%20principal%20/v1731197042/blob_txfbyr.png",
+    title: "BOMBACHAS DE CORDEROY",
+    desc: "NUESTRAS BOMBACHAS DE CORDEROY SON DE LA MEJOR CALIDAD Y MAS TRABAJADAS PARA QUE PASES TU INVIERNO COMODAMENTE",
     bg: "f5fafd",
   },
 ];

@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 const Container = styled.div`
   height: 40px;
-  background-color: teal;
+  background-color: black;
   color: white;
   display: flex;
   align-items: center;
@@ -12,7 +12,7 @@ const Container = styled.div`
 `;
 
 const Announcement: React.FC = () => {
-  return <Container>Bombachas de poplin en oferta!</Container>;
+  return <Container></Container>;
 };
 
 export default Announcement;

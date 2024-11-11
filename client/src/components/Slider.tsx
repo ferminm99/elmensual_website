@@ -24,6 +24,8 @@ const Container = styled.div`
   display: flex;
   position: relative;
   overflow: hidden;
+  background-color: transparent;
+  z-index: 1; // Establece un z-index menor para que el slider esté debajo del navbar y su menú
   ${mobile({ display: "none" })}
 `;
 
@@ -58,11 +60,13 @@ const Slide = styled.div<SlideProps>`
   height: 100vh;
   display: flex;
   align-items: center;
-  background-color: #${(props) => props.bg};
+  background-color: transparent; // Transparente para ver el fondo
 `;
+
 const ImgContainer = styled.div`
   height: 100%;
   flex: 1;
+  background-color: transparent; // Asegura que el contenedor de la imagen sea transparente
 `;
 const InfoContainer = styled.div`
   padding: 50px;
@@ -71,7 +75,8 @@ const InfoContainer = styled.div`
 
 const Image = styled.img`
   height: 80%;
-  object-fit: cover; //prueba para ver si asi queda mejor
+  object-fit: contain; // Cambia "cover" a "contain" si quieres ver la imagen completa sin recorte
+  background-color: transparent; // Asegura que la imagen no tenga un fondo blanco
 `;
 
 const Title = styled.h1`

@@ -2,37 +2,25 @@ import React from "react";
 import styled from "styled-components";
 import { Search, ShoppingCartOutlined } from "@material-ui/icons";
 import Badge from "@mui/material/Badge";
-import { mobile } from "../responsive";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { RootState } from "../redux/store"; // Importa el tipo RootState
-import { logout } from "../redux/userRedux"; // Asegúrate de tener la acción de logout configurada en Redux
+import { RootState } from "../redux/store";
 
 const Container = styled.div`
-  height: 60px;
-  ${mobile({ height: "50px" })}
+  height: 80px;
+  margin-bottom: 10px;
+  max-width: 100%;
+  overflow: visible;
+  position: relative;
+  z-index: 5;
 `;
 
 const Wrapper = styled.div`
-  padding: 10px 20px;
+  padding: 10px 30px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  ${mobile({ padding: "10px 0px" })}
-`;
-
-const CompanyName = styled.span`
-  font-size: 14px;
-  cursor: pointer;
-  ${mobile({ display: "none" })}
-`;
-
-const SearchContainer = styled.div`
-  border: 0.5px solid lightgray;
-  display: flex;
-  align-items: center;
-  margin-left: 25px;
-  padding: 5px;
+  width: 100%;
 `;
 
 const Left = styled.div`
@@ -41,23 +29,82 @@ const Left = styled.div`
   align-items: center;
 `;
 
-const Input = styled.input`
-  border: none;
-  ${mobile({ width: "50px" })}
+const LogoImage = styled.img`
+  height: 80px;
+  width: 80px;
+  cursor: pointer;
+  margin-right: 20px;
 `;
 
-const Logo = styled.h1`
-  font-weight: bold;
-  ${mobile({
-    fontSize: "16px",
-    alignItems: "center",
-    justifyContent: "center",
-  })}
+const SearchContainer = styled.div`
+  border: 1px solid lightgray;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  margin-left: 20px;
+`;
+
+const Input = styled.input`
+  border: none;
+  font-size: 16px;
+  width: 100%;
 `;
 
 const Center = styled.div`
   flex: 1;
-  text-align: center;
+  display: flex;
+  justify-content: center;
+`;
+
+const CategoryMenu = styled.div`
+  position: relative;
+  margin: 0 15px;
+  font-size: 16px;
+  cursor: pointer;
+
+  &:hover .dropdown {
+    visibility: visible;
+    opacity: 1;
+  }
+`;
+
+const Dropdown = styled.div`
+  visibility: hidden; /* Oculto por defecto */
+  opacity: 0;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: white;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  z-index: 10;
+  width: 60vw;
+  max-width: 800px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  transition: visibility 0s, opacity 0.3s ease;
+`;
+
+const DropdownSection = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const SectionTitle = styled.div`
+  font-weight: bold;
+  margin-bottom: 8px;
+`;
+
+const DropdownItem = styled.div`
+  padding: 5px 0;
+  cursor: pointer;
+  color: gray;
+
+  &:hover {
+    background-color: #f1f1f1;
+  }
 `;
 
 const Right = styled.div`
@@ -65,65 +112,105 @@ const Right = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  ${mobile({ flex: 2, justifyContent: "center" })}
 `;
 
 const MenuItem = styled.div`
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
-  margin-left: 25px;
-  ${mobile({ fontSize: "12px", marginLeft: "10px" })}
+  margin-left: 20px;
 `;
 
 const Navbar: React.FC = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
   const quantity = useSelector((state: RootState) => state.cart.quantity);
-  const currentUser = useSelector((state: RootState) => state.user.currentUser);
+  const navigate = useNavigate();
 
-  const handleLogout = () => {
-    dispatch(logout()); // Despacha la acción de cerrar sesión
-    navigate("/"); // Redirige a la página principal
+  const categories = {
+    Hombre: {
+      BOMBACHAS: [
+        "Recta con pinzas (grafa 70 pesada)",
+        "Recta con pinzas (grafa 70 liviana)",
+        "Alforzada (grafa 70 pesada y liviana)",
+        "Bataraza y poliester - viscoza",
+        "Vestir Poplin liviano (algodon y poliester)",
+        "Corderoy",
+        "Poplin",
+      ],
+      PANTALONES: ["Grafa", "Corderoy"],
+      CAMISAS: ["Manga Larga", "Manga Corta"],
+    },
+    Mujer: {
+      BOMBACHAS: ["Grafa", "Poplin"],
+      PANTALONES: ["Grafa", "Corderoy"],
+      CAMISAS: ["Manga Larga", "Manga Corta"],
+    },
+    "Adolescentes/Niños": {
+      BOMBACHAS: ["Grafa", "Poplin"],
+      BERMUDAS: ["Poplin", "Poplin Cargo"],
+    },
+  };
+
+  const handleCategoryClick = (
+    mainCategory: string,
+    subCategory: string,
+    type = ""
+  ) => {
+    const path = type
+      ? `/products/${mainCategory}/${subCategory}/${type}`
+      : `/products/${mainCategory}/${subCategory}`;
+    navigate(path);
   };
 
   return (
     <Container>
       <Wrapper>
         <Left>
-          <CompanyName>El Mensual</CompanyName>
+          <Link to="/">
+            <LogoImage
+              src="https://res.cloudinary.com/djovvsorv/image/upload/v1730838721/gpehr6bac6stvmcbpuqg.png"
+              alt="El Mensual Logo"
+            />
+          </Link>
           <SearchContainer>
             <Input placeholder="Search" />
-            <Search style={{ color: "gray", fontSize: 16 }} />
+            <Search style={{ color: "gray", fontSize: 20 }} />
           </SearchContainer>
         </Left>
         <Center>
-          <Logo>El Mensual</Logo>
+          {Object.keys(categories).map((mainCategory) => (
+            <CategoryMenu key={mainCategory}>
+              {mainCategory}
+              <Dropdown className="dropdown">
+                {Object.keys(categories[mainCategory]).map((section) => (
+                  <DropdownSection key={section}>
+                    <SectionTitle>{section}</SectionTitle>
+                    {categories[mainCategory][section].map((subCategory) => (
+                      <DropdownItem
+                        key={subCategory}
+                        onClick={() =>
+                          handleCategoryClick(
+                            mainCategory,
+                            section,
+                            subCategory
+                          )
+                        }
+                      >
+                        {subCategory}
+                      </DropdownItem>
+                    ))}
+                  </DropdownSection>
+                ))}
+              </Dropdown>
+            </CategoryMenu>
+          ))}
         </Center>
         <Right>
-          {currentUser ? (
-            <>
-              <MenuItem>Hola, {currentUser.username}</MenuItem>
-              {currentUser.isAdmin && (
-                <Link to="/admin">
-                  <MenuItem>Dashboard</MenuItem>
-                </Link>
-              )}
-              <MenuItem onClick={handleLogout}>Logout</MenuItem>
-            </>
-          ) : (
-            <>
-              <Link to="/register">
-                <MenuItem>REGISTER</MenuItem>
-              </Link>
-              <Link to="/login">
-                <MenuItem>SIGN IN</MenuItem>
-              </Link>
-            </>
-          )}
+          <Link to="/all-products">
+            <MenuItem>Ver Productos</MenuItem>
+          </Link>
           <Link to="/cart">
             <MenuItem>
               <Badge badgeContent={quantity} color="primary">
-                <ShoppingCartOutlined />
+                <ShoppingCartOutlined style={{ fontSize: 24 }} />
               </Badge>
             </MenuItem>
           </Link>

@@ -21,15 +21,17 @@ interface User {
   password: string;
 }
 
+interface NewProduct extends Omit<Product, "_id"> {}
 // Interfaz para producto completo, todas las propiedades son requeridas
 interface Product {
   _id: string;
   title: string;
   desc: string;
-  img: string;
   categories: string[];
   size: string[];
-  color: string[];
+  colors: string[]; // Lista de colores
+  images: { [color: string]: string }; // Mapa de color a URL de imagen
+  img: string;
   price: number;
   inStock: boolean;
   createdAt: string;
@@ -51,7 +53,7 @@ export const login = async (dispatch: Dispatch, user: User) => {
 export const getProducts = async (dispatch: Dispatch) => {
   dispatch(getProductStart());
   try {
-    const res = await publicRequest.get("/products");
+    const res = await userRequest.get("/products");
     dispatch(getProductSuccess(res.data));
   } catch (err) {
     dispatch(getProductFailure());
@@ -61,7 +63,7 @@ export const getProducts = async (dispatch: Dispatch) => {
 export const deleteProduct = async (id: string, dispatch: Dispatch) => {
   dispatch(deleteProductStart());
   try {
-    // const res = await userRequest.delete(`/products/${id}`);
+    const res = await userRequest.delete(`/products/${id}`);
     dispatch(deleteProductSuccess(id));
   } catch (err) {
     dispatch(deleteProductFailure());
@@ -82,12 +84,17 @@ export const updateProduct = async (
   }
 };
 
-export const addProduct = async (product: Product, dispatch: Dispatch) => {
+export const addProduct = async (product: any, dispatch: Dispatch) => {
   dispatch(addProductStart());
   try {
-    const res = await userRequest.post(`/products`, product);
+    console.log("Datos del producto que se van a enviar:", product); // Añadir este log
+    const res = await userRequest.post("/products", product);
+    console.log(res);
     dispatch(addProductSuccess(res.data));
+    getProducts(dispatch);
+    alert("Product added successfully!");
   } catch (err) {
+    console.error("Error al agregar el producto:", err); // Añadir este log
     dispatch(addProductFailure());
   }
 };

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import Navbar from "../components/Navbar";
 import Announcement from "../components/Announcement";
@@ -6,6 +6,8 @@ import Newsletter from "../components/Newsletter";
 import Products from "../components/Products";
 import { mobile } from "../responsive";
 import { useLocation } from "react-router-dom";
+import axios from "axios";
+import baseUrl from "../apiConfig";
 
 const Container = styled.div``;
 
@@ -40,11 +42,17 @@ const Option = styled.option``;
 
 const ProductList: React.FC = () => {
   const location = useLocation();
-  const cat = location.pathname.split("/")[2];
+  const paths = location.pathname.split("/").slice(2);
+  const mainCategory = paths[0]?.toLowerCase();
+  const subCategory = paths[1]?.toLowerCase();
+  const type = paths[2]?.toLowerCase() || "";
+
   const [filters, setFilters] = useState<{ [key: string]: string }>({});
   const [sort, setSort] = useState("newest");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
-  // Define 'e' type to avoid errors and add console logs
+  // Función para actualizar filtros
   const handleFilters = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     setFilters({
@@ -53,11 +61,45 @@ const ProductList: React.FC = () => {
     });
   };
 
+  useEffect(() => {
+    // Obtener productos filtrados por categoría desde la API
+    const fetchProducts = async () => {
+      try {
+        let url = `${baseUrl}/products`;
+        if (mainCategory) {
+          url += `?category=${mainCategory}`;
+        }
+        const res = await axios.get(url);
+        setProducts(res.data);
+      } catch (err) {
+        console.error("Error fetching products:", err);
+      }
+    };
+
+    fetchProducts();
+  }, [mainCategory]);
+
+  useEffect(() => {
+    // Filtrar productos en base a las categorías de la URL
+    const filtered = products.filter((product) => {
+      const categories = product.categories.map((cat) => cat.toLowerCase());
+      return (
+        categories.includes(mainCategory) &&
+        (!subCategory || categories.includes(subCategory)) &&
+        (!type || categories.includes(type))
+      );
+    });
+
+    setFilteredProducts(filtered);
+  }, [products, mainCategory, subCategory, type]);
+
   return (
     <Container>
       <Navbar />
       <Announcement />
-      <Title>{cat}</Title>
+      <Title>{`${mainCategory} > ${subCategory} ${
+        type ? `> ${type}` : ""
+      }`}</Title>
       <FilterContainer>
         <Filter>
           <FilterText>Filtrar Productos:</FilterText>
@@ -101,7 +143,11 @@ const ProductList: React.FC = () => {
           </Select>
         </Filter>
       </FilterContainer>
-      <Products cat={cat} filters={filters} sort={sort} />
+      <Products
+        products={filteredProducts} // Pasamos los productos filtrados al componente Products
+        filters={filters}
+        sort={sort}
+      />
       <Newsletter />
     </Container>
   );
