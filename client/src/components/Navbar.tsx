@@ -700,7 +700,10 @@ const Navbar: React.FC = () => {
         </Left>
         <Center>
           {Object.keys(categories).map((mainCategory) => (
-            <CategoryMenu key={mainCategory}>
+            <CategoryMenu
+              key={mainCategory}
+              onClick={() => handleCategoryClick(mainCategory, null, [])}
+            >
               {mainCategory}
               <Dropdown>
                 {Object.entries(
