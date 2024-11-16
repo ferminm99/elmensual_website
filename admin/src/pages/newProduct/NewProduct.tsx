@@ -1,9 +1,10 @@
-import { useState, ChangeEvent, FormEvent } from "react";
+import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import "./newProduct.css";
 import { addProduct } from "../../redux/apiCalls";
 import { useDispatch } from "react-redux";
 import Compressor from "compressorjs";
 import { useNavigate } from "react-router-dom";
+import { publicRequest } from "../../requestMethods";
 
 interface Inputs {
   [key: string]: any;
@@ -12,6 +13,7 @@ interface Inputs {
 interface ColorImagePair {
   color: string;
   imageFile: File | null;
+  imageUrl?: string; // Agregar imageUrl como opcional
 }
 
 export default function NewProduct() {
@@ -19,16 +21,74 @@ export default function NewProduct() {
   const [file, setFile] = useState<File | null>(null);
   const [cat, setCat] = useState<string[]>([]);
   const [colorImages, setColorImages] = useState<ColorImagePair[]>([]); // Estado para color-imagen
+  const [sizes, setSizes] = useState<number[]>([]);
+  const [showSizeDropdown, setShowSizeDropdown] = useState(false);
+  const [inStock, setInStock] = useState("true");
+  const [existingImages, setExistingImages] = useState<
+    { color: string; url: string; productName: string }[]
+  >([]);
+  const [selectedExistingImage, setSelectedExistingImage] = useState<{
+    color: string;
+    url: string;
+    productName: string;
+  } | null>(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchExistingImages = async () => {
+      try {
+        const res = await publicRequest.get("/products"); // Asegúrate de que esta URL sea la correcta
+        const images = res.data.flatMap((product: any) =>
+          Object.entries(product.images).map(([color, url]) => ({
+            color: color.replace(/\d+/g, ""), // Remueve los números
+            url,
+            productName: product.title,
+          }))
+        );
+        setExistingImages(images);
+      } catch (error) {
+        console.error("Error al obtener imágenes existentes:", error);
+      }
+    };
+    fetchExistingImages();
+  }, []);
+
+  const handleSizeChange = (size: number) => {
+    setSizes((prevSizes) =>
+      prevSizes.includes(size)
+        ? prevSizes.filter((s) => s !== size)
+        : [...prevSizes, size]
+    );
+  };
+
+  const handleExistingImageSelect = (event: ChangeEvent<HTMLSelectElement>) => {
+    const selectedImage = existingImages.find(
+      (img) => img.url === event.target.value
+    );
+    setSelectedExistingImage(selectedImage || null);
+  };
+
+  const handleSelectCommonSizes = () => {
+    const commonSizes = Array.from(
+      { length: (54 - 32) / 2 + 1 },
+      (_, i) => 32 + i * 2
+    );
+    setSizes(commonSizes);
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setInputs((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    const { name, value } = e.target;
+    if (name === "inStock") {
+      setInStock(value); // Actualiza el valor de inStock directamente
+    } else {
+      setInputs((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleCat = (e: ChangeEvent<HTMLInputElement>) => {
@@ -86,12 +146,22 @@ export default function NewProduct() {
   };
 
   const addColorImagePair = () => {
-    if (!inputs.color || !file) {
+    if (!inputs.color || (!file && !selectedExistingImage)) {
       alert("Por favor selecciona un color e imagen.");
       return;
     }
-    setColorImages([...colorImages, { color: inputs.color, imageFile: file }]);
+
+    const imageToAdd = selectedExistingImage
+      ? {
+          color: inputs.color,
+          imageFile: null,
+          imageUrl: selectedExistingImage.url,
+        }
+      : { color: inputs.color, imageFile: file };
+
+    setColorImages([...colorImages, imageToAdd]);
     setFile(null);
+    setSelectedExistingImage(null);
     setInputs((prev) => ({ ...prev, color: "" }));
   };
 
@@ -99,40 +169,36 @@ export default function NewProduct() {
     e.preventDefault();
 
     const imageMap: { [key: string]: string } = {};
-
-    // Subir todas las imágenes de color y agregarlas al mapa
-    for (const { color, imageFile } of colorImages) {
-      if (imageFile) {
-        const compressedFile = await handleFileUpload(imageFile);
-        const imageUrl = await uploadToCloudinary(compressedFile);
+    for (const { color, imageFile, imageUrl } of colorImages) {
+      if (imageUrl) {
         imageMap[color] = imageUrl;
+      } else if (imageFile) {
+        const compressedFile = await handleFileUpload(imageFile);
+        const uploadedUrl = await uploadToCloudinary(compressedFile);
+        imageMap[color] = uploadedUrl;
       }
     }
 
-    // Selecciona la primera imagen en imageMap como imagen principal
     const firstImageUrl = Object.values(imageMap)[0];
-
     if (firstImageUrl) {
       try {
         const product = {
           title: inputs.title || "",
           desc: inputs.desc || "",
-          size: inputs.size || [],
-          colors: Object.keys(imageMap), // Lista de colores según el mapa
+          size: sizes.map(String), // Asegurarse de que los talles estén como strings
+          colors: Object.keys(imageMap),
           price: Number(inputs.price) || 0,
-          inStock: inputs.inStock === "true",
+          inStock: inStock === "true", // Asigna el valor booleano según el estado de inStock
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-          images: imageMap, // Mapa de colores a URLs de imágenes
-          img: firstImageUrl, // Primera imagen como imagen principal
+          images: imageMap,
+          img: firstImageUrl,
           categories: cat,
         };
 
-        console.log("Producto que se va a enviar:", product); // Log para verificar el contenido del objeto `product`
-
         await addProduct(product, dispatch);
         alert("Producto agregado exitosamente");
-        //navigate("/"); // Redirigir a otra página después de agregar
+        //navigate("/");
       } catch (error) {
         console.error("Error al manejar el archivo", error);
       }
@@ -166,6 +232,18 @@ export default function NewProduct() {
           Añadir Color e Imagen
         </button>
         <div className="addProductItem">
+          <label>Elegir Imagen Existente</label>
+          <select onChange={handleExistingImageSelect}>
+            <option value="">Selecciona una imagen</option>
+            {existingImages.map((image, index) => (
+              <option key={index} value={image.url}>
+                {image.productName} - {image.color}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="addProductItem">
           <label>Title</label>
           <input
             name="title"
@@ -193,6 +271,34 @@ export default function NewProduct() {
           />
         </div>
         <div className="addProductItem">
+          <label>Talles</label>
+          <div
+            className="dropdown"
+            onClick={() => setShowSizeDropdown(!showSizeDropdown)}
+          >
+            Seleccionar Talles
+          </div>
+          {showSizeDropdown && (
+            <div className="dropdown-content">
+              <button type="button" onClick={handleSelectCommonSizes}>
+                Seleccionar 32 a 54
+              </button>
+              {Array.from({ length: 31 }, (_, i) => i * 2).map((size) => (
+                <div key={size}>
+                  <input
+                    type="checkbox"
+                    id={`size-${size}`}
+                    checked={sizes.includes(size)}
+                    onChange={() => handleSizeChange(size)}
+                  />
+                  <label htmlFor={`size-${size}`}>{size}</label>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="addProductItem">
           <label>Categories</label>
           <input type="text" placeholder="Categorías" onChange={handleCat} />
         </div>
@@ -211,7 +317,16 @@ export default function NewProduct() {
         <h3>Colores e Imágenes Agregados:</h3>
         {colorImages.map((ci, index) => (
           <p key={index}>
-            Color: {ci.color} - Imagen: {ci.imageFile?.name || "No image"}
+            Color: {ci.color} - Imagen:
+            {ci.imageFile ? (
+              ci.imageFile.name
+            ) : (
+              <img
+                src={ci.imageUrl}
+                alt={ci.color}
+                style={{ width: "50px", height: "50px", marginLeft: "10px" }}
+              />
+            )}
           </p>
         ))}
       </div>

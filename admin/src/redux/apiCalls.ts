@@ -77,10 +77,14 @@ export const updateProduct = async (
 ) => {
   dispatch(updateProductStart());
   try {
-    // update
-    dispatch(updateProductSuccess({ id, product }));
+    const res = await userRequest.put(`/products/${id}`, product); // Envía la actualización al servidor
+    console.log("Respuesta del servidor tras actualización:", res.data); // Log para confirmar
+    dispatch(updateProductSuccess({ id, product: res.data }));
+    alert("Producto actualizado correctamente");
   } catch (err) {
+    console.error("Error al actualizar el producto:", err); // Log de error
     dispatch(updateProductFailure());
+    alert("Error al actualizar el producto");
   }
 };
 

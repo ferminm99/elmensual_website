@@ -8,15 +8,16 @@ import Newsletter from "../components/Newsletter";
 import Footer from "../components/Footer";
 import axios from "axios";
 import baseUrl from "../apiConfig";
+import { Product } from "../types";
 
 const Home = () => {
-  const [defaultProducts, setDefaultProducts] = useState([]);
+  const [defaultProducts, setDefaultProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     const fetchDefaultProducts = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/products?category=bombacha`);
-        const bombachaProducts = res.data.slice(0, 8);
+        const res = await axios.get(`${baseUrl}/products?category=bombachas`);
+        const bombachaProducts = res.data.slice(0, 12);
         console.log("Productos con categoría 'bombacha':", bombachaProducts);
         setDefaultProducts(bombachaProducts);
       } catch (err) {
@@ -33,7 +34,8 @@ const Home = () => {
       <Navbar />
       <Slider />
       <Categories />
-      <Products defaultProducts={defaultProducts} fetchAll={false} />
+      <Products products={defaultProducts} />{" "}
+      {/* Pasamos los productos como prop */}
       <Newsletter />
       <Footer />
     </div>

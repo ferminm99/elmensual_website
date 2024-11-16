@@ -26,19 +26,18 @@ const ImageContainer = styled.div`
 `;
 
 const Card = styled.div`
-  width: 300px;
+  width: 100%; /* Permite que el card use todo el ancho asignado */
+  max-width: 250px; /* Limita el ancho máximo de cada tarjeta */
   background-color: white;
   overflow: hidden;
   text-align: center;
   position: relative;
   transition: background-color 0.3s ease;
+  padding: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Sombra para separación visual */
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.1); /* Fondo gris al hacer hover */
-  }
-
-  &:hover ${ImageContainer} {
-    filter: brightness(0.85); /* Oscurecer imagen */
+    background-color: rgba(0, 0, 0, 0.05); /* Fondo gris suave al hacer hover */
   }
 `;
 
@@ -92,15 +91,22 @@ const Details = styled.div`
 `;
 
 const Title = styled.h3`
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   margin: 5px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; /* Mantener en una línea */
+  width: 100%;
 `;
 
 const Subtitle = styled.p`
-  font-size: 16px;
+  font-size: 14px;
   color: gray;
   margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const Price = styled.span`

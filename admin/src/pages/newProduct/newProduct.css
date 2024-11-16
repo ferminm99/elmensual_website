@@ -3,6 +3,12 @@
   margin-left: 100px;
 }
 
+.sizeSelect {
+  width: 100%;
+  height: auto;
+  padding: 8px;
+}
+
 .addProductForm {
   margin-top: 10px;
 }

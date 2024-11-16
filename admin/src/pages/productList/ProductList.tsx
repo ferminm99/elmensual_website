@@ -40,12 +40,12 @@ const ProductList: React.FC = () => {
     {
       field: "product",
       headerName: "Product",
-      width: 200,
+      width: 400,
       renderCell: (params) => {
         return (
           <div className="productListItem">
             <img className="productListImg" src={params.row.img} alt="" />
-            {params.row.title}
+            <span className="productTitleText">{params.row.title}</span>
           </div>
         );
       },

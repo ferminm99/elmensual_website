@@ -6,11 +6,20 @@ import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { RootState } from "../redux/store";
 
+interface Product {
+  displayName: string;
+  filters: string[];
+}
+
+type Category = {
+  [section: string]: Product[] | { [type: string]: Product[] };
+};
+
 const Container = styled.div`
   height: 80px;
   margin-bottom: 10px;
-  max-width: 100%;
-  overflow: visible;
+  max-width: 100vw; /* Máximo ancho dentro del viewport */
+  overflow: hidden; /* Evita el desplazamiento */
   position: relative;
   z-index: 5;
 `;
@@ -21,6 +30,7 @@ const Wrapper = styled.div`
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  box-sizing: border-box; /* Incluye padding en el ancho total */
 `;
 
 const Left = styled.div`
@@ -50,61 +60,142 @@ const Input = styled.input`
   width: 100%;
 `;
 
-const Center = styled.div`
-  flex: 1;
-  display: flex;
-  justify-content: center;
-`;
-
 const CategoryMenu = styled.div`
   position: relative;
   margin: 0 15px;
-  font-size: 16px;
+  font-size: 18px; /* Tamaño de fuente aumentado */
+  font-weight: bold; /* Texto en negrita */
   cursor: pointer;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: #333;
+  }
+
+  &:after {
+    content: "";
+    display: block;
+    width: 0;
+    height: 2px;
+    background: black;
+    transition: width 0.3s;
+    margin-top: 5px; /* Espacio entre el texto y la línea */
+  }
+
+  &:hover:after {
+    width: 100%; /* La línea aparece al hacer hover */
+  }
 
   &:hover .dropdown {
     visibility: visible;
     opacity: 1;
   }
+  &:hover .dropdown,
+  .dropdown:hover {
+    visibility: visible;
+    opacity: 1;
+  }
 `;
 
+const Center = styled.div`
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  gap: 30px; /* Espacio entre los elementos del menú */
+`;
 const Dropdown = styled.div`
-  visibility: hidden; /* Oculto por defecto */
+  visibility: hidden;
   opacity: 0;
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: white;
+  position: fixed;
+  top: 120px;
+  left: 0;
+  right: 0;
+  background-color: #f9f9f9;
   box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
   padding: 20px;
-  z-index: 10;
-  width: 60vw;
-  max-width: 800px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  z-index: 15;
+  width: 100vw;
+  min-height: 350px;
+  display: flex;
+  justify-content: center;
   gap: 20px;
-  transition: visibility 0s, opacity 0.3s ease;
+  transition: visibility 0.2s ease-in-out, opacity 0.3s ease;
+  border-radius: 8px;
+  box-sizing: border-box;
+  overflow-y: auto;
+
+  ${CategoryMenu}:hover & {
+    visibility: visible;
+    opacity: 1;
+  }
 `;
 
 const DropdownSection = styled.div`
+  position: relative;
   display: flex;
   flex-direction: column;
+  align-items: center; /* Esto asegura que el contenido esté centrado */
+  min-width: 150px;
+  text-align: center; /* Centra el texto debajo de cada título */
 `;
 
-const SectionTitle = styled.div`
-  font-weight: bold;
-  margin-bottom: 8px;
+const SubDropdown = styled.div`
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 10px);
+  transform: translateY(-50%);
+  background-color: #f9f9f9;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  min-width: 250px; /* Añade un ancho mínimo */
+  width: auto; /* Ajusta el ancho automáticamente según el contenido */
+  max-width: 400px; /* Opcional: establece un ancho máximo */
+  transition: visibility 0.3s ease, opacity 0.3s ease;
+  border-radius: 8px;
+  box-sizing: border-box;
+  z-index: 20;
+  word-wrap: break-word; /* Permite el ajuste de palabras largas */
+
+  &:hover {
+    visibility: visible;
+    opacity: 1;
+  }
 `;
 
 const DropdownItem = styled.div`
   padding: 5px 0;
   cursor: pointer;
   color: gray;
+  position: relative;
+  white-space: nowrap; /* Evita que el texto se corte */
+  width: 100%;
 
   &:hover {
-    background-color: #f1f1f1;
+    background-color: #e6e6e6;
+    border-radius: 4px;
   }
+
+  &:hover ${SubDropdown} {
+    visibility: visible;
+    opacity: 1;
+  }
+`;
+
+const SectionTitle = styled.div`
+  font-weight: bold;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  color: #333;
+  text-align: center; /* Centra el título de cada sección */
+`;
+const SubsectionTitle = styled.div`
+  font-weight: bold;
+  margin-top: 10px;
+  color: #666;
+  text-align: center; /* Centra el subtítulo de cada submenú */
 `;
 
 const Right = styled.div`
@@ -112,12 +203,18 @@ const Right = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  gap: 20px; /* Espacio entre los elementos de la derecha */
 `;
 
 const MenuItem = styled.div`
   font-size: 16px;
   cursor: pointer;
   margin-left: 20px;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: #555;
+  }
 `;
 
 const Navbar: React.FC = () => {
@@ -126,37 +223,463 @@ const Navbar: React.FC = () => {
 
   const categories = {
     Hombre: {
-      BOMBACHAS: [
-        "Recta con pinzas (grafa 70 pesada)",
-        "Recta con pinzas (grafa 70 liviana)",
-        "Alforzada (grafa 70 pesada y liviana)",
-        "Bataraza y poliester - viscoza",
-        "Vestir Poplin liviano (algodon y poliester)",
-        "Corderoy",
-        "Poplin",
+      BOMBACHAS: {
+        "Grafa Pesada": {
+          filters: ["grafa", "pesada"],
+          items: [
+            {
+              displayName: "Grafa pesada común",
+              filters: ["grafa", "pesada", "recta", "tiroalto", "comun"],
+            },
+            {
+              displayName: "Grafa pesada largo especial",
+              filters: ["grafa", "pesada", "recta", "tiroalto", "largo"],
+            },
+            {
+              displayName: "Grafa pesada corto especial",
+              filters: ["grafa", "pesada", "recta", "tiroalto", "corto"],
+            },
+            {
+              displayName: "Grafa gabardina común",
+              filters: [
+                "grafa",
+                "pesada",
+                "recta",
+                "tiroalto",
+                "comun",
+                "gabardina",
+              ],
+            },
+          ],
+        },
+        "Grafa Liviana": {
+          filters: ["grafa", "liviana"],
+          items: [
+            {
+              displayName: "Grafa liviana común",
+              filters: ["grafa", "liviana", "recta", "tiroalto", "comun"],
+            },
+            {
+              displayName: "Grafa liviana largo especial",
+              filters: ["grafa", "liviana", "recta", "tiroalto", "largo"],
+            },
+            {
+              displayName: "Grafa liviana corto especial",
+              filters: ["grafa", "liviana", "recta", "tiroalto", "corto"],
+            },
+          ],
+        },
+        Alforzada: {
+          filters: ["alforzada"],
+          items: [
+            {
+              displayName: "Grafa alforzada pesada común",
+              filters: ["grafa", "alforzada", "pesada", "tiroalto", "comun"],
+            },
+            {
+              displayName: "Grafa alforzada liviana común",
+              filters: ["grafa", "alforzada", "liviana", "tiroalto", "comun"],
+            },
+          ],
+        },
+        Bataraza: {
+          filters: ["bataraza"],
+          items: [
+            {
+              displayName: "Bataraza",
+              filters: ["bataraza", "tiroalto", "comun"],
+            },
+            {
+              displayName: "Bataraza poliéster-viscosa",
+              filters: ["bataraza", "tiroalto", "comun", "poliester"],
+            },
+          ],
+        },
+        Poplin: {
+          filters: ["poplin"],
+          items: [
+            {
+              displayName: "Poplin común",
+              filters: ["poplin", "tiroalto", "comun"],
+            },
+            {
+              displayName: "Poplin largo especial",
+              filters: ["poplin", "tiroalto", "largo"],
+            },
+            {
+              displayName: "Poplin corto especial",
+              filters: ["poplin", "tiroalto", "corto"],
+            },
+            {
+              displayName: "Poplin Fantasia",
+              filters: ["fantasia", "tiroalto", "comun"],
+            },
+            {
+              displayName: "Poplin Fantasia Jaspeada",
+              filters: ["fantasia", "jaspeada", "tiroalto", "comun"],
+            },
+            {
+              displayName: "Poplin Denim",
+              filters: ["denim", "tiroalto", "comun"],
+            },
+          ],
+        },
+        Corderoy: {
+          filters: ["corderoy"],
+          items: [
+            {
+              displayName: "Corderoy común",
+              filters: ["corderoy", "tiroalto", "comun"],
+            },
+            {
+              displayName: "Corderoy largo especial",
+              filters: ["corderoy", "tiroalto", "largo"],
+            },
+            {
+              displayName: "Corderoy corto especial",
+              filters: ["corderoy", "tiroalto", "corto"],
+            },
+          ],
+        },
+        Sarga: {
+          filters: ["sarga"],
+          items: [
+            {
+              displayName: "Recta Pesada",
+              filters: ["sarga", "recta", "pesada", "comun", "tiroalto"],
+            },
+            {
+              displayName: "Recta Liviana",
+              filters: ["sarga", "recta", "liviana", "comun", "tiroalto"],
+            },
+          ],
+        },
+      },
+      PANTALONES: [
+        { displayName: "Grafa trabajo", filters: ["grafa", "trabajo"] },
+        { displayName: "Grafa cargo", filters: ["grafa", "cargo"] },
+        { displayName: "Corderoy", filters: ["corderoy"] },
+        { displayName: "Grafa Sport/Poplin", filters: ["grafa", "poplin"] },
+        {
+          displayName: "Grafa Sport Gabardina",
+          filters: ["grafa", "gabardina"],
+        },
       ],
-      PANTALONES: ["Grafa", "Corderoy"],
-      CAMISAS: ["Manga Larga", "Manga Corta"],
+      CAMISAS: [
+        { displayName: "Grafa Trabajo", filters: ["grafa", "trabajo"] },
+        { displayName: "Grafa Poplin", filters: ["grafa", "poplin"] },
+        {
+          displayName: "Grafa Gabardina Manga Corta",
+          filters: ["grafa", "gabardina"],
+        },
+      ],
+      BERMUDAS: [
+        {
+          displayName: "Poplin",
+          filters: ["poplin", "simple"],
+        },
+        {
+          displayName: "Poplin Cargo",
+          filters: ["poplin", "cargo"],
+        },
+      ],
+      JEANS: [
+        {
+          displayName: "Recto Rígido",
+          filters: ["rigido", "recto"],
+        },
+        {
+          displayName: "Recto con Expander",
+          filters: ["expander", "recto"],
+        },
+      ],
+      OTROS: [
+        { displayName: "Boinas de Hilo", filters: ["boina"] },
+        { displayName: "Delantal Carnicero", filters: ["delantal"] },
+      ],
     },
     Mujer: {
-      BOMBACHAS: ["Grafa", "Poplin"],
-      PANTALONES: ["Grafa", "Corderoy"],
-      CAMISAS: ["Manga Larga", "Manga Corta"],
+      BOMBACHAS: {
+        "Grafa Pesada": {
+          filters: ["grafa", "pesada"],
+          items: [
+            {
+              displayName: "Grafa pesada común (tiro alto)",
+              filters: ["grafa", "pesada", "recta", "tiroalto", "comun"],
+            },
+            {
+              displayName: "Grafa pesada largo especial (tiro alto)",
+              filters: ["grafa", "pesada", "recta", "tiroalto", "largo"],
+            },
+            {
+              displayName: "Grafa pesada corto especial (tiro alto)",
+              filters: ["grafa", "pesada", "recta", "tiroalto", "corto"],
+            },
+            {
+              displayName: "Grafa pesada común (tiro bajo)",
+              filters: ["grafa", "pesada", "recta", "tirobajo", "comun"],
+            },
+            {
+              displayName: "Grafa pesada largo especial (tiro bajo)",
+              filters: ["grafa", "pesada", "recta", "tirobajo", "largo"],
+            },
+          ],
+        },
+        "Grafa Liviana": {
+          filters: ["grafa", "liviana"],
+          items: [
+            {
+              displayName: "Grafa liviana común (tiro alto)",
+              filters: ["grafa", "liviana", "recta", "tiroalto", "comun"],
+            },
+            {
+              displayName: "Grafa liviana largo especial (tiro alto)",
+              filters: ["grafa", "liviana", "recta", "tiroalto", "largo"],
+            },
+            {
+              displayName: "Grafa liviana corto especial (tiro alto)",
+              filters: ["grafa", "liviana", "recta", "tiroalto", "corto"],
+            },
+            {
+              displayName: "Grafa liviana común (tiro bajo)",
+              filters: ["grafa", "liviana", "recta", "tirobajo", "comun"],
+            },
+          ],
+        },
+        Alforzada: {
+          filters: ["grafa", "alforzada"],
+          items: [
+            {
+              displayName: "Grafa alforzada liviana común (tiro alto)",
+              filters: ["grafa", "alforzada", "liviana", "tiroalto", "comun"],
+            },
+            {
+              displayName: "Grafa alforzada pesada común (tiro alto)",
+              filters: ["grafa", "alforzada", "pesada", "tiroalto", "comun"],
+            },
+          ],
+        },
+        Bataraza: {
+          filters: ["bataraza"],
+          items: [
+            {
+              displayName: "bataraza (tiro alto)",
+              filters: ["bataraza", "tiroalto", "comun"],
+            },
+            {
+              displayName: "bataraza polister - viscoza  (tiro alto)",
+              filters: ["bataraza", "tiroalto", "comun", "poliester"],
+            },
+          ],
+        },
+        Poplin: {
+          filters: ["poplin"],
+          items: [
+            {
+              displayName: "Poplin común (tiro alto)",
+              filters: ["poplin", "tiroalto", "comun"],
+            },
+            {
+              displayName: "Poplin largo especial (tiro alto)",
+              filters: ["poplin", "tiroalto", "largo"],
+            },
+            {
+              displayName: "Poplin corto especial (tiro alto)",
+              filters: ["poplin", "tiroalto", "corto"],
+            },
+            {
+              displayName: "Poplin común (tiro bajo)",
+              filters: ["poplin", "tirobajo", "comun"],
+            },
+            {
+              displayName: "Poplin Fantasia (tiro alto)",
+              filters: ["fantasia", "tiroalto", "comun"],
+            },
+            {
+              displayName: "Poplin Fantasia Jaspeada (tiro alto)",
+              filters: ["fantasia", "jaspeada", "tiroalto", "comun"],
+            },
+            {
+              displayName: "Poplin Denim (tiro alto)",
+              filters: ["denim", "tiroalto", "comun"],
+            },
+          ],
+        },
+        Corderoy: {
+          filters: ["corderoy"],
+          items: [
+            {
+              displayName: "Corderoy común (tiro alto)",
+              filters: ["corderoy", "tiroalto", "comun"],
+            },
+            {
+              displayName: "Corderoy largo especial (tiro alto)",
+              filters: ["corderoy", "tiroalto", "largo"],
+            },
+            {
+              displayName: "Corderoy corto especial (tiro alto)",
+              filters: ["corderoy", "tiroalto", "corto"],
+            },
+            {
+              displayName: "Corderoy común (tiro bajo)",
+              filters: ["corderoy", "tirobajo", "comun"],
+            },
+          ],
+        },
+        Sarga: {
+          filters: ["sarga"],
+          items: [
+            {
+              displayName: "Recta Pesada (tiro alto)",
+              filters: ["sarga", "recta", "pesada", "comun", "tiroalto"],
+            },
+            {
+              displayName: "Recta Liviana (tiro alto)",
+              filters: ["sarga", "recta", "liviana", "comun", "tiroalto"],
+            },
+          ],
+        },
+      },
+      PANTALONES: [
+        {
+          displayName: "Grafa trabajo (tiro alto)",
+          filters: ["grafa", "trabajo"],
+        },
+        { displayName: "Grafa cargo (tiro alto)", filters: ["grafa", "cargo"] },
+        { displayName: "Corderoy (tiro alto)", filters: ["corderoy"] },
+        {
+          displayName: "Grafa Sport/Poplin (tiro alto)",
+          filters: ["grafa", "poplin"],
+        },
+        {
+          displayName: "Grafa Sport Gabardina (tiro alto)",
+          filters: ["grafa", "gabardina"],
+        },
+      ],
+      CAMISAS: [
+        { displayName: "Grafa Trabajo", filters: ["grafa", "trabajo"] },
+        { displayName: "Grafa Poplin", filters: ["grafa", "poplin"] },
+        {
+          displayName: "Grafa Gabardina Manga Corta",
+          filters: ["grafa", "gabardina"],
+        },
+      ],
+      BERMUDAS: [
+        {
+          displayName: "Poplin (tiro alto)",
+          filters: ["poplin", "simple"],
+        },
+        {
+          displayName: "Poplin Cargo (tiro alto)",
+          filters: ["poplin", "cargo"],
+        },
+      ],
+      JEANS: [
+        {
+          displayName: "Recto Rígido",
+          filters: ["rigido", "recto"],
+        },
+        {
+          displayName: "Recto con Expander",
+          filters: ["expander", "recto"],
+        },
+      ],
+      OTROS: [
+        { displayName: "Boinas de Hilo", filters: ["boina"] },
+        { displayName: "Delantal Carnicero", filters: ["delantal"] },
+      ],
     },
-    "Adolescentes/Niños": {
-      BOMBACHAS: ["Grafa", "Poplin"],
-      BERMUDAS: ["Poplin", "Poplin Cargo"],
+    Adolescentes: {
+      BOMBACHAS: [
+        {
+          displayName: "Grafa pesada común",
+          filters: ["grafa", "pesada", "recta", "tiroalto", "comun"],
+        },
+        {
+          displayName: "Grafa liviana común",
+          filters: ["grafa", "liviana", "recta", "tiroalto", "comun"],
+        },
+        {
+          displayName: "Bataraza",
+          filters: ["bataraza", "tiroalto", "comun"],
+        },
+        {
+          displayName: "Poplin común",
+          filters: ["poplin", "tiroalto", "comun"],
+        },
+        {
+          displayName: "Poplin Fantasia",
+          filters: ["fantasia", "tiroalto", "comun"],
+        },
+        {
+          displayName: "Corderoy",
+          filters: ["corderoy", "tiroalto", "comun"],
+        },
+        {
+          displayName: "Recta Pesada",
+          filters: ["sarga", "recta", "pesada", "comun"],
+        },
+      ],
+
+      CAMISAS: [{ displayName: "Grafa Scout", filters: ["grafa", "scout"] }],
     },
+    Niños: {
+      BOMBACHAS: [
+        {
+          displayName: "Grafa pesada común",
+          filters: ["grafa", "pesada", "recta", "tiroalto", "comun"],
+        },
+        {
+          displayName: "Grafa liviana común",
+          filters: ["grafa", "liviana", "recta", "tiroalto", "comun"],
+        },
+        {
+          displayName: "Bataraza",
+          filters: ["bataraza", "tiroalto", "comun"],
+        },
+        {
+          displayName: "Poplin común",
+          filters: ["poplin", "tiroalto", "comun"],
+        },
+        {
+          displayName: "Poplin Fantasia",
+          filters: ["fantasia", "tiroalto", "comun"],
+        },
+        {
+          displayName: "Corderoy",
+          filters: ["corderoy", "tiroalto", "comun"],
+        },
+        {
+          displayName: "Recta Pesada",
+          filters: ["sarga", "recta", "pesada", "comun"],
+        },
+      ],
+    },
+  };
+
+  // Función para normalizar las categorías, reemplazando caracteres especiales
+  const normalizeCategory = (category: string) => {
+    return category.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // Elimina tildes y acentos
   };
 
   const handleCategoryClick = (
     mainCategory: string,
-    subCategory: string,
-    type = ""
+    subCategory: string | null,
+    filters: string[]
   ) => {
-    const path = type
-      ? `/products/${mainCategory}/${subCategory}/${type}`
-      : `/products/${mainCategory}/${subCategory}`;
+    console.log("handleCategoryClick params:", {
+      mainCategory,
+      subCategory,
+      filters,
+    });
+    const normalizedMainCategory = normalizeCategory(mainCategory);
+
+    // Si la subcategoría está definida, normaliza los filtros para evitar duplicados en la URL
+    const normalizedFilters = filters.map(normalizeCategory).join("-");
+
+    const path = `/products/${normalizedMainCategory}/${
+      normalizedFilters || ""
+    }`;
     navigate(path);
   };
 
@@ -179,30 +702,112 @@ const Navbar: React.FC = () => {
           {Object.keys(categories).map((mainCategory) => (
             <CategoryMenu key={mainCategory}>
               {mainCategory}
-              <Dropdown className="dropdown">
-                {Object.keys(categories[mainCategory]).map((section) => (
-                  <DropdownSection key={section}>
-                    <SectionTitle>{section}</SectionTitle>
-                    {categories[mainCategory][section].map((subCategory) => (
-                      <DropdownItem
-                        key={subCategory}
-                        onClick={() =>
-                          handleCategoryClick(
-                            mainCategory,
-                            section,
-                            subCategory
-                          )
-                        }
-                      >
-                        {subCategory}
-                      </DropdownItem>
-                    ))}
-                  </DropdownSection>
-                ))}
+              <Dropdown>
+                {Object.entries(
+                  categories[mainCategory as keyof typeof categories]
+                ).map(([section, data]) => {
+                  const isComplexSection =
+                    typeof data === "object" && !Array.isArray(data);
+                  if (!data) return null;
+
+                  const filters =
+                    isComplexSection &&
+                    "filters" in data &&
+                    Array.isArray(data.filters)
+                      ? data.filters
+                      : [];
+                  const items =
+                    isComplexSection &&
+                    "items" in data &&
+                    Array.isArray(data.items)
+                      ? data.items
+                      : Array.isArray(data)
+                      ? data
+                      : [];
+
+                  return (
+                    <DropdownSection key={section}>
+                      <SectionTitle>{section}</SectionTitle>
+                      {isComplexSection &&
+                        Object.entries(data).map(([subSection, subData]) => (
+                          <DropdownItem
+                            key={subSection}
+                            onMouseEnter={(e) => {
+                              const subDropdown = e.currentTarget.querySelector(
+                                ".sub-dropdown"
+                              ) as HTMLElement;
+                              if (subDropdown) {
+                                subDropdown.style.visibility = "visible";
+                                subDropdown.style.opacity = "1";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              const subDropdown = e.currentTarget.querySelector(
+                                ".sub-dropdown"
+                              ) as HTMLElement;
+                              if (subDropdown) {
+                                subDropdown.style.visibility = "hidden";
+                                subDropdown.style.opacity = "0";
+                              }
+                            }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              const subCategoryFilters =
+                                (data as Record<string, any>)[subSection]
+                                  ?.filters || [];
+
+                              handleCategoryClick(
+                                mainCategory,
+                                subSection,
+                                subCategoryFilters
+                              );
+                            }}
+                          >
+                            {subSection}
+                            <SubDropdown className="sub-dropdown">
+                              {(subData.items || []).map((product: any) => (
+                                <DropdownItem
+                                  key={product.displayName}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCategoryClick(
+                                      mainCategory,
+                                      subSection,
+                                      product.filters
+                                    );
+                                  }}
+                                >
+                                  {product.displayName}
+                                </DropdownItem>
+                              ))}
+                            </SubDropdown>
+                          </DropdownItem>
+                        ))}
+
+                      {!isComplexSection &&
+                        items.map((product: any) => (
+                          <DropdownItem
+                            key={product.displayName}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCategoryClick(
+                                mainCategory,
+                                section,
+                                product.filters
+                              );
+                            }}
+                          >
+                            {product.displayName}
+                          </DropdownItem>
+                        ))}
+                    </DropdownSection>
+                  );
+                })}
               </Dropdown>
             </CategoryMenu>
           ))}
         </Center>
+
         <Right>
           <Link to="/all-products">
             <MenuItem>Ver Productos</MenuItem>

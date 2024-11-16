@@ -5,6 +5,14 @@
 .productListItem {
   display: flex;
   align-items: center;
+  gap: 10px;
+}
+
+.productTitleText {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .productListImg {
