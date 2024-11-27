@@ -1,10 +1,11 @@
 import React from "react";
 import styled from "styled-components";
-import { Search, ShoppingCartOutlined } from "@material-ui/icons";
+import { Search, ViewList } from "@material-ui/icons";
 import Badge from "@mui/material/Badge";
 import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { RootState } from "../redux/store";
+import Tooltip from "@mui/material/Tooltip";
 
 interface Product {
   displayName: string;
@@ -218,7 +219,7 @@ const MenuItem = styled.div`
 `;
 
 const Navbar: React.FC = () => {
-  const quantity = useSelector((state: RootState) => state.cart.quantity);
+  //const quantity = useSelector((state: RootState) => state.cart.quantity);
   const navigate = useNavigate();
 
   const categories = {
@@ -664,22 +665,16 @@ const Navbar: React.FC = () => {
 
   const handleCategoryClick = (
     mainCategory: string,
-    subCategory: string | null,
+    section: string | null,
     filters: string[]
   ) => {
-    console.log("handleCategoryClick params:", {
-      mainCategory,
-      subCategory,
-      filters,
-    });
     const normalizedMainCategory = normalizeCategory(mainCategory);
-
-    // Si la subcategoría está definida, normaliza los filtros para evitar duplicados en la URL
+    const normalizedSection = section ? normalizeCategory(section) : "";
     const normalizedFilters = filters.map(normalizeCategory).join("-");
 
     const path = `/products/${normalizedMainCategory}/${
-      normalizedFilters || ""
-    }`;
+      normalizedSection || ""
+    }${normalizedFilters ? `/${normalizedFilters}` : ""}`;
     navigate(path);
   };
 
@@ -702,7 +697,10 @@ const Navbar: React.FC = () => {
           {Object.keys(categories).map((mainCategory) => (
             <CategoryMenu
               key={mainCategory}
-              onClick={() => handleCategoryClick(mainCategory, null, [])}
+              onClick={(e) => {
+                e.stopPropagation(); // Detenemos la propagación del clic desde los hijos
+                handleCategoryClick(mainCategory, null, []);
+              }}
             >
               {mainCategory}
               <Dropdown>
@@ -711,22 +709,6 @@ const Navbar: React.FC = () => {
                 ).map(([section, data]) => {
                   const isComplexSection =
                     typeof data === "object" && !Array.isArray(data);
-                  if (!data) return null;
-
-                  const filters =
-                    isComplexSection &&
-                    "filters" in data &&
-                    Array.isArray(data.filters)
-                      ? data.filters
-                      : [];
-                  const items =
-                    isComplexSection &&
-                    "items" in data &&
-                    Array.isArray(data.items)
-                      ? data.items
-                      : Array.isArray(data)
-                      ? data
-                      : [];
 
                   return (
                     <DropdownSection key={section}>
@@ -735,34 +717,13 @@ const Navbar: React.FC = () => {
                         Object.entries(data).map(([subSection, subData]) => (
                           <DropdownItem
                             key={subSection}
-                            onMouseEnter={(e) => {
-                              const subDropdown = e.currentTarget.querySelector(
-                                ".sub-dropdown"
-                              ) as HTMLElement;
-                              if (subDropdown) {
-                                subDropdown.style.visibility = "visible";
-                                subDropdown.style.opacity = "1";
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              const subDropdown = e.currentTarget.querySelector(
-                                ".sub-dropdown"
-                              ) as HTMLElement;
-                              if (subDropdown) {
-                                subDropdown.style.visibility = "hidden";
-                                subDropdown.style.opacity = "0";
-                              }
-                            }}
                             onClick={(e) => {
-                              e.preventDefault();
-                              const subCategoryFilters =
-                                (data as Record<string, any>)[subSection]
-                                  ?.filters || [];
-
+                              e.stopPropagation(); // Detenemos la propagación del clic
+                              const subCategoryFilters = subData.filters || [];
                               handleCategoryClick(
-                                mainCategory,
-                                subSection,
-                                subCategoryFilters
+                                mainCategory, // Hombre, Mujer, etc.
+                                section, // BOMBACHAS
+                                subCategoryFilters // Filtros de la subcategoría
                               );
                             }}
                           >
@@ -772,11 +733,11 @@ const Navbar: React.FC = () => {
                                 <DropdownItem
                                   key={product.displayName}
                                   onClick={(e) => {
-                                    e.stopPropagation();
+                                    e.stopPropagation(); // Detenemos la propagación del clic
                                     handleCategoryClick(
-                                      mainCategory,
-                                      subSection,
-                                      product.filters
+                                      mainCategory, // Hombre
+                                      section, // BOMBACHAS
+                                      product.filters // Filtros del producto
                                     );
                                   }}
                                 >
@@ -786,16 +747,15 @@ const Navbar: React.FC = () => {
                             </SubDropdown>
                           </DropdownItem>
                         ))}
-
                       {!isComplexSection &&
-                        items.map((product: any) => (
+                        (data as Product[]).map((product) => (
                           <DropdownItem
                             key={product.displayName}
                             onClick={(e) => {
-                              e.stopPropagation();
+                              e.stopPropagation(); // Detenemos la propagación del clic
                               handleCategoryClick(
-                                mainCategory,
-                                section,
+                                mainCategory, // Hombre
+                                section, // PANTALONES, CAMISAS, etc.
                                 product.filters
                               );
                             }}
@@ -813,13 +773,10 @@ const Navbar: React.FC = () => {
 
         <Right>
           <Link to="/all-products">
-            <MenuItem>Ver Productos</MenuItem>
-          </Link>
-          <Link to="/cart">
             <MenuItem>
-              <Badge badgeContent={quantity} color="primary">
-                <ShoppingCartOutlined style={{ fontSize: 24 }} />
-              </Badge>
+              <Tooltip title="Ver Productos">
+                <ViewList style={{ fontSize: 24 }} />
+              </Tooltip>
             </MenuItem>
           </Link>
         </Right>

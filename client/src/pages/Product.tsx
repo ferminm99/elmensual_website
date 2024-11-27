@@ -11,6 +11,8 @@ import { publicRequest } from "../requestMethods";
 import { addProduct } from "../redux/cartRedux";
 import { useDispatch } from "react-redux";
 import { Product as ProductType } from "../types";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm"; // Para soporte de tablas, listas, etc.
 
 const Container = styled.div`
   background-color: #f5f5f5;
@@ -30,10 +32,13 @@ const ImgContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center; /* Centrar la imagen */
   position: relative;
   background-color: #e0e0e0;
   border-radius: 8px;
-  padding: 20px;
+  padding: 0; /* Elimina padding extra */
+  overflow: hidden; /* Asegura que la imagen no se salga del contenedor */
+  height: 100%; /* Asegura que el contenedor tenga un alto consistente */
 `;
 
 const ThumbnailContainer = styled.div`
@@ -56,15 +61,16 @@ const Thumbnail = styled.img`
   }
 `;
 
-const Image = styled.img<{ zoomed: boolean }>`
-  width: 100%;
-  height: 100%;
-  max-height: 600px;
-  object-fit: contain;
+const Image = styled.img<{ zoomed: boolean; transformOrigin: string }>`
+  width: auto; /* Mantén la proporción de la imagen */
+  max-width: 100%; /* Asegura que no se salga del contenedor */
+  max-height: 500px; /* Ajusta esta altura máxima según lo que prefieras */
+  object-fit: cover; /* Ajusta la imagen para que se vea bien */
   cursor: ${({ zoomed }) => (zoomed ? "zoom-out" : "zoom-in")};
   transform: ${({ zoomed }) => (zoomed ? "scale(1.5)" : "scale(1)")};
-  transition: transform 0.3s ease;
-  ${mobile({ height: "40vh" })}
+  transform-origin: ${({ transformOrigin }) => transformOrigin};
+  transition: transform 0.3s ease, transform-origin 0.3s ease;
+  ${mobile({ maxHeight: "300px" })}/* Ajusta para dispositivos móviles */
 `;
 
 const ArrowContainer = styled.div<{ direction: "left" | "right" }>`
@@ -86,10 +92,11 @@ const Title = styled.h1`
   font-size: 32px;
 `;
 
-const Desc = styled.p`
+const Desc = styled.div`
   margin: 20px 0px;
   font-size: 16px;
   color: #555;
+  line-height: 1.5; /* Mejora la legibilidad */
 `;
 
 const Price = styled.span`
@@ -185,7 +192,25 @@ const Product: React.FC = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [size, setSize] = useState("");
   const [zoomed, setZoomed] = useState(false);
+  const [transformOrigin, setTransformOrigin] = useState("center center");
+  const [isExpanded, setIsExpanded] = useState(false);
+  const description = product?.desc || "";
   const dispatch = useDispatch();
+
+  // Divide la descripción en dos partes usando "Guía de talles" como delimitador
+  const splitPoint = description.indexOf("Guía de talles:");
+  const firstPart =
+    splitPoint !== -1
+      ? description.slice(0, splitPoint + "Guía de talles:".length)
+      : description;
+  const secondPart =
+    splitPoint !== -1
+      ? description.slice(splitPoint + "Guía de talles:".length)
+      : "";
+
+  useEffect(() => {
+    window.scrollTo(0, 0); // Desplaza la página al inicio
+  }, []);
 
   useEffect(() => {
     const getProduct = async () => {
@@ -255,6 +280,15 @@ const Product: React.FC = () => {
     }
   };
 
+  const handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
+    const { left, top, width, height } =
+      e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - left) / width) * 100; // Porcentaje X
+    const y = ((e.clientY - top) / height) * 100; // Porcentaje Y
+    setTransformOrigin(`${x}% ${y}%`); // Ajusta el origen del zoom
+    setZoomed(!zoomed);
+  };
+
   const toggleZoom = () => setZoomed(!zoomed);
 
   const translateColor = (colorName: string): string => {
@@ -303,7 +337,8 @@ const Product: React.FC = () => {
               <Image
                 src={colorImages[currentImageIndex]}
                 zoomed={zoomed}
-                onClick={toggleZoom}
+                transformOrigin={transformOrigin}
+                onClick={handleImageClick}
               />
               {colorImages.length > 1 && (
                 <ArrowContainer
@@ -316,8 +351,7 @@ const Product: React.FC = () => {
             </ImgContainer>
             <InfoContainer>
               <Title>{product.title}</Title>
-              <Desc>{product.desc}</Desc>
-              <Price>$ {product.price}</Price>
+
               <FilterContainer>
                 <Filter>
                   <FilterTitle>Color</FilterTitle>
@@ -348,8 +382,51 @@ const Product: React.FC = () => {
                   <Amount>{quantity}</Amount>
                   <Add onClick={() => handleQuantity("inc")} />
                 </AmountContainer>
-                <Button onClick={handleClick}>AGREGAR AL CARRITO</Button>
+                <Button onClick={handleClick}>CONTACTAR</Button>
               </AddContainer>
+              <Desc>
+                <div>
+                  {/* Renderiza siempre la descripción hasta e incluyendo "Guía de talles" */}
+                  <div dangerouslySetInnerHTML={{ __html: firstPart }} />
+
+                  {/* Botón para mostrar/ocultar la segunda parte (tabla o contenido extra) */}
+                  {!isExpanded && (
+                    <button
+                      onClick={() => setIsExpanded(true)}
+                      style={{
+                        cursor: "pointer",
+                        background: "none",
+                        border: "none",
+                        color: "blue",
+                        textDecoration: "underline",
+                        marginTop: "10px",
+                      }}
+                    >
+                      Ver más ▼
+                    </button>
+                  )}
+
+                  {/* Si está expandido, se muestra el contenido extra */}
+                  {isExpanded && (
+                    <div>
+                      <div dangerouslySetInnerHTML={{ __html: secondPart }} />
+                      <button
+                        onClick={() => setIsExpanded(false)}
+                        style={{
+                          cursor: "pointer",
+                          background: "none",
+                          border: "none",
+                          color: "blue",
+                          textDecoration: "underline",
+                          marginTop: "10px",
+                        }}
+                      >
+                        Ver menos ▲
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </Desc>
             </InfoContainer>
           </>
         ) : (

@@ -7,6 +7,7 @@ import {
 } from "@material-ui/icons";
 import React from "react";
 import styled from "styled-components";
+import { Link } from "react-router-dom"; // Importar Link para la navegación
 import { mobile } from "../responsive";
 
 const Container = styled.div`
@@ -46,6 +47,15 @@ const List = styled.ul`
 const ListItem = styled.li`
   width: 50%;
   margin-bottom: 10px;
+
+  a {
+    text-decoration: none;
+    color: inherit;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 `;
 
 const Logo = styled.h1``;
@@ -78,6 +88,7 @@ const ContactItem = styled.div`
 const Payment = styled.img`
   display: flex;
 `;
+
 const Footer: React.FC = () => {
   return (
     <Container>
@@ -85,24 +96,47 @@ const Footer: React.FC = () => {
         <Logo>El Mensual</Logo>
         <Desc>Contactenos para poder trabajar con nosotros!</Desc>
         <SocialContainer>
-          <SocialIcon color="3B5999">
-            <Facebook />
-          </SocialIcon>
-          <SocialIcon color="E4405F">
-            <Instagram />
-          </SocialIcon>
+          <a
+            href="https://www.facebook.com/www.elmensual.com.ar"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <SocialIcon color="3B5999">
+              <Facebook />
+            </SocialIcon>
+          </a>
+          <a
+            href="https://www.instagram.com/elmensual_laplata/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <SocialIcon color="E4405F">
+              <Instagram />
+            </SocialIcon>
+          </a>
         </SocialContainer>
       </Left>
       <Center>
-        <Title>Links utiles</Title>
+        <Title>Links útiles</Title>
         <List>
-          <ListItem>Home</ListItem>
-          <ListItem>Carrito</ListItem>
-          <ListItem>Hombre</ListItem>
-          <ListItem>Mujer</ListItem>
-          <ListItem>Accesorios</ListItem>
-          <ListItem>Mis deseados</ListItem>
-          <ListItem>Terminos</ListItem>
+          <ListItem>
+            <Link to="/">Home</Link>
+          </ListItem>
+          <ListItem>
+            <Link to="/products/hombre">Hombre</Link>
+          </ListItem>
+          <ListItem>
+            <Link to="/products/mujer">Mujer</Link>
+          </ListItem>
+          <ListItem>
+            <Link to="/products/adolescentes">Adolescentes</Link>
+          </ListItem>
+          <ListItem>
+            <Link to="/products/niños">Niños</Link>
+          </ListItem>
+          <ListItem>
+            <Link to="/terminos">Términos</Link>
+          </ListItem>
         </List>
       </Center>
       <Right>

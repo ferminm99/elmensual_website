@@ -1,5 +1,5 @@
 import { Send } from "@material-ui/icons";
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { mobile } from "../responsive";
 
@@ -44,15 +44,36 @@ const Desc = styled.div`
   margin-bottom: 20px;
   ${mobile({ textAlign: "center" })}
 `;
-
 const Newsletter: React.FC = () => {
+  const [message, setMessage] = useState("");
+
+  const handleSend = () => {
+    if (!message) {
+      alert("Por favor, escribe tu mensaje.");
+      return;
+    }
+
+    // Construir el enlace mailto
+    const mailtoLink = `mailto:lamotex@elmensual.com.ar?subject=Consulta desde Pagina Web&body=${encodeURIComponent(
+      `${message}`
+    )}`;
+
+    // Abrir el cliente de correo
+    window.location.href = mailtoLink;
+  };
+
   return (
     <Container>
       <Title>Contactanos</Title>
       <Desc>Ponete en contacto para comprar por mayor!</Desc>
       <InputContainer>
-        <Input placeholder="Tu email" />
-        <Button>
+        <Input
+          type="text"
+          placeholder="Tu mensaje"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+        />
+        <Button onClick={handleSend}>
           <Send />
         </Button>
       </InputContainer>

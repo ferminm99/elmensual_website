@@ -46,6 +46,7 @@ const Product: React.FC = () => {
   const [colorImages, setColorImages] = useState<{ [key: string]: string }>({});
   const [newColor, setNewColor] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [existingImages, setExistingImages] = useState<
     { color: string; url: string; productName: string }[]
   >([]);
@@ -151,26 +152,59 @@ const Product: React.FC = () => {
   };
 
   const handleColorChange = async () => {
-    if (newColor && (file || selectedExistingImage)) {
+    if (!newColor) {
+      alert("Por favor, ingresa un nombre de color.");
+      return;
+    }
+
+    // Validar si el color ya existe
+    if (colorImages[newColor]) {
+      alert("El color ya existe. Por favor, elige otro nombre.");
+      return;
+    }
+
+    if (file || selectedExistingImage) {
       let imageUrl: string;
 
       if (selectedExistingImage) {
+        // Usar imagen existente seleccionada
         imageUrl = selectedExistingImage.url;
       } else if (file) {
-        const compressedFile = await new Promise<File>((resolve, reject) => {
-          new Compressor(file, {
-            quality: 0.8,
-            maxWidth: 1000,
-            maxHeight: 1000,
-            success: (result) => resolve(result as File),
-            error: reject,
+        try {
+          const compressedBlob = await new Promise<Blob>((resolve, reject) => {
+            new Compressor(file, {
+              quality: 0.8,
+              maxWidth: 1000,
+              maxHeight: 1000,
+              mimeType: "image/png", // Asegura que sea PNG
+              convertSize: Infinity, // Evita convertir archivos pequeños a JPEG
+              success(compressedBlob) {
+                resolve(compressedBlob);
+              },
+              error(err) {
+                reject(err);
+              },
+            });
           });
-        });
 
-        const formData = new FormData();
-        formData.append("file", compressedFile);
-        imageUrl = await uploadToCloudinary(formData);
+          // Convertir el Blob a un File
+          const compressedFile = new File([compressedBlob], file.name, {
+            type: "image/png",
+            lastModified: Date.now(),
+          });
+
+          const formData = new FormData();
+          formData.append("file", compressedFile);
+
+          // Subir archivo a Cloudinary
+          imageUrl = await uploadToCloudinary(formData);
+        } catch (error) {
+          console.error("Error al comprimir/subir la imagen:", error);
+          alert("Hubo un problema al subir la imagen. Intenta de nuevo.");
+          return;
+        }
       } else {
+        alert("Selecciona una imagen antes de continuar.");
         return;
       }
 
@@ -181,6 +215,7 @@ const Product: React.FC = () => {
       setFile(null);
       setNewColor("");
       setSelectedExistingImage(null);
+      alert("Imagen añadida con éxito.");
     }
   };
 
@@ -195,7 +230,7 @@ const Product: React.FC = () => {
       formData.append("api_key", api_key);
       formData.append("timestamp", timestamp.toString());
       formData.append("signature", signature);
-      formData.append("format", "png");
+      formData.append("format", "png"); // Asegurarse de que se guarde como PNG
 
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
@@ -219,6 +254,17 @@ const Product: React.FC = () => {
       delete newImages[color];
       return newImages;
     });
+  };
+
+  const handleSetPrimaryImage = (url: string) => {
+    if (product) {
+      product.img = url; // Actualizamos la imagen principal
+      alert("Imagen principal actualizada correctamente."); // Mensaje de éxito
+    }
+
+    setColorImages((prevImages) => ({
+      ...prevImages,
+    }));
   };
 
   const handleCategoriesChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -369,8 +415,10 @@ const Product: React.FC = () => {
             />
             <input
               type="file"
+              accept="image/png"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
+            {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
             <button type="button" onClick={handleColorChange}>
               Add Color Image
             </button>
@@ -394,7 +442,30 @@ const Product: React.FC = () => {
                 <div key={color} className="productImageContainer">
                   <img src={url} alt={color} className="productImage" />
                   <span>{color}</span>
-                  <Delete onClick={() => handleDeleteImage(color)} />
+
+                  {/* Ícono de estrella personalizable */}
+                  <span
+                    onClick={() => handleSetPrimaryImage(url)}
+                    style={{
+                      cursor: "pointer",
+                      fontSize: "24px",
+                      color: product?.img === url ? "gold" : "gray", // Dorado para principal, gris para otras
+                      marginRight: "10px",
+                    }}
+                    title={
+                      product?.img === url
+                        ? "Esta es la imagen principal"
+                        : "Hacer esta la imagen principal"
+                    }
+                  >
+                    ★
+                  </span>
+
+                  {/* Botón para borrar */}
+                  <Delete
+                    onClick={() => handleDeleteImage(color)}
+                    style={{ cursor: "pointer" }}
+                  />
                 </div>
               ))}
             </div>

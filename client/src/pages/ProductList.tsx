@@ -106,7 +106,6 @@ const ProductList: React.FC = () => {
   const [sort, setSort] = useState("newest");
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
@@ -116,6 +115,12 @@ const ProductList: React.FC = () => {
       [e.target.name]: e.target.value,
     }));
   };
+
+  // Reiniciar filtros al cambiar de categoría
+  useEffect(() => {
+    // Reiniciar los filtros al cargar nuevas categorías
+    setFilters({ size: "" }); // Inicializa `size` como "" para que "Todos los tamaños" esté seleccionado
+  }, [mainCategory, subCategory, type]);
 
   useEffect(() => {
     const fetchSizesAndProducts = async () => {
@@ -159,13 +164,23 @@ const ProductList: React.FC = () => {
       const productCategories = product.categories.map((cat) =>
         cat.toLowerCase()
       );
-      return categoriesRequired.every((requiredCategory) =>
+
+      // Verificar si el producto pertenece a las categorías requeridas
+      const matchesCategories = categoriesRequired.every((requiredCategory) =>
         productCategories.includes(requiredCategory)
       );
+
+      // Verificar si el producto tiene el talle seleccionado
+      const matchesSize =
+        !filters.size ||
+        filters.size === "" ||
+        product.size.includes(Number(filters.size));
+
+      return matchesCategories && matchesSize;
     });
 
     setFilteredProducts(filtered);
-  }, [products, mainCategory, subCategory, type]);
+  }, [products, mainCategory, subCategory, type, filters]);
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
@@ -207,7 +222,7 @@ const ProductList: React.FC = () => {
           <Filter>
             <FilterText>Filtrar Productos:</FilterText>
             <Select name="color" onChange={handleFilters}>
-              <Option disabled>Color</Option>
+              <Option value="">Color</Option>
               <Option>Blanco</Option>
               <Option>Negro</Option>
               <Option>Rojo</Option>
@@ -215,8 +230,9 @@ const ProductList: React.FC = () => {
               <Option>Amarillo</Option>
               <Option>Verde</Option>
             </Select>
-            <Select name="size" onChange={handleFilters}>
-              <Option disabled>Tamaño</Option>
+            <Select name="size" value={filters.size} onChange={handleFilters}>
+              <Option value="">Todos los tamaños</Option>{" "}
+              {/* Valor por defecto */}
               {availableSizes.map((size) => (
                 <Option key={size} value={size.toString()}>
                   {size}
