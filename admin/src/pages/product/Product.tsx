@@ -11,8 +11,10 @@ import Chart from "../../components/chart/Chart";
 import { Publish, Delete } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
 import { userRequest } from "../../requestMethods";
+// @ts-ignore
 import Compressor from "compressorjs";
 import { updateProduct } from "../../redux/apiCalls";
+import { useDrag, useDrop } from "react-dnd";
 
 interface ProductState {
   product: {
@@ -31,6 +33,78 @@ interface ProductState {
     }[];
   };
 }
+
+// Subcomponente para cada imagen
+const DraggableImage: React.FC<{
+  image: { color: string; url: string };
+  index: number;
+  moveImage: (fromIndex: number, toIndex: number) => void;
+  handleDeleteImage: (color: string) => void;
+}> = ({ image, index, moveImage, handleDeleteImage }) => {
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  const [, drag] = useDrag({
+    type: "image",
+    item: { index },
+  });
+
+  const [, drop] = useDrop({
+    accept: "image",
+    hover: (draggedItem: { index: number }) => {
+      if (!ref.current) return;
+
+      if (draggedItem.index !== index) {
+        moveImage(draggedItem.index, index);
+        draggedItem.index = index; // Actualizamos el índice del elemento arrastrado
+      }
+    },
+  });
+
+  drag(drop(ref));
+
+  return (
+    <div ref={ref} className="productImageContainer">
+      <img src={image.url} alt={image.color} className="productImage" />
+      <div className="imageLabel">{image.color}</div>
+      <Delete
+        className="deleteIcon"
+        onClick={() => handleDeleteImage(image.color)}
+        titleAccess="Eliminar imagen"
+      />
+    </div>
+  );
+};
+
+// Componente para manejar las imágenes actuales
+const ProductImages: React.FC<{
+  images: { color: string; url: string }[];
+  setImages: (updatedImages: { color: string; url: string }[]) => void;
+  handleDeleteImage: (color: string) => void;
+}> = ({ images, setImages, handleDeleteImage }) => {
+  const moveImage = (fromIndex: number, toIndex: number) => {
+    if (toIndex < 0 || toIndex >= images.length) return;
+
+    const updatedImages = [...images];
+    const [movedImage] = updatedImages.splice(fromIndex, 1);
+    updatedImages.splice(toIndex, 0, movedImage);
+
+    setImages(updatedImages);
+  };
+
+  return (
+    <div className="productImages">
+      {images.map((image, index) => (
+        <DraggableImage
+          key={image.color}
+          index={index}
+          image={image}
+          moveImage={moveImage}
+          handleDeleteImage={handleDeleteImage}
+        />
+      ))}
+    </div>
+  );
+};
 
 const Product: React.FC = () => {
   const location = useLocation();
@@ -55,12 +129,26 @@ const Product: React.FC = () => {
     url: string;
     productName: string;
   } | null>(null);
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [selectedProductForImages, setSelectedProductForImages] = useState("");
 
   const dispatch = useDispatch();
 
   const product = useSelector((state: ProductState) =>
     state.product.products.find((product) => product._id === productId)
   );
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await userRequest.get("/products");
+        setAllProducts(res.data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   useEffect(() => {
     if (product) {
@@ -145,10 +233,30 @@ const Product: React.FC = () => {
   };
 
   const handleSelectCommonSizes = () => {
-    const commonSizes = Array.from({ length: 12 }, (_, i) => 32 + i * 2);
+    const commonSizes = Array.from({ length: 10 }, (_, i) => 36 + i * 2); // Solo del 36 al 54
     setSizes((prevSizes) => [
       ...new Set([...prevSizes, ...commonSizes]), // Eliminar duplicados
     ]);
+  };
+
+  const handleSelectProductForImages = () => {
+    if (!selectedProductForImages) {
+      alert("Por favor, selecciona un producto.");
+      return;
+    }
+
+    // Encuentra el producto seleccionado
+    const selectedProduct = allProducts.find(
+      (prod) => prod._id === selectedProductForImages
+    );
+
+    if (selectedProduct && selectedProduct.images) {
+      setColorImages((prevImages) => ({
+        ...prevImages,
+        ...selectedProduct.images, // Agrega las imágenes del producto seleccionado
+      }));
+      alert("Imágenes copiadas exitosamente.");
+    }
   };
 
   const handleColorChange = async () => {
@@ -178,10 +286,10 @@ const Product: React.FC = () => {
               maxHeight: 1000,
               mimeType: "image/png", // Asegura que sea PNG
               convertSize: Infinity, // Evita convertir archivos pequeños a JPEG
-              success(compressedBlob) {
+              success(compressedBlob: Blob | PromiseLike<Blob>) {
                 resolve(compressedBlob);
               },
-              error(err) {
+              error(err: any) {
                 reject(err);
               },
             });
@@ -378,21 +486,45 @@ const Product: React.FC = () => {
             {showSizeDropdown && (
               <div className="dropdown-content">
                 <button type="button" onClick={handleSelectCommonSizes}>
-                  Seleccionar 32 a 54
+                  Seleccionar 36 a 54
                 </button>
-                {Array.from({ length: 31 }, (_, i) => i * 2).map((size) => (
+                {Array.from({ length: 36 }, (_, i) => i * 2).map((size) => (
                   <div key={size}>
-                    <input
-                      type="checkbox"
-                      id={`size-${size}`}
-                      checked={sizes.includes(size)}
-                      onChange={() => handleSizeChange(size)}
-                    />
-                    <label htmlFor={`size-${size}`}>{size}</label>
+                    {(size >= 0 && size <= 16) || (size >= 32 && size <= 70) ? (
+                      <>
+                        <input
+                          type="checkbox"
+                          id={`size-${size}`}
+                          checked={sizes.includes(size)}
+                          onChange={() => handleSizeChange(size)}
+                        />
+                        <label htmlFor={`size-${size}`}>{size}</label>
+                      </>
+                    ) : null}
                   </div>
                 ))}
               </div>
             )}
+            <label>Seleccionar Producto para Copiar Imágenes</label>
+            <select
+              value={selectedProductForImages}
+              onChange={(e) => setSelectedProductForImages(e.target.value)}
+            >
+              <option value="">Selecciona un producto</option>
+              {allProducts.map((prod) => (
+                <option key={prod._id} value={prod._id}>
+                  {prod.title}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={handleSelectProductForImages}
+              className="productButton"
+            >
+              Copiar Imágenes del Producto
+            </button>
+
             <label>Elegir Imagen Existente</label>
             <select
               onChange={handleExistingImageSelect}
@@ -436,39 +568,28 @@ const Product: React.FC = () => {
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
               />
             </div>
-            <div className="productImages">
-              <h3>Imágenes Actuales</h3>
-              {Object.entries(colorImages).map(([color, url]) => (
-                <div key={color} className="productImageContainer">
-                  <img src={url} alt={color} className="productImage" />
-                  <span>{color}</span>
+            <button
+              type="button"
+              onClick={() => setColorImages({})}
+              className="productButton"
+            >
+              Eliminar todas las imágenes
+            </button>
 
-                  {/* Ícono de estrella personalizable */}
-                  <span
-                    onClick={() => handleSetPrimaryImage(url)}
-                    style={{
-                      cursor: "pointer",
-                      fontSize: "24px",
-                      color: product?.img === url ? "gold" : "gray", // Dorado para principal, gris para otras
-                      marginRight: "10px",
-                    }}
-                    title={
-                      product?.img === url
-                        ? "Esta es la imagen principal"
-                        : "Hacer esta la imagen principal"
-                    }
-                  >
-                    ★
-                  </span>
-
-                  {/* Botón para borrar */}
-                  <Delete
-                    onClick={() => handleDeleteImage(color)}
-                    style={{ cursor: "pointer" }}
-                  />
-                </div>
-              ))}
-            </div>
+            <ProductImages
+              images={Object.entries(colorImages).map(([color, url]) => ({
+                color,
+                url,
+              }))}
+              setImages={(updatedImages) => {
+                const newColorImages: { [key: string]: string } = {};
+                updatedImages.forEach(({ color, url }) => {
+                  newColorImages[color] = url;
+                });
+                setColorImages(newColorImages);
+              }}
+              handleDeleteImage={handleDeleteImage}
+            />
 
             <button type="submit" className="productButton">
               Update

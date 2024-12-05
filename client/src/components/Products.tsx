@@ -8,13 +8,14 @@ const Container = styled.div`
   grid-template-columns: repeat(
     auto-fill,
     minmax(250px, 1fr)
-  ); // Cambia 'auto-fit' por 'auto-fill'
-  gap: 15px; // Ajusta el espacio entre los productos
-  width: 100%; // Asegura que ocupe todo el ancho disponible
-  max-width: 1200px; // Opcional: limita el ancho total si quieres un diseño más compacto
-  margin: 0 auto; // Centra el grid en la página
+  ); /* Mantén 'auto-fill' */
+  gap: 50px; /* Aumenta el espacio entre las tarjetas */
+  width: 100%; /* Ocupa todo el ancho disponible */
+  //max-width: 1200px; /* Limita el ancho total si es necesario */
+  background-color: #f9f9f9; /* Fondo similar al slider */
+  margin: 0 auto; /* Centra el contenedor */
   box-sizing: border-box;
-  padding: 0 20px; // Opcional: agrega espacio lateral para evitar que las tarjetas queden pegadas a los bordes
+  padding: 20px; /* Añade espacio interno para evitar que las tarjetas toquen los bordes */
 `;
 
 interface ProductProps {

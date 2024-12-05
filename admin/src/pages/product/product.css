@@ -130,10 +130,78 @@
 
 .productButton {
   border: none;
-  padding: 5px;
+  padding: 10px 20px; /* Aumenta el tamaño para mejorar la visibilidad */
   border-radius: 5px;
   background-color: darkblue;
   color: white;
   font-weight: 600;
   cursor: pointer;
+  margin-top: 20px; /* Agrega un margen superior */
+}
+
+.productImages {
+  display: flex;
+  flex-wrap: wrap; /* Permitir múltiples filas */
+  gap: 15px; /* Espacio entre las imágenes */
+  justify-content: center; /* Centrar las imágenes horizontalmente */
+}
+
+.productImageContainer {
+  position: relative;
+  width: 120px;
+  height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between; /* Espaciado interno */
+  background-color: #f1f1f1;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.productImageContainer:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.productImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Mostrar toda la imagen */
+  border-radius: 5px;
+}
+
+.deleteIcon {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  color: #ff4d4d;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.deleteIcon:hover {
+  color: #ff0000;
+}
+
+.imageLabel {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  text-align: center;
+}
+
+.productImageContainer span {
+  position: relative;
+  top: 5px;
+  left: 5px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 2px 5px;
+  font-size: 12px;
+  border-radius: 3px;
 }

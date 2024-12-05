@@ -1,21 +1,21 @@
 export const sliderItems = [
   {
     id: 1,
-    img: "https://res.cloudinary.com/djovvsorv/image/upload/t_yo/v1730822712/cailxbv7cdmp4ubj5ae0.png",
+    img: "https://res.cloudinary.com/djovvsorv/image/upload/v1732905060/marrongrafa1_ouegjz.png",
     title: "BOMBACHAS DE GRAFA",
     desc: "EXPLORA NUESTRAS OPCIONES DE BOMBACHA DE CAMPO DE GRAFA PESADA O LIVIANA",
     bg: "f5fafd",
   },
   {
     id: 2,
-    img: "https://res.cloudinary.com/djovvsorv/image/upload/v1731250027/blob_qrh1xq.png",
+    img: "https://res.cloudinary.com/djovvsorv/image/upload/v1732905912/poplinverde1_jqupfv.png",
     title: "BOMBACHAS DE POPLIN/GRAFIL",
     desc: "LAS BOMBACHAS DE CAMPO DE POPLIN SON LA COMBINACION IDEAL DE ALGODON Y POLIESTER PARA NO SUFRIR EL CALOR",
     bg: "f5fafd",
   },
   {
     id: 3,
-    img: "https://res.cloudinary.com/djovvsorv/image/upload/t_Menu%20principal%20/v1731197042/blob_txfbyr.png",
+    img: "https://res.cloudinary.com/djovvsorv/image/upload/v1733371979/verdecorderoy1_xoeggb.png",
     title: "BOMBACHAS DE CORDEROY",
     desc: "NUESTRAS BOMBACHAS DE CORDEROY SON DE LA MEJOR CALIDAD Y MAS TRABAJADAS PARA QUE PASES TU INVIERNO COMODAMENTE",
     bg: "f5fafd",
@@ -25,21 +25,21 @@ export const sliderItems = [
 export const categories = [
   {
     id: 1,
-    img: "https://dcdn.mitiendanube.com/stores/002/798/566/products/img-20230719-wa00141-c0633b39dd79d0c80b16897783178408-480-0.jpg",
+    img: "https://res.cloudinary.com/djovvsorv/image/upload/v1733015991/alforzadamarron3_myjrak.png",
     title: "ROPA DE CAMPO DE HOMBRE",
     cat: "hombre",
   },
   {
     id: 2,
-    img: "https://acdn.mitiendanube.com/stores/001/709/020/products/h-bca-lah-beige-at1-dc122325753f4984c516283580602963-640-0.jpg",
+    img: "https://res.cloudinary.com/djovvsorv/image/upload/v1732835197/marrongrafa1_lwcxd0.png",
     title: "ROPA DE CAMPO DE MUJER",
     cat: "mujer",
   },
   {
     id: 3,
-    img: "https://acdn.mitiendanube.com/stores/001/709/020/products/m-bca-pet-marino-mc11-962462aa44fef12d3f16236383324056-480-0.jpg",
-    title: "ROPA DE CAMPO DE NIÑOS Y ADOLESCENTES",
-    cat: "niños",
+    img: "https://res.cloudinary.com/djovvsorv/image/upload/v1733097417/corderoymarronoscuro3_ehmjxt.png",
+    title: "ROPA DE CAMPO DE ADOLESCENTES",
+    cat: "adolescentes",
   },
   // ];
 

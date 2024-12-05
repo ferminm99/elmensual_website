@@ -8,6 +8,7 @@ const Container = styled.div`
   display: flex;
   padding: 20px;
   justify-content: space-between;
+  background-color: #f9f9f9; /* Fondo similar al slider */
   ${mobile({ padding: "0px", flexDirection: "column" })}
 `;
 

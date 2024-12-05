@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./userList.css";
-import { DataGrid, GridColDef } from "@material-ui/data-grid";
-import { DeleteOutline } from "@material-ui/icons";
+import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { DeleteOutline } from "@mui/icons-material";
 import { userRows } from "../../dummyData";
 import { Link } from "react-router-dom";
 
@@ -27,7 +27,7 @@ const UserList: React.FC = () => {
       field: "user",
       headerName: "User",
       width: 200,
-      renderCell: (params) => {
+      renderCell: (params: GridRenderCellParams) => {
         return (
           <div className="userListUser">
             <img className="userListImg" src={params.row.avatar} alt="" />
@@ -51,7 +51,7 @@ const UserList: React.FC = () => {
       field: "action",
       headerName: "Action",
       width: 150,
-      renderCell: (params) => {
+      renderCell: (params: GridRenderCellParams) => {
         return (
           <>
             <Link to={`/user/${params.row.id}`}>

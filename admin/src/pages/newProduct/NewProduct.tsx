@@ -2,6 +2,7 @@ import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import "./newProduct.css";
 import { addProduct } from "../../redux/apiCalls";
 import { useDispatch } from "react-redux";
+// @ts-ignore
 import Compressor from "compressorjs";
 import { useNavigate } from "react-router-dom";
 import { publicRequest } from "../../requestMethods";
@@ -134,10 +135,10 @@ export default function NewProduct() {
         maxHeight: 1000,
         mimeType: "image/png",
         convertSize: Infinity,
-        success(compressedFile) {
+        success(compressedFile: File) {
           resolve(compressedFile as File);
         },
-        error(err) {
+        error(err: { message: any }) {
           console.error("Error al comprimir la imagen:", err.message);
           reject(err);
         },

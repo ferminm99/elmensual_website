@@ -13,7 +13,8 @@ import UserList from "./pages/userList/UserList";
 import User from "./pages/user/User";
 import NewUser from "./pages/newUser/NewUser";
 import ProductList from "./pages/productList/ProductList";
-import Product from "./pages/product/Product";
+import ProductPage from "./pages/product/ProductPage";
+
 import NewProduct from "./pages/newProduct/NewProduct";
 import Login from "./pages/login/Login";
 import { useSelector } from "react-redux";
@@ -87,10 +88,11 @@ const App: React.FC = () => {
               path="/product/:productId"
               element={
                 <AdminLayout>
-                  <Product />
+                  <ProductPage />
                 </AdminLayout>
               }
             />
+
             <Route
               path="/newproduct"
               element={

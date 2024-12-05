@@ -12,28 +12,31 @@ import { mobile } from "../responsive";
 
 const Container = styled.div`
   display: flex;
-  ${mobile({ flexDirection: "column" })}
+  background-color: #1a1a1a; /* Negro más suave */
+  color: #eaeaea; /* Blanco menos brillante */
+  padding: 20px 0;
+  ${mobile({ flexDirection: "column", textAlign: "center" })}
 `;
 
 const Left = styled.div`
   flex: 1;
   padding: 20px;
-  flex-direction: column;
-  display: flex;
 `;
+
 const Center = styled.div`
   flex: 1;
   padding: 20px;
   ${mobile({ display: "none" })}
 `;
+
 const Right = styled.div`
   flex: 1;
   padding: 20px;
-  ${mobile({ backgroundColor: "#fff8f8" })}
 `;
 
 const Title = styled.h3`
-  margin-bottom: 30px;
+  margin-bottom: 20px;
+  color: #eaeaea; /* Asegura que el título sea blanco menos brillante */
 `;
 
 const List = styled.ul`
@@ -50,7 +53,7 @@ const ListItem = styled.li`
 
   a {
     text-decoration: none;
-    color: inherit;
+    color: #dddada;
 
     &:hover {
       text-decoration: underline;
@@ -58,14 +61,20 @@ const ListItem = styled.li`
   }
 `;
 
-const Logo = styled.h1``;
+const Logo = styled.h1`
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
+`;
 
 const Desc = styled.p`
-  margin: 20px 0px;
+  margin: 10px 0px;
+  font-size: 14px;
 `;
 
 const SocialContainer = styled.div`
   display: flex;
+  margin-top: 10px;
 `;
 
 const SocialIcon = styled.div`
@@ -76,17 +85,25 @@ const SocialIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 20px;
+  margin-right: 10px;
+  cursor: pointer;
+
+  a {
+    color: #e9e4e4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 `;
 
 const ContactItem = styled.div`
   display: flex;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   align-items: center;
-`;
 
-const Payment = styled.img`
-  display: flex;
+  svg {
+    margin-right: 10px;
+  }
 `;
 
 const Footer: React.FC = () => {
@@ -94,26 +111,26 @@ const Footer: React.FC = () => {
     <Container>
       <Left>
         <Logo>El Mensual</Logo>
-        <Desc>Contactenos para poder trabajar con nosotros!</Desc>
+        <Desc>Contáctenos para poder trabajar con nosotros!</Desc>
         <SocialContainer>
-          <a
-            href="https://www.facebook.com/www.elmensual.com.ar"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <SocialIcon color="3B5999">
+          <SocialIcon color="3B5999">
+            <a
+              href="https://www.facebook.com/www.elmensual.com.ar"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Facebook />
-            </SocialIcon>
-          </a>
-          <a
-            href="https://www.instagram.com/elmensual_laplata/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <SocialIcon color="E4405F">
+            </a>
+          </SocialIcon>
+          <SocialIcon color="E4405F">
+            <a
+              href="https://www.instagram.com/elmensual_laplata/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Instagram />
-            </SocialIcon>
-          </a>
+            </a>
+          </SocialIcon>
         </SocialContainer>
       </Left>
       <Center>
@@ -142,15 +159,15 @@ const Footer: React.FC = () => {
       <Right>
         <Title>Contacto</Title>
         <ContactItem>
-          <Room style={{ marginRight: "10px" }} />
+          <Room />
           Bartolomé Mitre 3437 (C.P. 7260) Saladillo - Buenos Aires - ARG.
         </ContactItem>
         <ContactItem>
-          <Phone style={{ marginRight: "10px" }} />
+          <Phone />
           (+54) 02344454-605 / (+54) 02344451-550 / (+54) 02345156-87094
         </ContactItem>
         <ContactItem>
-          <MailOutline style={{ marginRight: "10px" }} />{" "}
+          <MailOutline />
           lamotex@elmensual.com.ar / ventas@elmensual.com.ar
         </ContactItem>
       </Right>

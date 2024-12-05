@@ -19,32 +19,42 @@ interface ProductProps {
 
 const ImageContainer = styled.div`
   width: 100%;
-  height: 300px;
+  aspect-ratio: 3 / 4; /* Relación de aspecto para el contenedor */
   background-color: #f0f0f0;
   position: relative;
-  transition: filter 0.3s ease; /* Suaviza el efecto de oscurecimiento */
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const Card = styled.div`
-  width: 100%; /* Permite que el card use todo el ancho asignado */
-  max-width: 250px; /* Limita el ancho máximo de cada tarjeta */
+  width: 100%;
+  max-width: 280px; /* Ajusta el tamaño máximo */
   background-color: white;
+  border-radius: 8px;
   overflow: hidden;
   text-align: center;
-  position: relative;
-  transition: background-color 0.3s ease;
-  padding: 10px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Sombra para separación visual */
+  padding: 15px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, transform 0.2s ease;
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.05); /* Fondo gris suave al hacer hover */
+    background-color: rgba(0, 0, 0, 0.03); /* Ligero cambio de fondo */
+    transform: translateY(-5px); /* Efecto flotante */
   }
 `;
 
 const Image = styled.img`
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain; /* Asegura que la imagen no se recorte */
+  transition: transform 0.3s ease;
+
+  ${Card}:hover & {
+    transform: scale(1.05); /* Zoom suave al pasar el mouse */
+  }
 `;
 
 const Info = styled.div`
@@ -94,9 +104,9 @@ const Title = styled.h3`
   font-size: 16px;
   font-weight: 600;
   margin: 5px 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap; /* Mantener en una línea */
+  text-align: center;
+  overflow: visible;
+  white-space: normal; /* Mantener en una línea */
   width: 100%;
 `;
 
@@ -122,24 +132,24 @@ const Product: React.FC<ProductProps> = ({ item }) => {
         <Image src={item.img} alt={item.title} />
         <Info>
           <IconContainer>
-            <Icon>
-              <ShoppingCartOutlined />
-            </Icon>
+            {/* <Icon>
+                <ShoppingCartOutlined />
+              </Icon> */}
             <Icon>
               <Link to={`/product/${item._id}`}>
                 <SearchOutlined />
               </Link>
             </Icon>
-            <Icon>
-              <FavoriteBorderOutlined />
-            </Icon>
+            {/* <Icon>
+                <FavoriteBorderOutlined />
+              </Icon> */}
           </IconContainer>
         </Info>
       </ImageContainer>
       <Details>
         <Title>{item.title}</Title>
-        <Subtitle>{item.categories[0]}</Subtitle>
-        <Price>${item.price}</Price>
+        {/* <Subtitle>{item.categories[0]}</Subtitle> */}
+        {/* <Price>${item.price}</Price> */}
       </Details>
     </Card>
   );

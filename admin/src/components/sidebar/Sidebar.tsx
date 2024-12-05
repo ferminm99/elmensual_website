@@ -13,7 +13,7 @@ import {
   ChatBubbleOutline,
   WorkOutline,
   Report,
-} from "@material-ui/icons";
+} from "@mui/icons-material";
 
 import { Link } from "react-router-dom";
 

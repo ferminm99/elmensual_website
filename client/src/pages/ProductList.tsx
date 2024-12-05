@@ -174,7 +174,7 @@ const ProductList: React.FC = () => {
       const matchesSize =
         !filters.size ||
         filters.size === "" ||
-        product.size.includes(Number(filters.size));
+        product.size.map(Number).includes(Number(filters.size));
 
       return matchesCategories && matchesSize;
     });

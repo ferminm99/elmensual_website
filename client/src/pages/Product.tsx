@@ -16,15 +16,16 @@ import remarkGfm from "remark-gfm"; // Para soporte de tablas, listas, etc.
 
 const Container = styled.div`
   background-color: #f5f5f5;
-  padding: 20px 0; /* Añadimos algo de padding para que no esté pegado al borde */
+  padding: 20px 0 0 0; /* Añadimos algo de padding para que no esté pegado al borde */
 `;
 
 const Wrapper = styled.div`
   padding: 50px;
-  width: 50%; /* Ocupa el 50% del ancho de la pantalla */
-  margin: 0 auto; /* Centra horizontalmente */
+  max-width: 65%; /* Amplía el ancho máximo */
+  margin: 0 auto;
   display: flex;
-  ${mobile({ padding: "10px", flexDirection: "column", width: "90%" })}
+  gap: 30px; /* Ajusta el espacio entre las columnas */
+  ${mobile({ flexDirection: "column", padding: "20px" })}
 `;
 
 const ImgContainer = styled.div`
@@ -88,8 +89,8 @@ const InfoContainer = styled.div`
 `;
 
 const Title = styled.h1`
-  font-weight: 300;
-  font-size: 32px;
+  font-size: 30px; /* Reduce el tamaño del título */
+  font-weight: 400;
 `;
 
 const Desc = styled.div`
@@ -109,19 +110,27 @@ const FilterContainer = styled.div`
   width: 100%;
   margin: 30px 0px;
   display: flex;
+  flex-direction: column; /* Filtros alineados verticalmente */
   gap: 20px;
   ${mobile({ width: "100%" })}
 `;
 
 const Filter = styled.div`
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column; /* Cambia a columna */
+  align-items: flex-start; /* Alinea los elementos al inicio horizontalmente */
+  gap: 10px; /* Espacio entre el título y los elementos */
+
+  ${mobile({
+    flexDirection: "column",
+    alignItems: "flex-start",
+  })}/* En móviles, cambia a columna */
 `;
 
 const FilterTitle = styled.span`
   font-size: 20px;
   font-weight: 200;
+  margin-bottom: 5px; /* Añade espacio debajo del título */
 `;
 
 const FilterColor = styled.div<{ color: string; selected: boolean }>`
@@ -135,50 +144,75 @@ const FilterColor = styled.div<{ color: string; selected: boolean }>`
 `;
 
 const FilterSize = styled.select`
-  padding: 5px;
+  width: 100%; /* Ocupa todo el ancho */
+  padding: 15px; /* Similar al botón */
   font-size: 16px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 2px solid #ddd; /* Bordes más definidos */
+  border-radius: 5px; /* Bordes redondeados */
+  background-color: #f9f9f9; /* Fondo claro */
+  text-align: left;
+  outline: none;
+
+  &:hover {
+    border-color: #555; /* Cambio de borde al pasar el mouse */
+  }
+
+  &:focus {
+    border-color: #333; /* Borde al enfocarse */
+  }
+`;
+
+const FilterColorsContainer = styled.div`
+  display: flex;
+  gap: 10px; /* Espacio entre los círculos de color */
 `;
 
 const FilterSizeOption = styled.option`
-  font-size: 15px;
+  font-size: 16px;
+  color: #333;
+  background-color: white;
 `;
 
 const AddContainer = styled.div`
   display: flex;
-  align-items: center;
-  width: 100%;
-  justify-content: flex-start;
-  gap: 20px;
+  flex-direction: column; /* Alinea los elementos verticalmente */
+  align-items: flex-start; /* Alinea los elementos al inicio horizontal */
+  gap: 15px; /* Espacio entre los elementos */
+  width: 100%; /* Asegura que use todo el ancho disponible */
   ${mobile({ width: "100%" })}
 `;
 
 const AmountContainer = styled.div`
   display: flex;
   align-items: center;
-  font-weight: 700;
+  gap: 10px; /* Espacio entre los botones y el número */
 `;
 
 const Amount = styled.span`
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 5px;
   display: flex;
-  border: 1px solid teal;
   align-items: center;
   justify-content: center;
-  margin: 0px 5px;
+  border: 1px solid teal;
+  font-size: 16px;
 `;
 
 const Button = styled.button`
-  padding: 15px;
-  border: 2px solid teal;
-  background-color: white;
+  width: 100%; /* Ocupa todo el ancho disponible */
+  padding: 10px;
+  background-color: #333;
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  border: none;
+  border-radius: 5px;
   cursor: pointer;
-  font-weight: 500;
+
   &:hover {
-    background-color: #f8f4f4;
+    background-color: #555;
   }
 `;
 
@@ -299,10 +333,15 @@ const Product: React.FC = () => {
       amarillo: "#FFFF00",
       negro: "#000000",
       blanco: "#FFFFFF",
-      gris: "#808080",
+      gris: "#9a98b9",
       marron: "#875833",
       rosa: "#FFC0CB",
       naranja: "#FFA500",
+      beige: "#f0e5e5",
+      celeste: "#5050d4",
+      chocolate: "#632b00",
+      marronoscuro: "#3b220f",
+      tiza: "#f7ebeb",
     };
 
     return colorMap[colorName.toLowerCase()] || "#000000"; // Devuelve negro por defecto
@@ -355,17 +394,19 @@ const Product: React.FC = () => {
               <FilterContainer>
                 <Filter>
                   <FilterTitle>Color</FilterTitle>
-                  {Object.keys(product.images)
-                    .map((key) => key.replace(/\d+/g, ""))
-                    .filter((v, i, a) => a.indexOf(v) === i)
-                    .map((uniqueColor) => (
-                      <FilterColor
-                        color={translateColor(uniqueColor)}
-                        key={uniqueColor}
-                        onClick={() => handleColorChange(uniqueColor)}
-                        selected={color === uniqueColor}
-                      />
-                    ))}
+                  <FilterColorsContainer>
+                    {Object.keys(product.images)
+                      .map((key) => key.replace(/\d+/g, ""))
+                      .filter((v, i, a) => a.indexOf(v) === i)
+                      .map((uniqueColor) => (
+                        <FilterColor
+                          color={translateColor(uniqueColor)}
+                          key={uniqueColor}
+                          onClick={() => handleColorChange(uniqueColor)}
+                          selected={color === uniqueColor}
+                        />
+                      ))}
+                  </FilterColorsContainer>
                 </Filter>
                 <Filter>
                   <FilterTitle>Tamaño</FilterTitle>
@@ -377,11 +418,11 @@ const Product: React.FC = () => {
                 </Filter>
               </FilterContainer>
               <AddContainer>
-                <AmountContainer>
+                {/* <AmountContainer>
                   <Remove onClick={() => handleQuantity("dec")} />
                   <Amount>{quantity}</Amount>
                   <Add onClick={() => handleQuantity("inc")} />
-                </AmountContainer>
+                </AmountContainer> */}
                 <Button onClick={handleClick}>CONTACTAR</Button>
               </AddContainer>
               <Desc>

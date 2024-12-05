@@ -109,23 +109,22 @@ const Dropdown = styled.div`
   visibility: hidden;
   opacity: 0;
   position: fixed;
-  top: 120px;
+  top: 110px;
   left: 0;
   right: 0;
   background-color: #f9f9f9;
   box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
   padding: 20px;
-  z-index: 15;
-  width: 100vw;
-  min-height: 350px;
+  z-index: 100;
+  width: 100%;
+  min-height: 35%;
   display: flex;
-  justify-content: center;
-  gap: 20px;
+  justify-content: center; /* Cambiar de 'center' a 'flex-start' */
+  gap: 40px; /* Mayor separación entre las columnas */
   transition: visibility 0.2s ease-in-out, opacity 0.3s ease;
   border-radius: 8px;
   box-sizing: border-box;
   overflow-y: auto;
-
   ${CategoryMenu}:hover & {
     visibility: visible;
     opacity: 1;
@@ -136,9 +135,9 @@ const DropdownSection = styled.div`
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Esto asegura que el contenido esté centrado */
+  align-items: flex-start; /* Alinea los títulos y elementos a la izquierda */
   min-width: 150px;
-  text-align: center; /* Centra el texto debajo de cada título */
+  text-align: left; /* Alinea el texto a la izquierda */
 `;
 
 const SubDropdown = styled.div`
@@ -146,6 +145,7 @@ const SubDropdown = styled.div`
   opacity: 0;
   position: absolute;
   top: 50%;
+  white-space: nowrap;
   left: calc(100% + 10px);
   transform: translateY(-50%);
   background-color: #f9f9f9;
@@ -173,6 +173,7 @@ const DropdownItem = styled.div`
   position: relative;
   white-space: nowrap; /* Evita que el texto se corte */
   width: 100%;
+  text-align: left; /* Alinea cada ítem a la izquierda */
 
   &:hover {
     background-color: #e6e6e6;
@@ -187,10 +188,10 @@ const DropdownItem = styled.div`
 
 const SectionTitle = styled.div`
   font-weight: bold;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   text-transform: uppercase;
   color: #333;
-  text-align: center; /* Centra el título de cada sección */
+  text-align: left; /* Asegura que el texto esté alineado a la izquierda */
 `;
 const SubsectionTitle = styled.div`
   font-weight: bold;
@@ -479,6 +480,10 @@ const Navbar: React.FC = () => {
             {
               displayName: "Poplin común (tiro alto)",
               filters: ["poplin", "tiroalto", "comun"],
+            },
+            {
+              displayName: "Poplin común (tiro bajo)",
+              filters: ["poplin", "tirobajo", "comun"],
             },
             {
               displayName: "Poplin largo especial (tiro alto)",
