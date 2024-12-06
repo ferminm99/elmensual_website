@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { sliderItems } from "../data";
 import { mobile } from "../responsive";
+import { Link } from "react-router-dom";
 
 type Direction = "left" | "right";
 
@@ -129,10 +130,9 @@ const Slider: React.FC = () => {
   const [slideIndex, setSlideIndex] = useState(0);
   const [inTransition, setInTransition] = useState(false);
 
-  // Handle manual click
   const handleClick = (direction: Direction) => {
-    setInTransition(true); // Activar el estado de transición
-    setTimeout(() => setInTransition(false), 1500); // Restaurar después de la transición
+    setInTransition(true);
+    setTimeout(() => setInTransition(false), 1500);
 
     if (direction === "left") {
       setSlideIndex((prevIndex) =>
@@ -145,7 +145,6 @@ const Slider: React.FC = () => {
     }
   };
 
-  // Cambio automático cada 5 segundos
   useEffect(() => {
     const interval = setInterval(() => {
       setInTransition(true);
@@ -173,7 +172,9 @@ const Slider: React.FC = () => {
             <InfoContainer>
               <Title>{item.title}</Title>
               <Desc>{item.desc}</Desc>
-              <Button>Ver más</Button>
+              <Button as={Link} to={item.link}>
+                Ver más
+              </Button>
             </InfoContainer>
           </Slide>
         ))}

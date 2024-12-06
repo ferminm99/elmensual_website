@@ -5,6 +5,7 @@ export const sliderItems = [
     title: "BOMBACHAS DE GRAFA",
     desc: "EXPLORA NUESTRAS OPCIONES DE BOMBACHA DE CAMPO DE GRAFA PESADA O LIVIANA",
     bg: "f5fafd",
+    link: "/products/Mujer/BOMBACHAS/grafa", // Ruta específica para Grafa
   },
   {
     id: 2,
@@ -12,6 +13,7 @@ export const sliderItems = [
     title: "BOMBACHAS DE POPLIN/GRAFIL",
     desc: "LAS BOMBACHAS DE CAMPO DE POPLIN SON LA COMBINACION IDEAL DE ALGODON Y POLIESTER PARA NO SUFRIR EL CALOR",
     bg: "f5fafd",
+    link: "/products/Mujer/BOMBACHAS/poplin", // Ruta específica para Poplin
   },
   {
     id: 3,
@@ -19,6 +21,7 @@ export const sliderItems = [
     title: "BOMBACHAS DE CORDEROY",
     desc: "NUESTRAS BOMBACHAS DE CORDEROY SON DE LA MEJOR CALIDAD Y MAS TRABAJADAS PARA QUE PASES TU INVIERNO COMODAMENTE",
     bg: "f5fafd",
+    link: "/products/Mujer/BOMBACHAS/corderoy", // Ruta específica para Corderoy
   },
 ];
 
