@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { RootState } from "../redux/store";
 import Tooltip from "@mui/material/Tooltip";
+import { mobile } from "../responsive";
 
 interface Product {
   displayName: string;
@@ -19,10 +20,12 @@ type Category = {
 const Container = styled.div`
   height: 80px;
   margin-bottom: 10px;
-  max-width: 100vw; /* Máximo ancho dentro del viewport */
-  overflow: hidden; /* Evita el desplazamiento */
-  position: relative;
-  z-index: 5;
+  max-width: 100vw;
+  overflow: hidden;
+  position: sticky; /* Navbar siempre visible */
+  top: 0; /* Fijar en la parte superior */
+  z-index: 1000;
+  background-color: white; /* Fondo para que sea legible */
 `;
 
 const Wrapper = styled.div`
@@ -31,13 +34,21 @@ const Wrapper = styled.div`
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  box-sizing: border-box; /* Incluye padding en el ancho total */
+  box-sizing: border-box;
+
+  ${mobile({
+    padding: "10px 15px", // Reduce el padding en móviles
+  })}
 `;
 
 const Left = styled.div`
   flex: 1;
   display: flex;
   align-items: center;
+
+  ${mobile({
+    justifyContent: "flex-start", // Asegura que el contenido esté alineado a la izquierda
+  })}
 `;
 
 const LogoImage = styled.img`
@@ -53,6 +64,10 @@ const SearchContainer = styled.div`
   align-items: center;
   padding: 10px;
   margin-left: 20px;
+
+  ${mobile({
+    display: "none", // Oculta el contenedor de búsqueda en móviles
+  })}
 `;
 
 const Input = styled.input`
@@ -104,7 +119,12 @@ const Center = styled.div`
   justify-content: center;
   width: 100%;
   gap: 30px; /* Espacio entre los elementos del menú */
+
+  ${mobile({
+    display: "none", // Oculta el menú en móviles
+  })}
 `;
+
 const Dropdown = styled.div`
   visibility: hidden;
   opacity: 0;
@@ -173,7 +193,9 @@ const DropdownItem = styled.div`
   position: relative;
   white-space: nowrap; /* Evita que el texto se corte */
   width: 100%;
+  margin-left: 30px; /* Mayor desplazamiento hacia la derecha */
   text-align: left; /* Alinea cada ítem a la izquierda */
+  transition: color 0.3s ease;
 
   &:hover {
     background-color: #e6e6e6;
@@ -192,7 +214,14 @@ const SectionTitle = styled.div`
   text-transform: uppercase;
   color: #333;
   text-align: left; /* Asegura que el texto esté alineado a la izquierda */
+  cursor: pointer;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: #555;
+  }
 `;
+
 const SubsectionTitle = styled.div`
   font-weight: bold;
   margin-top: 10px;
@@ -200,12 +229,32 @@ const SubsectionTitle = styled.div`
   text-align: center; /* Centra el subtítulo de cada submenú */
 `;
 
+const SubCategoryTitle = styled.div`
+  font-weight: normal;
+  font-size: 14px; /* Tamaño de fuente reducido */
+  margin-left: 15px; /* Desplaza hacia la derecha */
+  margin-bottom: 5px; /* Separación entre subcategorías */
+  color: #666;
+  cursor: pointer;
+  transition: color 0.3s ease, transform 0.2s ease;
+
+  &:hover {
+    color: #444;
+    transform: translateX(5px); /* Efecto de desplazamiento al pasar el mouse */
+  }
+`;
+
 const Right = styled.div`
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 20px; /* Espacio entre los elementos de la derecha */
+  gap: 20px;
+
+  ${mobile({
+    justifyContent: "flex-end", // Mantén el contenido alineado a la derecha
+    gap: "10px",
+  })}
 `;
 
 const MenuItem = styled.div`
@@ -217,12 +266,84 @@ const MenuItem = styled.div`
   &:hover {
     color: #555;
   }
+  ${mobile({
+    display: "none", // Visible en móviles
+  })}
 `;
 
-const Navbar: React.FC = () => {
-  //const quantity = useSelector((state: RootState) => state.cart.quantity);
-  const navigate = useNavigate();
+const MenuToggle = styled.div`
+  display: none;
 
+  ${mobile({
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "24px",
+    cursor: "pointer",
+    zIndex: 1001, // Siempre visible
+  })}
+`;
+
+const MobileMenu = styled.div`
+  display: none;
+  position: fixed; /* Menú fijo */
+  top: 80px; /* Aparece debajo del navbar */
+  left: 0;
+  width: 100%;
+  background-color: white;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  z-index: 999; /* Debajo del navbar */
+  flex-direction: column;
+  gap: 15px;
+
+  ${mobile({
+    display: "flex", // Visible en móviles
+  })}
+`;
+
+const MobileCategoryTitle = styled.div`
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: #333;
+  cursor: pointer;
+  padding: 5px 0;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: #555;
+  }
+`;
+
+const MobileSubCategoryTitle = styled.div`
+  font-weight: normal;
+  font-size: 16px;
+  margin-left: 15px; /* Desplaza ligeramente a la derecha */
+  margin-bottom: 8px;
+  color: #666;
+  cursor: pointer;
+  transition: color 0.3s ease, transform 0.2s ease;
+
+  &:hover {
+    color: #444;
+    transform: translateX(5px); /* Efecto de desplazamiento al pasar el mouse */
+  }
+`;
+
+const MobileDropdownItem = styled.div`
+  font-size: 14px; /* Tamaño más pequeño */
+  margin-left: 30px; /* Desplaza aún más a la derecha */
+  color: gray;
+  padding: 5px 0;
+  cursor: pointer;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: black;
+  }
+`;
+const Navbar: React.FC = () => {
   const categories = {
     Hombre: {
       BOMBACHAS: {
@@ -663,6 +784,21 @@ const Navbar: React.FC = () => {
     },
   };
 
+  //const quantity = useSelector((state: RootState) => state.cart.quantity);
+  const [isMobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [activeCategory, setActiveCategory] = React.useState<string | null>(
+    null
+  );
+  const [activeSection, setActiveSection] = React.useState<string | null>(null);
+  const navigate = useNavigate();
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleNavigation = (path: string) => {
+    setMobileMenuOpen(false);
+    navigate(path);
+  };
   // Función para normalizar las categorías, reemplazando caracteres especiales
   const normalizeCategory = (category: string) => {
     return category.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // Elimina tildes y acentos
@@ -673,6 +809,7 @@ const Navbar: React.FC = () => {
     section: string | null,
     filters: string[]
   ) => {
+    setMobileMenuOpen(false); // Cierra el menú al hacer clic
     const normalizedMainCategory = normalizeCategory(mainCategory);
     const normalizedSection = section ? normalizeCategory(section) : "";
     const normalizedFilters = filters.map(normalizeCategory).join("-");
@@ -784,8 +921,105 @@ const Navbar: React.FC = () => {
               </Tooltip>
             </MenuItem>
           </Link>
+          <MenuToggle onClick={toggleMobileMenu}>
+            <ViewList />
+          </MenuToggle>
         </Right>
       </Wrapper>
+
+      {/* Menú para móviles */}
+      {isMobileMenuOpen && (
+        <MobileMenu>
+          {Object.entries(categories).map(([mainCategory, sections]) => (
+            <div key={mainCategory}>
+              {/* Título principal */}
+              <MobileCategoryTitle
+                onClick={() =>
+                  setActiveCategory(
+                    activeCategory === mainCategory ? null : mainCategory
+                  )
+                }
+              >
+                {mainCategory}
+              </MobileCategoryTitle>
+
+              {/* Subcategorías y elementos secundarios */}
+              {activeCategory === mainCategory &&
+                Object.entries(sections).map(([section, data]) => {
+                  const isComplexSection =
+                    typeof data === "object" && !Array.isArray(data);
+
+                  return (
+                    <div key={section}>
+                      {/* Subcategoría */}
+                      <MobileSubCategoryTitle
+                        onClick={() =>
+                          setActiveSection(
+                            activeSection === section ? null : section
+                          )
+                        }
+                      >
+                        {section}
+                      </MobileSubCategoryTitle>
+
+                      {/* Elementos secundarios */}
+                      {activeSection === section &&
+                        (isComplexSection
+                          ? Object.entries(data).map(
+                              ([subSection, subData]: any) => (
+                                <div key={subSection}>
+                                  <MobileDropdownItem
+                                    onClick={() =>
+                                      handleCategoryClick(
+                                        mainCategory,
+                                        section,
+                                        subData.filters
+                                      )
+                                    }
+                                  >
+                                    {subSection}
+                                  </MobileDropdownItem>
+                                  {(subData.items || []).map((product: any) => (
+                                    <MobileDropdownItem
+                                      key={product.displayName}
+                                      onClick={() =>
+                                        handleCategoryClick(
+                                          mainCategory,
+                                          section,
+                                          [
+                                            ...subData.filters,
+                                            ...product.filters,
+                                          ]
+                                        )
+                                      }
+                                    >
+                                      {product.displayName}
+                                    </MobileDropdownItem>
+                                  ))}
+                                </div>
+                              )
+                            )
+                          : (data as any[]).map((product: any) => (
+                              <MobileDropdownItem
+                                key={product.displayName}
+                                onClick={() =>
+                                  handleCategoryClick(
+                                    mainCategory,
+                                    section,
+                                    product.filters
+                                  )
+                                }
+                              >
+                                {product.displayName}
+                              </MobileDropdownItem>
+                            )))}
+                    </div>
+                  );
+                })}
+            </div>
+          ))}
+        </MobileMenu>
+      )}
     </Container>
   );
 };

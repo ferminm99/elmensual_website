@@ -13,6 +13,7 @@ import { Product } from "../types";
 interface Filters {
   [key: string]: string | undefined;
 }
+
 const MainContent = styled.div`
   max-width: 1200px;
   margin: 0 auto;
@@ -24,34 +25,117 @@ const Container = styled.div``;
 const Title = styled.h1`
   margin: 20px;
   text-align: center;
+  font-size: 24px;
+
+  ${mobile({
+    fontSize: "18px",
+  })}
 `;
 
-const FilterContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 100%; // Asegura que ocupe todo el ancho del contenedor padre
-  margin: 20px 0; // Añade un margen para separación vertical
-  padding: 0 20px; // Añade un poco de espacio interno lateral
+const FilterContainer = styled.div<{ isMobileVisible: boolean }>`
+  display: ${(props) => (props.isMobileVisible ? "flex" : "none")};
+  flex-direction: column;
+  gap: 20px;
+  max-width: 100%;
+  margin: 20px 0;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  position: relative;
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease;
+
+  ${mobile({
+    position: "fixed",
+    top: "80px",
+    left: "0",
+    right: "0",
+    zIndex: 1000,
+    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+  })}
 `;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #333;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+
+  &:hover {
+    background-color: #555;
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
+`;
+
+const FilterToggle = styled.button`
+  display: none;
+
+  ${mobile({
+    display: "block",
+    background: "#555",
+    color: "white",
+    padding: "10px 20px",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+    margin: "10px auto",
+    transition: "background-color 0.3s ease, transform 0.2s ease",
+  })}
+
+  &:hover {
+    background-color: #777;
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+`;
+
 const Filter = styled.div`
-  margin: 20px;
-  ${mobile({ width: "0px 20px", display: "flex", flexDirection: "column" })}
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  ${mobile({
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: "10px",
+  })}
 `;
 
 const FilterText = styled.div`
   font-size: 20px;
   font-weight: 600;
-  margin-right: 20px;
-  ${mobile({ marginRight: "0px" })}
 `;
 
 const Select = styled.select`
   padding: 10px;
   margin-right: 20px;
-  ${mobile({ margin: "10px" })}
-`;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  transition: border-color 0.3s ease;
 
+  &:hover {
+    border-color: #777;
+  }
+
+  ${mobile({
+    margin: "10px 0",
+    width: "100%",
+  })}
+`;
 const PaginationContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -67,6 +151,16 @@ const PaginationButton = styled.button<{ active?: boolean }>`
   border: none;
   cursor: pointer;
   border-radius: 4px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+
+  &:hover {
+    background-color: ${(props) => (props.active ? "#777" : "#555")};
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
 
   &:disabled {
     background-color: #ccc;
@@ -74,32 +168,12 @@ const PaginationButton = styled.button<{ active?: boolean }>`
   }
 `;
 
-const formatCategoryTitle = (paths: string[]) => {
-  const formattedPaths = paths.map((path) =>
-    path.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())
-  );
-  return formattedPaths.join(" > ");
-};
-
-const cleanFilters = (filters: Filters): { [key: string]: string } => {
-  const validFilters: { [key: string]: string } = {};
-  for (const key in filters) {
-    if (filters[key]) {
-      validFilters[key] = filters[key] as string;
-    }
-  }
-  return validFilters;
-};
-
-const Option = styled.option``;
-
 const ProductList: React.FC = () => {
   const location = useLocation();
   const paths = location.pathname.split("/").slice(2);
   const mainCategory = paths[0]?.toLowerCase();
   const subCategory = paths[1]?.toLowerCase();
   const type = paths[2]?.toLowerCase() || "";
-  const formattedTitle = formatCategoryTitle(paths);
 
   const [filters, setFilters] = useState<Filters>({});
   const [availableSizes, setAvailableSizes] = useState<number[]>([]);
@@ -107,6 +181,7 @@ const ProductList: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isMobileFiltersVisible, setMobileFiltersVisible] = useState(false);
   const itemsPerPage = 12;
 
   const handleFilters = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -116,11 +191,20 @@ const ProductList: React.FC = () => {
     }));
   };
 
-  // Reiniciar filtros al cambiar de categoría
-  useEffect(() => {
-    // Reiniciar los filtros al cargar nuevas categorías
-    setFilters({ size: "" }); // Inicializa `size` como "" para que "Todos los tamaños" esté seleccionado
-  }, [mainCategory, subCategory, type]);
+  const toggleMobileFilters = () => {
+    setMobileFiltersVisible((prev) => !prev);
+  };
+
+  const formatTitle = () => {
+    const category = subCategory
+      ? subCategory.charAt(0).toUpperCase() + subCategory.slice(1).toLowerCase()
+      : "";
+    const group = mainCategory
+      ? mainCategory.charAt(0).toLowerCase() + mainCategory.slice(1)
+      : "";
+
+    return `${category} de ${group} - ${type.replace(/-/g, " ")}`;
+  };
 
   useEffect(() => {
     const fetchSizesAndProducts = async () => {
@@ -136,12 +220,16 @@ const ProductList: React.FC = () => {
         const url = `${baseUrl}/products${
           categoryParams ? `?${categoryParams}` : ""
         }`;
+
+        console.log("URL generada para la API:", url); // Log de la URL generada
+
         const res = await axios.get(url);
         const productsData: Product[] = res.data;
 
+        console.log("Productos recibidos desde la API:", productsData); // Log de los productos recibidos
+
         setProducts(productsData);
 
-        // Obtener talles únicos de los productos
         const sizesSet = new Set<number>();
         productsData.forEach((product) =>
           product.size.forEach((size) => sizesSet.add(Number(size)))
@@ -156,125 +244,134 @@ const ProductList: React.FC = () => {
   }, [mainCategory, subCategory, type]);
 
   useEffect(() => {
-    const categoriesRequired = [mainCategory, subCategory, type]
-      .filter(Boolean)
-      .flatMap((cat) => cat.split("-"));
+    console.log("Productos antes del filtrado:", products);
+    console.log("Filtros actuales:", filters);
+    console.log("MainCategory:", mainCategory);
+    console.log("SubCategory:", subCategory);
+    console.log("Type:", type);
+
+    const normalizedTypeParts = type
+      ? type.replace(/-/g, " ").toLowerCase().split(" ") // Separar por espacio
+      : [];
 
     const filtered = products.filter((product) => {
-      const productCategories = product.categories.map((cat) =>
-        cat.toLowerCase()
+      const productCategories = product.categories.map((category: string) =>
+        category.toLowerCase()
       );
 
-      // Verificar si el producto pertenece a las categorías requeridas
-      const matchesCategories = categoriesRequired.every((requiredCategory) =>
-        productCategories.includes(requiredCategory)
+      const matchesCategory =
+        productCategories.includes(mainCategory) &&
+        productCategories.includes(subCategory);
+
+      // Verificar si todas las partes de type están en las categorías
+      const matchesType = normalizedTypeParts.every((part) =>
+        productCategories.includes(part)
       );
 
-      // Verificar si el producto tiene el talle seleccionado
       const matchesSize =
-        !filters.size ||
-        filters.size === "" ||
-        product.size.map(Number).includes(Number(filters.size));
+        !filters.size || product.size.includes(Number(filters.size).toString());
 
-      return matchesCategories && matchesSize;
+      const included = matchesCategory && matchesType && matchesSize;
+
+      // Agregar logs para debug
+      console.log("Producto:", product.title);
+      console.log("Categorías del producto:", productCategories);
+      console.log("Matches Size:", matchesSize);
+      console.log(
+        "Matches Type:",
+        matchesType,
+        "para type parts:",
+        normalizedTypeParts
+      );
+      console.log("Matches Category:", matchesCategory);
+      console.log("Incluido en el filtrado:", included);
+
+      return included;
     });
 
+    console.log("Productos después del filtrado:", filtered);
     setFilteredProducts(filtered);
-  }, [products, mainCategory, subCategory, type, filters]);
+  }, [products, filters, mainCategory, subCategory, type]);
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-
   const displayedProducts = filteredProducts.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
-  const getPageNumbers = () => {
-    const pageNumbers: (number | string)[] = [];
-
-    if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) {
-        pageNumbers.push(i);
-      }
-    } else {
-      pageNumbers.push(1);
-      if (currentPage > 3) pageNumbers.push("...");
-      const startPage = Math.max(2, currentPage - 1);
-      const endPage = Math.min(totalPages - 1, currentPage + 1);
-
-      for (let i = startPage; i <= endPage; i++) {
-        pageNumbers.push(i);
-      }
-      if (currentPage < totalPages - 2) pageNumbers.push("...");
-      pageNumbers.push(totalPages);
-    }
-
-    return pageNumbers;
-  };
 
   return (
     <Container>
       <Navbar />
       <Announcement />
       <MainContent>
-        <Title>{formattedTitle}</Title>
-        <FilterContainer>
+        <Title>{formatTitle()}</Title>
+
+        <FilterToggle onClick={toggleMobileFilters}>
+          {isMobileFiltersVisible ? "Ocultar Filtros" : "Mostrar Filtros"}
+        </FilterToggle>
+
+        <FilterContainer isMobileVisible={isMobileFiltersVisible}>
+          <CloseButton onClick={() => setMobileFiltersVisible(false)}>
+            &times;
+          </CloseButton>
           <Filter>
             <FilterText>Filtrar Productos:</FilterText>
             <Select name="color" onChange={handleFilters}>
-              <Option value="">Color</Option>
-              <Option>Blanco</Option>
-              <Option>Negro</Option>
-              <Option>Rojo</Option>
-              <Option>Azul</Option>
-              <Option>Amarillo</Option>
-              <Option>Verde</Option>
+              <option value="">Todos los colores</option>
+              <option>Blanco</option>
+              <option>Negro</option>
+              <option>Rojo</option>
+              <option>Azul</option>
+              <option>Amarillo</option>
+              <option>Verde</option>
             </Select>
             <Select name="size" value={filters.size} onChange={handleFilters}>
-              <Option value="">Todos los tamaños</Option>{" "}
-              {/* Valor por defecto */}
+              <option value="">Todos los tamaños</option>
               {availableSizes.map((size) => (
-                <Option key={size} value={size.toString()}>
+                <option key={size} value={size}>
                   {size}
-                </Option>
+                </option>
               ))}
             </Select>
           </Filter>
           <Filter>
             <FilterText>Ordenar Productos:</FilterText>
             <Select onChange={(e) => setSort(e.target.value)}>
-              <Option value="newest">Nuevo</Option>
-              <Option value="asc">Precio (ascendente)</Option>
-              <Option value="desc">Precio (descendente)</Option>
+              <option value="newest">Nuevo</option>
+              <option value="asc">Precio (ascendente)</option>
+              <option value="desc">Precio (descendente)</option>
             </Select>
           </Filter>
         </FilterContainer>
+
         <Products
           products={displayedProducts}
-          filters={cleanFilters(filters)}
+          filters={Object.fromEntries(
+            Object.entries(filters).map(([key, value]) => [key, value || ""])
+          )}
           sort={sort}
         />
 
         <PaginationContainer>
           <PaginationButton
-            onClick={() => setCurrentPage(currentPage - 1)}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
           >
             &lt;
           </PaginationButton>
-          {getPageNumbers().map((pageNumber) => (
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
             <PaginationButton
-              key={pageNumber}
-              onClick={() =>
-                typeof pageNumber === "number" && setCurrentPage(pageNumber)
-              }
-              active={pageNumber === currentPage}
+              key={page}
+              active={page === currentPage}
+              onClick={() => setCurrentPage(page)}
             >
-              {pageNumber}
+              {page}
             </PaginationButton>
           ))}
           <PaginationButton
-            onClick={() => setCurrentPage(currentPage + 1)}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
             disabled={currentPage === totalPages}
           >
             &gt;
