@@ -9,6 +9,7 @@ import { useLocation } from "react-router-dom";
 import axios from "axios";
 import baseUrl from "../apiConfig";
 import { Product } from "../types";
+import Footer from "../components/Footer";
 
 interface Filters {
   [key: string]: string | undefined;
@@ -329,6 +330,8 @@ const ProductList: React.FC = () => {
               normalizeColor(key).toLowerCase() === filters.color!.toLowerCase()
           ));
 
+      //const matchesStock = product.inStock; // Excluye productos que no están en stock
+
       const included =
         matchesCategory && matchesType && matchesSize && matchesColor;
 
@@ -355,7 +358,7 @@ const ProductList: React.FC = () => {
   return (
     <Container>
       <Navbar />
-      <Announcement />
+      {/* <Announcement /> */}
       <BackgroundContainer>
         <MainContent>
           <Title>{formatTitle()}</Title>
@@ -428,6 +431,7 @@ const ProductList: React.FC = () => {
         </MainContent>
       </BackgroundContainer>
       <Newsletter />
+      <Footer />
     </Container>
   );
 };

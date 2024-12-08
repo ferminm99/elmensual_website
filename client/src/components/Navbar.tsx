@@ -22,10 +22,10 @@ const Container = styled.div`
   margin-bottom: 10px;
   max-width: 100vw;
   overflow: hidden;
-  position: sticky; /* Navbar siempre visible */
-  top: 0; /* Fijar en la parte superior */
+  position: sticky; /* Cambiado a relative */
+  top: 0;
   z-index: 1000;
-  background-color: white; /* Fondo para que sea legible */
+  background-color: white;
 `;
 
 const Wrapper = styled.div`
@@ -129,7 +129,7 @@ const Dropdown = styled.div`
   visibility: hidden;
   opacity: 0;
   position: fixed;
-  top: 110px;
+  top: 8%;
   left: 0; /* Alineación para PC */
   right: 0;
   background-color: #f9f9f9;
@@ -804,8 +804,10 @@ const Navbar: React.FC = () => {
 
   const handleNavigation = (path: string) => {
     setMobileMenuOpen(false);
+    window.scrollTo(0, 0); // Desplaza al inicio
     navigate(path);
   };
+
   // Función para normalizar las categorías, reemplazando caracteres especiales
   const normalizeCategory = (category: string) => {
     return category.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // Elimina tildes y acentos
@@ -817,6 +819,7 @@ const Navbar: React.FC = () => {
     filters: string[]
   ) => {
     setMobileMenuOpen(false); // Cierra el menú al hacer clic
+    window.scrollTo(0, 0);
     const normalizedMainCategory = normalizeCategory(mainCategory);
     const normalizedSection = section ? normalizeCategory(section) : "";
     const normalizedFilters = filters.map(normalizeCategory).join("-");
@@ -831,7 +834,12 @@ const Navbar: React.FC = () => {
     <Container>
       <Wrapper>
         <Left>
-          <Link to="/">
+          <Link
+            to="/"
+            onClick={() => {
+              window.scrollTo(0, 0);
+            }}
+          >
             <LogoImage
               src="https://res.cloudinary.com/djovvsorv/image/upload/v1730838721/gpehr6bac6stvmcbpuqg.png"
               alt="El Mensual Logo"

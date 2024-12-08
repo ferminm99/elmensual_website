@@ -6,6 +6,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import Home from "./pages/Home";
+import AcercaDe from "./pages/AboutUs";
 import ProductList from "./pages/ProductList";
 import Product from "./pages/Product";
 import Cart from "./pages/Cart";
@@ -34,6 +35,7 @@ const App: React.FC = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/success" element={<Success />} />
+        <Route path="/acercade" element={<AcercaDe />} />
         <Route path="/admin" element={<Navigate to="/admin" />} />
       </Routes>
     </Router>

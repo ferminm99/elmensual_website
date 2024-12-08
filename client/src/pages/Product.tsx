@@ -24,6 +24,7 @@ const Wrapper = styled.div`
   margin: 0 auto;
   display: flex;
   gap: 30px; /* Ajusta el espacio entre las columnas */
+
   ${mobile({ flexDirection: "column", padding: "20px" })}
 `;
 
@@ -198,21 +199,14 @@ const Amount = styled.span`
   font-size: 16px;
 `;
 
-const Button = styled.button`
-  width: 100%;
-  padding: 10px;
-  background-color: #333;
-  color: #fff;
-  font-size: 16px;
-  font-weight: bold;
-  text-align: center;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #555;
-  }
+const Overlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999;
 `;
 
 const Modal = styled.div`
@@ -230,15 +224,28 @@ const Modal = styled.div`
   gap: 15px;
 `;
 
-const Overlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 999;
+const Button = styled.button`
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  background: #333;
+  color: #fff;
+  &:hover {
+    background: #555;
+  }
 `;
+
+interface ContactModalProps {
+  contactType: "minorista" | "mayorista" | "";
+  onClose: () => void;
+  onSelectContactType: (type: "minorista" | "mayorista") => void;
+  handleWhatsAppContact: () => void;
+  handleEmailContact: () => void;
+  handleInstagramContact: () => void;
+}
 
 const Product: React.FC = () => {
   const location = useLocation();
@@ -254,31 +261,43 @@ const Product: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const description = product?.desc || "";
   const [showModal, setShowModal] = useState(false);
+  const [contactType, setContactType] = useState<
+    "minorista" | "mayorista" | ""
+  >("");
 
   const dispatch = useDispatch();
 
+  // Funciones de contacto
   const handleWhatsAppContact = () => {
-    if (!product) return; // Asegúrate de que el producto esté cargado
-    const phoneNumber = "2345687094"; // Número de WhatsApp
+    const phoneNumber = "2345687094";
     const message = encodeURIComponent(
-      `¡Hola! Estoy interesado en este producto: ${product.title}`
+      contactType === "minorista"
+        ? `¡Hola! Estoy interesado en este producto.`
+        : `Hola, estoy interesado en comprar al por mayor. ¿Podrían darme más información?`
     );
     window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank");
   };
 
   const handleEmailContact = () => {
-    if (!product) return; // Asegúrate de que el producto esté cargado
     const subject = encodeURIComponent(
-      `Consulta sobre el producto: ${product.title}`
+      `Consulta para ${contactType === "minorista" ? "productos" : "mayorista"}`
     );
     const body = encodeURIComponent(
-      `¡Hola! Estoy interesado en este producto: ${product.title}`
+      contactType === "minorista"
+        ? `¡Hola! Estoy interesado en este producto.`
+        : `Hola, quisiera información sobre compras al por mayor.`
     );
     window.open(
       `mailto:lamotex@elmensual.com.ar?subject=${subject}&body=${body}`,
       "_blank"
     );
   };
+
+  const handleInstagramContact = () => {
+    window.open(`https://instagram.com/elmensual_laplata`, "_blank");
+  };
+
+  const closeModal = () => setShowModal(false);
 
   // Divide la descripción en dos partes usando "Guía de talles" como delimitador
   const splitPoint = description.indexOf("Guía de talles:");
@@ -399,7 +418,7 @@ const Product: React.FC = () => {
   return (
     <Container>
       <Navbar />
-      <Announcement />
+      {/* <Announcement /> */}
       <Wrapper>
         {product ? (
           <>
@@ -527,12 +546,32 @@ const Product: React.FC = () => {
       {/* Modal de selección de contacto */}
       {showModal && (
         <>
-          <Overlay onClick={() => setShowModal(false)} />
+          <Overlay onClick={closeModal} />
           <Modal>
-            <h2>¿Cómo deseas contactar?</h2>
-            <Button onClick={handleWhatsAppContact}>WhatsApp</Button>
-            <Button onClick={handleEmailContact}>Correo Electrónico</Button>
-            <Button onClick={() => setShowModal(false)}>Cancelar</Button>
+            <h2>Selecciona tu tipo de consulta</h2>
+            <Button onClick={() => setContactType("minorista")}>
+              Minorista
+            </Button>
+            <Button onClick={() => setContactType("mayorista")}>
+              Mayorista
+            </Button>
+
+            {contactType === "minorista" && (
+              <>
+                <h3>Opciones de contacto:</h3>
+                <Button onClick={handleInstagramContact}>Instagram</Button>
+              </>
+            )}
+
+            {contactType === "mayorista" && (
+              <>
+                <h3>Opciones de contacto:</h3>
+                <Button onClick={handleWhatsAppContact}>WhatsApp</Button>
+                <Button onClick={handleEmailContact}>Correo Electrónico</Button>
+              </>
+            )}
+
+            <Button onClick={closeModal}>Cancelar</Button>
           </Modal>
         </>
       )}

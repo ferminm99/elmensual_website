@@ -137,22 +137,74 @@ const Footer: React.FC = () => {
         <Title>Links útiles</Title>
         <List>
           <ListItem>
-            <Link to="/">Home</Link>
+            <Link
+              to="/"
+              onClick={() => {
+                window.scrollTo(0, 0);
+              }}
+            >
+              Home
+            </Link>
           </ListItem>
           <ListItem>
-            <Link to="/products/hombre">Hombre</Link>
+            <Link
+              to="/products/hombre"
+              onClick={() => {
+                window.scrollTo(0, 0);
+              }}
+            >
+              Hombre
+            </Link>
           </ListItem>
           <ListItem>
-            <Link to="/products/mujer">Mujer</Link>
+            <Link
+              to="/products/mujer"
+              onClick={() => {
+                window.scrollTo(0, 0);
+              }}
+            >
+              Mujer
+            </Link>
           </ListItem>
           <ListItem>
-            <Link to="/products/adolescentes">Adolescentes</Link>
+            <Link
+              to="/products/adolescentes"
+              onClick={() => {
+                window.scrollTo(0, 0);
+              }}
+            >
+              Adolescentes
+            </Link>
           </ListItem>
           <ListItem>
-            <Link to="/products/niños">Niños</Link>
+            <Link
+              to="/products/niños"
+              onClick={() => {
+                window.scrollTo(0, 0);
+              }}
+            >
+              Niños
+            </Link>
           </ListItem>
           <ListItem>
-            <Link to="/terminos">Términos</Link>
+            <Link
+              to="/acercade"
+              onClick={() => {
+                window.scrollTo(0, 0);
+              }}
+            >
+              Acerca de Nosotros!
+            </Link>
+          </ListItem>
+          <ListItem>
+            <Link
+              to="/terminos"
+              onClick={() => {
+                window.scrollTo(0, 0);
+              }}
+            >
+              Términos
+            </Link>
           </ListItem>
         </List>
       </Center>
