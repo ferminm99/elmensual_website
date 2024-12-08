@@ -130,7 +130,7 @@ const Dropdown = styled.div`
   opacity: 0;
   position: fixed;
   top: 110px;
-  left: 0;
+  left: 0; /* Alineación para PC */
   right: 0;
   background-color: #f9f9f9;
   box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
@@ -139,12 +139,20 @@ const Dropdown = styled.div`
   width: 100%;
   min-height: 35%;
   display: flex;
-  justify-content: center; /* Cambiar de 'center' a 'flex-start' */
-  gap: 40px; /* Mayor separación entre las columnas */
+  justify-content: center; /* Centrado para PC */
+  gap: 40px; /* Espacio entre columnas */
   transition: visibility 0.2s ease-in-out, opacity 0.3s ease;
   border-radius: 8px;
   box-sizing: border-box;
   overflow-y: auto;
+
+  /* Alineación para móvil */
+  @media (max-width: 768px) {
+    left: 20px; /* Desplaza ligeramente hacia la derecha */
+    right: 20px; /* Ajusta el ancho en móviles */
+    justify-content: flex-start; /* Alinea a la izquierda para evitar demasiado centrado */
+  }
+
   ${CategoryMenu}:hover & {
     visibility: visible;
     opacity: 1;
@@ -193,7 +201,6 @@ const DropdownItem = styled.div`
   position: relative;
   white-space: nowrap; /* Evita que el texto se corte */
   width: 100%;
-  margin-left: 30px; /* Mayor desplazamiento hacia la derecha */
   text-align: left; /* Alinea cada ítem a la izquierda */
   transition: color 0.3s ease;
 

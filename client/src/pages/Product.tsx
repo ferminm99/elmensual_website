@@ -15,7 +15,6 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm"; // Para soporte de tablas, listas, etc.
 
 const Container = styled.div`
-  background-color: #f5f5f5;
   padding: 20px 0 0 0; /* Añadimos algo de padding para que no esté pegado al borde */
 `;
 
@@ -200,7 +199,7 @@ const Amount = styled.span`
 `;
 
 const Button = styled.button`
-  width: 100%; /* Ocupa todo el ancho disponible */
+  width: 100%;
   padding: 10px;
   background-color: #333;
   color: #fff;
@@ -216,6 +215,31 @@ const Button = styled.button`
   }
 `;
 
+const Modal = styled.div`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+`;
+
+const Overlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999;
+`;
+
 const Product: React.FC = () => {
   const location = useLocation();
   const id = location.pathname.split("/")[2];
@@ -229,7 +253,32 @@ const Product: React.FC = () => {
   const [transformOrigin, setTransformOrigin] = useState("center center");
   const [isExpanded, setIsExpanded] = useState(false);
   const description = product?.desc || "";
+  const [showModal, setShowModal] = useState(false);
+
   const dispatch = useDispatch();
+
+  const handleWhatsAppContact = () => {
+    if (!product) return; // Asegúrate de que el producto esté cargado
+    const phoneNumber = "2345687094"; // Número de WhatsApp
+    const message = encodeURIComponent(
+      `¡Hola! Estoy interesado en este producto: ${product.title}`
+    );
+    window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank");
+  };
+
+  const handleEmailContact = () => {
+    if (!product) return; // Asegúrate de que el producto esté cargado
+    const subject = encodeURIComponent(
+      `Consulta sobre el producto: ${product.title}`
+    );
+    const body = encodeURIComponent(
+      `¡Hola! Estoy interesado en este producto: ${product.title}`
+    );
+    window.open(
+      `mailto:lamotex@elmensual.com.ar?subject=${subject}&body=${body}`,
+      "_blank"
+    );
+  };
 
   // Divide la descripción en dos partes usando "Guía de talles" como delimitador
   const splitPoint = description.indexOf("Guía de talles:");
@@ -423,7 +472,7 @@ const Product: React.FC = () => {
                   <Amount>{quantity}</Amount>
                   <Add onClick={() => handleQuantity("inc")} />
                 </AmountContainer> */}
-                <Button onClick={handleClick}>CONTACTAR</Button>
+                <Button onClick={() => setShowModal(true)}>CONTACTAR</Button>
               </AddContainer>
               <Desc>
                 <div>
@@ -474,6 +523,19 @@ const Product: React.FC = () => {
           <p>Cargando producto...</p>
         )}
       </Wrapper>
+
+      {/* Modal de selección de contacto */}
+      {showModal && (
+        <>
+          <Overlay onClick={() => setShowModal(false)} />
+          <Modal>
+            <h2>¿Cómo deseas contactar?</h2>
+            <Button onClick={handleWhatsAppContact}>WhatsApp</Button>
+            <Button onClick={handleEmailContact}>Correo Electrónico</Button>
+            <Button onClick={() => setShowModal(false)}>Cancelar</Button>
+          </Modal>
+        </>
+      )}
       <Newsletter />
       <Footer />
     </Container>

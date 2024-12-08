@@ -40,7 +40,7 @@ export const categories = [
   },
   {
     id: 3,
-    img: "https://res.cloudinary.com/djovvsorv/image/upload/v1733097417/corderoymarronoscuro3_ehmjxt.png",
+    img: "https://res.cloudinary.com/djovvsorv/image/upload/v1733097315/corderoychocolate3_xvjam6.png",
     title: "ROPA DE CAMPO DE ADOLESCENTES",
     cat: "adolescentes",
   },

@@ -20,6 +20,12 @@ const MainContent = styled.div`
   padding: 0 20px;
 `;
 
+const BackgroundContainer = styled.div`
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+`;
+
 const Container = styled.div``;
 
 const Title = styled.h1`
@@ -33,25 +39,29 @@ const Title = styled.h1`
 `;
 
 const FilterContainer = styled.div<{ isMobileVisible: boolean }>`
-  display: ${(props) => (props.isMobileVisible ? "flex" : "none")};
-  flex-direction: column;
-  gap: 20px;
-  max-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Alinea los filtros en una fila */
+  gap: 20px; /* Espaciado entre filtros */
   margin: 20px 0;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  position: relative;
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease;
+  padding: 0; /* Eliminamos el padding para pantallas grandes */
+  background-color: transparent; /* Sin fondo gris */
 
-  ${mobile({
-    position: "fixed",
-    top: "80px",
-    left: "0",
-    right: "0",
-    zIndex: 1000,
-    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-  })}
+  ${({ isMobileVisible }) =>
+    mobile({
+      display: isMobileVisible ? "flex" : "none",
+      flexDirection: "column",
+      gap: "20px",
+      padding: "20px",
+      backgroundColor: "#f9f9f9",
+      borderRadius: "8px",
+      position: "fixed",
+      top: "80px",
+      left: "0",
+      right: "0",
+      zIndex: 1000,
+      boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+    })}
 `;
 
 const CloseButton = styled.button`
@@ -116,13 +126,14 @@ const Filter = styled.div`
 `;
 
 const FilterText = styled.div`
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 600;
+  margin-bottom: 10px; /* Espaciado entre el texto y el select */
 `;
 
 const Select = styled.select`
   padding: 10px;
-  margin-right: 20px;
+  margin-left: 20px;
   border: 1px solid #ccc;
   border-radius: 4px;
   transition: border-color 0.3s ease;
@@ -182,6 +193,8 @@ const ProductList: React.FC = () => {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobileFiltersVisible, setMobileFiltersVisible] = useState(false);
+  const [availableColors, setAvailableColors] = useState<string[]>([]); // Estado para los colores disponibles
+
   const itemsPerPage = 12;
 
   const handleFilters = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -196,15 +209,52 @@ const ProductList: React.FC = () => {
   };
 
   const formatTitle = () => {
+    const fixNinos = (str: string) => {
+      // Reemplaza "ninos" o "Ninos" por "niños" o "Niños"
+      return str.replace(/ninos/gi, (match) =>
+        match.charAt(0) === "N" ? "Niños" : "niños"
+      );
+    };
+
+    if (!subCategory && !type) {
+      // Si no hay subcategoría ni tipo, retorna la categoría principal con la primera letra en mayúscula
+      return mainCategory
+        ? fixNinos(
+            mainCategory.charAt(0).toUpperCase() +
+              mainCategory.slice(1).toLowerCase()
+          )
+        : "";
+    }
+
     const category = subCategory
-      ? subCategory.charAt(0).toUpperCase() + subCategory.slice(1).toLowerCase()
+      ? fixNinos(
+          subCategory.charAt(0).toUpperCase() +
+            subCategory.slice(1).toLowerCase()
+        )
       : "";
     const group = mainCategory
-      ? mainCategory.charAt(0).toLowerCase() + mainCategory.slice(1)
+      ? fixNinos(mainCategory.charAt(0).toLowerCase() + mainCategory.slice(1))
       : "";
 
-    return `${category} de ${group} - ${type.replace(/-/g, " ")}`;
+    return `${category} de ${group} - ${fixNinos(type.replace(/-/g, " "))}`;
   };
+
+  useEffect(() => {
+    const uniqueColors = new Set<string>();
+
+    products.forEach((product) => {
+      if (product.images && typeof product.images === "object") {
+        Object.keys(product.images).forEach((key) => {
+          const color = normalizeColor(key);
+          uniqueColors.add(color);
+        });
+      }
+    });
+
+    setAvailableColors(Array.from(uniqueColors));
+  }, [products]);
+
+  const normalizeColor = (color: string) => color.replace(/[0-9]/g, "").trim();
 
   useEffect(() => {
     const fetchSizesAndProducts = async () => {
@@ -260,10 +310,9 @@ const ProductList: React.FC = () => {
       );
 
       const matchesCategory =
-        productCategories.includes(mainCategory) &&
-        productCategories.includes(subCategory);
+        (!mainCategory || productCategories.includes(mainCategory)) &&
+        (!subCategory || productCategories.includes(subCategory));
 
-      // Verificar si todas las partes de type están en las categorías
       const matchesType = normalizedTypeParts.every((part) =>
         productCategories.includes(part)
       );
@@ -271,18 +320,22 @@ const ProductList: React.FC = () => {
       const matchesSize =
         !filters.size || product.size.includes(Number(filters.size).toString());
 
-      const included = matchesCategory && matchesType && matchesSize;
+      const matchesColor =
+        !filters.color || // Si no hay filtro de color, incluye el producto
+        (product.images &&
+          typeof product.images === "object" &&
+          Object.keys(product.images).some(
+            (key) =>
+              normalizeColor(key).toLowerCase() === filters.color!.toLowerCase()
+          ));
 
-      // Agregar logs para debug
+      const included =
+        matchesCategory && matchesType && matchesSize && matchesColor;
+
       console.log("Producto:", product.title);
-      console.log("Categorías del producto:", productCategories);
       console.log("Matches Size:", matchesSize);
-      console.log(
-        "Matches Type:",
-        matchesType,
-        "para type parts:",
-        normalizedTypeParts
-      );
+      console.log("Matches Type:", matchesType);
+      console.log("Matches Color:", matchesColor);
       console.log("Matches Category:", matchesCategory);
       console.log("Incluido en el filtrado:", included);
 
@@ -303,81 +356,77 @@ const ProductList: React.FC = () => {
     <Container>
       <Navbar />
       <Announcement />
-      <MainContent>
-        <Title>{formatTitle()}</Title>
+      <BackgroundContainer>
+        <MainContent>
+          <Title>{formatTitle()}</Title>
+          <FilterToggle onClick={toggleMobileFilters}>
+            {isMobileFiltersVisible ? "Ocultar Filtros" : "Mostrar Filtros"}
+          </FilterToggle>
+          <FilterContainer isMobileVisible={isMobileFiltersVisible}>
+            <CloseButton onClick={() => setMobileFiltersVisible(false)}>
+              &times;
+            </CloseButton>
+            <Filter>
+              <Select name="color" onChange={handleFilters}>
+                <option value="">Todos los colores</option>
+                {availableColors.map((color) => (
+                  <option key={color} value={color}>
+                    {color.charAt(0).toUpperCase() + color.slice(1)}
+                  </option>
+                ))}
+              </Select>
+              <Select name="size" value={filters.size} onChange={handleFilters}>
+                <option value="">Todos los tamaños</option>
+                {availableSizes.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </Select>
+            </Filter>
+            <Filter>
+              <Select onChange={(e) => setSort(e.target.value)}>
+                <option value="newest">Nuevo</option>
+                <option value="asc">Precio (ascendente)</option>
+                <option value="desc">Precio (descendente)</option>
+              </Select>
+            </Filter>
+          </FilterContainer>
 
-        <FilterToggle onClick={toggleMobileFilters}>
-          {isMobileFiltersVisible ? "Ocultar Filtros" : "Mostrar Filtros"}
-        </FilterToggle>
-
-        <FilterContainer isMobileVisible={isMobileFiltersVisible}>
-          <CloseButton onClick={() => setMobileFiltersVisible(false)}>
-            &times;
-          </CloseButton>
-          <Filter>
-            <FilterText>Filtrar Productos:</FilterText>
-            <Select name="color" onChange={handleFilters}>
-              <option value="">Todos los colores</option>
-              <option>Blanco</option>
-              <option>Negro</option>
-              <option>Rojo</option>
-              <option>Azul</option>
-              <option>Amarillo</option>
-              <option>Verde</option>
-            </Select>
-            <Select name="size" value={filters.size} onChange={handleFilters}>
-              <option value="">Todos los tamaños</option>
-              {availableSizes.map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </Select>
-          </Filter>
-          <Filter>
-            <FilterText>Ordenar Productos:</FilterText>
-            <Select onChange={(e) => setSort(e.target.value)}>
-              <option value="newest">Nuevo</option>
-              <option value="asc">Precio (ascendente)</option>
-              <option value="desc">Precio (descendente)</option>
-            </Select>
-          </Filter>
-        </FilterContainer>
-
-        <Products
-          products={displayedProducts}
-          filters={Object.fromEntries(
-            Object.entries(filters).map(([key, value]) => [key, value || ""])
-          )}
-          sort={sort}
-        />
-
-        <PaginationContainer>
-          <PaginationButton
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-          >
-            &lt;
-          </PaginationButton>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <Products
+            products={displayedProducts}
+            filters={Object.fromEntries(
+              Object.entries(filters).map(([key, value]) => [key, value || ""])
+            )}
+            sort={sort}
+          />
+          <PaginationContainer>
             <PaginationButton
-              key={page}
-              active={page === currentPage}
-              onClick={() => setCurrentPage(page)}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
             >
-              {page}
+              &lt;
             </PaginationButton>
-          ))}
-          <PaginationButton
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
-            disabled={currentPage === totalPages}
-          >
-            &gt;
-          </PaginationButton>
-        </PaginationContainer>
-      </MainContent>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <PaginationButton
+                key={page}
+                active={page === currentPage}
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </PaginationButton>
+            ))}
+            <PaginationButton
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              disabled={currentPage === totalPages}
+            >
+              &gt;
+            </PaginationButton>
+          </PaginationContainer>
+        </MainContent>
+      </BackgroundContainer>
       <Newsletter />
     </Container>
   );
