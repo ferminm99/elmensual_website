@@ -89,10 +89,16 @@ const Icon = styled.div`
   justify-content: center;
   transition: all 0.3s ease;
   cursor: pointer;
+  color: black; /* Cambia el color del ícono a negro */
 
   &:hover {
     background-color: #e9f5f5;
     transform: scale(1.1);
+  }
+
+  a {
+    color: inherit; /* Asegura que los enlaces dentro tomen el color definido */
+    text-decoration: none;
   }
 `;
 

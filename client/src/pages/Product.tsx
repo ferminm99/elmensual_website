@@ -11,12 +11,8 @@ import { publicRequest } from "../requestMethods";
 import { addProduct } from "../redux/cartRedux";
 import { useDispatch } from "react-redux";
 import { Product as ProductType } from "../types";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm"; // Para soporte de tablas, listas, etc.
 
-const Container = styled.div`
-  padding: 20px 0 0 0; /* Añadimos algo de padding para que no esté pegado al borde */
-`;
+const Container = styled.div``;
 
 const Wrapper = styled.div`
   padding: 50px;
@@ -25,7 +21,10 @@ const Wrapper = styled.div`
   display: flex;
   gap: 30px; /* Ajusta el espacio entre las columnas */
 
-  ${mobile({ flexDirection: "column", padding: "20px" })}
+  ${mobile({
+    flexDirection: "column-reverse", // Título arriba, imagen abajo
+    padding: "20px",
+  })}
 `;
 
 const ImgContainer = styled.div`
@@ -33,20 +32,32 @@ const ImgContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* Centrar la imagen */
+  justify-content: center;
   position: relative;
   background-color: #e0e0e0;
   border-radius: 8px;
-  padding: 0; /* Elimina padding extra */
-  overflow: hidden; /* Asegura que la imagen no se salga del contenedor */
-  height: 100%; /* Asegura que el contenedor tenga un alto consistente */
+  padding: 0;
+  overflow: hidden;
+
+  ${mobile({
+    order: 2, // Coloca la imagen después del título
+    marginBottom: "20px", // Añade espacio debajo de la imagen
+  })}
 `;
 
 const ThumbnailContainer = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* Columna por defecto */
   gap: 10px;
   margin-right: 10px;
+
+  ${mobile({
+    flexDirection: "row", // Cambia a fila en móviles
+    justifyContent: "center", // Centra las miniaturas
+    marginTop: "10px", // Añade espacio entre la imagen y miniaturas
+    marginRight: "0",
+    order: 2,
+  })}
 `;
 
 const Thumbnail = styled.img`
@@ -85,19 +96,27 @@ const ArrowContainer = styled.div<{ direction: "left" | "right" }>`
 const InfoContainer = styled.div`
   flex: 1;
   padding: 0px 50px;
-  ${mobile({ padding: "10px" })}
+
+  ${mobile({
+    padding: "10px",
+  })}
 `;
 
 const Title = styled.h1`
-  font-size: 30px; /* Reduce el tamaño del título */
+  font-size: 30px;
   font-weight: 400;
+  margin-bottom: 20px;
+
+  ${mobile({
+    order: 1,
+  })}
 `;
 
-const Desc = styled.div`
-  margin: 20px 0px;
+const Desc = styled.p`
+  margin: 20px 0;
   font-size: 16px;
   color: #555;
-  line-height: 1.5; /* Mejora la legibilidad */
+  line-height: 1.5;
 `;
 
 const Price = styled.span`

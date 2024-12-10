@@ -26,7 +26,10 @@ const Left = styled.div`
 const Center = styled.div`
   flex: 1;
   padding: 20px;
-  ${mobile({ display: "none" })}
+
+  ${mobile({
+    display: "block", // Asegura que se mantenga visible en móviles
+  })}
 `;
 
 const Right = styled.div`
@@ -45,11 +48,21 @@ const List = styled.ul`
   list-style: none;
   display: flex;
   flex-wrap: wrap;
+
+  ${mobile({
+    flexDirection: "column", // Muestra una lista vertical en móviles
+    alignItems: "center", // Centra los enlaces
+    gap: "10px", // Añade espacio entre los elementos
+  })}
 `;
 
 const ListItem = styled.li`
   width: 50%;
   margin-bottom: 10px;
+
+  ${mobile({
+    width: "100%", // Ocupa todo el ancho en móviles
+  })}
 
   a {
     text-decoration: none;
@@ -138,6 +151,17 @@ const Footer: React.FC = () => {
         <List>
           <ListItem>
             <Link
+              to="/acercade"
+              onClick={() => {
+                window.scrollTo(0, 0);
+              }}
+            >
+              Acerca de Nosotros!
+            </Link>
+          </ListItem>
+          {/* Los demás enlaces no serán visibles en móviles */}
+          <ListItem>
+            <Link
               to="/"
               onClick={() => {
                 window.scrollTo(0, 0);
@@ -184,16 +208,6 @@ const Footer: React.FC = () => {
               }}
             >
               Niños
-            </Link>
-          </ListItem>
-          <ListItem>
-            <Link
-              to="/acercade"
-              onClick={() => {
-                window.scrollTo(0, 0);
-              }}
-            >
-              Acerca de Nosotros!
             </Link>
           </ListItem>
           <ListItem>
