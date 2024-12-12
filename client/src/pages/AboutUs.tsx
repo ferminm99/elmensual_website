@@ -170,19 +170,19 @@ const AboutUs: React.FC = () => {
           <Title>Imagenes de Fiestas Patrias en Saladillo</Title>
           <ImageGrid>
             <Image
-              src="https://www.elmensual.com.ar/img_portfolio/2016-07-09_1.jpg"
+              src="https://res.cloudinary.com/djovvsorv/image/upload/v1734045643/domaSaladillo1_wadign.jpg"
               alt="Doma 1"
             />
             <Image
-              src="https://www.elmensual.com.ar/img_portfolio/2016-07-09_3.jpg"
+              src="https://res.cloudinary.com/djovvsorv/image/upload/v1734045643/domaSaladillo3_dvcmqs.jpg"
               alt="Doma 2"
             />
             <Image
-              src="https://www.elmensual.com.ar/img_portfolio/2016-07-09_4.jpg"
+              src="https://res.cloudinary.com/djovvsorv/image/upload/v1734045643/domaSaladillo4_ztn7yp.jpg"
               alt="Doma 3"
             />
             <Image
-              src="https://www.elmensual.com.ar/img_portfolio/2016-07-09_2.jpg"
+              src="https://res.cloudinary.com/djovvsorv/image/upload/v1734045643/domaSaladillo2_zs1d79.jpg"
               alt="Doma 4"
             />
           </ImageGrid>
