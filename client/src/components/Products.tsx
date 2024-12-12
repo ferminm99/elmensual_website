@@ -56,7 +56,7 @@ const Products: React.FC<ProductProps> = ({ products = [] }) => {
       // Si no hay productos, activa "cargando" y espera un tiempo razonable
       const timer = setTimeout(() => {
         setIsLoading(false);
-      }, 60000); // 2 segundos para evitar loops infinitos si nunca se cargan
+      }, 100000); // + 1 minuto y medio para esperar que cargue render
       return () => clearTimeout(timer); // Limpia el temporizador
     }
   }, [products]);
