@@ -30,7 +30,6 @@ const Wrapper = styled.div`
 const ImgContainer = styled.div`
   flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
@@ -38,10 +37,11 @@ const ImgContainer = styled.div`
   border-radius: 8px;
   padding: 0;
   overflow: hidden;
+  height: 500px; /* Fijamos el alto del contenedor */
 
   ${mobile({
-    order: 2, // Coloca la imagen después del título
-    marginBottom: "20px", // Añade espacio debajo de la imagen
+    order: 2,
+    marginBottom: "20px",
   })}
 `;
 
@@ -74,15 +74,13 @@ const Thumbnail = styled.img`
 `;
 
 const Image = styled.img<{ zoomed: boolean; transformOrigin: string }>`
-  width: auto; /* Mantén la proporción de la imagen */
-  max-width: 100%; /* Asegura que no se salga del contenedor */
-  max-height: 500px; /* Ajusta esta altura máxima según lo que prefieras */
-  object-fit: cover; /* Ajusta la imagen para que se vea bien */
+  width: 100%; /* Asegura que la imagen tome todo el ancho */
+  height: 100%; /* Asegura que la imagen tome todo el alto */
+  object-fit: contain; /* Ajusta la imagen dentro del contenedor sin recortar */
   cursor: ${({ zoomed }) => (zoomed ? "zoom-out" : "zoom-in")};
   transform: ${({ zoomed }) => (zoomed ? "scale(1.5)" : "scale(1)")};
   transform-origin: ${({ transformOrigin }) => transformOrigin};
   transition: transform 0.3s ease, transform-origin 0.3s ease;
-  ${mobile({ maxHeight: "300px" })}/* Ajusta para dispositivos móviles */
 `;
 
 const ArrowContainer = styled.div<{ direction: "left" | "right" }>`

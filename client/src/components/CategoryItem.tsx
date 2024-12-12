@@ -76,17 +76,21 @@ const Button = styled.button`
 `;
 
 const CategoryItem: React.FC<ItemProps> = ({ item }) => {
+  const handleClick = () => {
+    window.scrollTo(0, 0); // Desplaza la ventana al inicio
+  };
+
   return (
     <Container>
-      <Link to={`/products/${item.cat}`}>
+      <Link to={`/products/${item.cat}`} onClick={handleClick}>
         <Image src={item.img} />
         <Info>
           <Title>{item.title}</Title>
-          <Button>VER MAS</Button>
+          <Button>VER MÁS</Button>
         </Info>
       </Link>
     </Container>
-  ); // Muestra el título o lo que necesites
+  );
 };
 
 export default CategoryItem;

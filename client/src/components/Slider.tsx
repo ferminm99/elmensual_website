@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { sliderItems } from "../data";
 import { mobile } from "../responsive";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 type Direction = "left" | "right";
 
@@ -25,10 +25,7 @@ const Container = styled.div<{ inTransition: boolean }>`
   z-index: 1;
   transition: all 0.3s ease;
 
-  ${({ inTransition }) =>
-    inTransition
-      ? "pointer-events: none;" /* Desactiva interacciones mientras cambia */
-      : ""}
+  ${({ inTransition }) => (inTransition ? "pointer-events: none;" : "")}
 
   ${mobile({ display: "none" })}
 `;
@@ -81,8 +78,6 @@ const Slide = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0;
-  box-sizing: border-box;
   background-color: #f9f9f9;
 `;
 
@@ -98,21 +93,21 @@ const Title = styled.h1`
   font-size: 48px;
   font-weight: bold;
   margin-bottom: 20px;
-  color: #333333;
+  color: #333;
 `;
 
 const Desc = styled.p`
   font-size: 18px;
   line-height: 1.6;
-  color: #555555;
+  color: #555;
   margin-bottom: 20px;
 `;
 
 const Button = styled.button`
   padding: 8px 16px;
   font-size: 16px;
-  color: #ffffff;
-  background-color: #000000;
+  color: #fff;
+  background-color: #000;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -120,7 +115,7 @@ const Button = styled.button`
   transition: all 0.3s ease;
 
   &:hover {
-    background-color: #333333;
+    background-color: #333;
     transform: scale(1.1);
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
   }
@@ -129,6 +124,7 @@ const Button = styled.button`
 const Slider: React.FC = () => {
   const [slideIndex, setSlideIndex] = useState(0);
   const [inTransition, setInTransition] = useState(false);
+  const navigate = useNavigate();
 
   const handleClick = (direction: Direction) => {
     setInTransition(true);
@@ -143,6 +139,11 @@ const Slider: React.FC = () => {
         prevIndex < sliderItems.length - 1 ? prevIndex + 1 : 0
       );
     }
+  };
+
+  const handleViewMoreClick = (link: string) => {
+    window.scrollTo(0, 0); // Desplaza al inicio
+    navigate(link); // Redirige usando React Router
   };
 
   useEffect(() => {
@@ -172,7 +173,7 @@ const Slider: React.FC = () => {
             <InfoContainer>
               <Title>{item.title}</Title>
               <Desc>{item.desc}</Desc>
-              <Button as={Link} to={item.link}>
+              <Button onClick={() => handleViewMoreClick(item.link)}>
                 Ver más
               </Button>
             </InfoContainer>
