@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -16,6 +16,9 @@ import Success from "./pages/Success"; // Asegúrate de importar el componente
 import AllProducts from "./pages/AllProducts";
 
 const App: React.FC = () => {
+  useEffect(() => {
+    document.title = "El Mensual"; // Cambia según el contenido
+  }, []);
   return (
     <Router>
       <Routes>
