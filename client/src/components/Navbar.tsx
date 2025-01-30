@@ -526,6 +526,7 @@ const Navbar: React.FC = () => {
       OTROS: [
         { displayName: "Boinas de Hilo", filters: ["boina"] },
         { displayName: "Delantal Carnicero", filters: ["delantal"] },
+        { displayName: "Alpargatas", filters: ["alpargatas"] },
       ],
     },
     Mujer: {
@@ -721,6 +722,7 @@ const Navbar: React.FC = () => {
       OTROS: [
         { displayName: "Boinas de Hilo", filters: ["boina"] },
         { displayName: "Delantal Carnicero", filters: ["delantal"] },
+        { displayName: "Alpargatas", filters: ["alpargatas"] },
       ],
     },
     Adolescentes: {
@@ -756,6 +758,7 @@ const Navbar: React.FC = () => {
       ],
 
       CAMISAS: [{ displayName: "Grafa Scout", filters: ["grafa", "scout"] }],
+      OTROS: [{ displayName: "Alpargatas", filters: ["alpargatas"] }],
     },
     Niños: {
       BOMBACHAS: [
@@ -788,6 +791,7 @@ const Navbar: React.FC = () => {
           filters: ["sarga", "recta", "pesada", "comun"],
         },
       ],
+      OTROS: [{ displayName: "Alpargatas", filters: ["alpargatas"] }],
     },
   };
 
