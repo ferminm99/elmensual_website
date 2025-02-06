@@ -15,6 +15,8 @@ const Container = styled.div`
   background-color: #1a1a1a; /* Negro más suave */
   color: #eaeaea; /* Blanco menos brillante */
   padding: 20px 0;
+  width: 100%;
+
   ${mobile({ flexDirection: "column", textAlign: "center" })}
 `;
 
@@ -35,6 +37,14 @@ const Center = styled.div`
 const Right = styled.div`
   flex: 1;
   padding: 20px;
+
+  ${mobile({
+    padding: "10px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center", // Centra los elementos horizontalmente
+    textAlign: "center", // Centra el texto también
+  })}
 `;
 
 const Title = styled.h3`
@@ -87,7 +97,12 @@ const Desc = styled.p`
 
 const SocialContainer = styled.div`
   display: flex;
+  gap: 15px; /* Espacio entre los íconos */
   margin-top: 10px;
+
+  ${mobile({
+    justifyContent: "center", // Centra los íconos solo en móviles
+  })}
 `;
 
 const SocialIcon = styled.div`
@@ -98,7 +113,6 @@ const SocialIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 10px;
   cursor: pointer;
 
   a {
@@ -107,16 +121,29 @@ const SocialIcon = styled.div`
     align-items: center;
     justify-content: center;
   }
+
+  &:hover {
+    transform: scale(1.1);
+    transition: transform 0.3s ease;
+  }
 `;
 
 const ContactItem = styled.div`
   display: flex;
   margin-bottom: 10px;
   align-items: center;
+  flex-wrap: wrap; /* Permite que el texto se envuelva */
 
   svg {
     margin-right: 10px;
   }
+
+  ${mobile({
+    fontSize: "14px", // Tamaño de fuente reducido
+    flexDirection: "column", // Coloca el ícono arriba del texto en móviles
+    alignItems: "flex-start", // Alinea el texto a la izquierda
+    gap: "5px", // Espaciado entre ícono y texto
+  })}
 `;
 
 const Footer: React.FC = () => {

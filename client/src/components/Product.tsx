@@ -19,7 +19,7 @@ interface ProductProps {
 
 const ImageContainer = styled.div`
   width: 100%;
-  aspect-ratio: 3 / 4; /* Relación de aspecto para el contenedor */
+  aspect-ratio: 3 / 4;
   background-color: #f0f0f0;
   position: relative;
   border-radius: 8px;
@@ -27,22 +27,23 @@ const ImageContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 10px; /* Espacio entre la imagen y el título */
 `;
 
 const Card = styled.div`
   width: 100%;
-  max-width: 280px; /* Ajusta el tamaño máximo */
+  max-width: 100%; /* Elimina el ancho máximo para pantallas pequeñas */
   background-color: white;
   border-radius: 8px;
   overflow: hidden;
   text-align: center;
-  padding: 15px;
+  padding: 10px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   transition: background-color 0.3s ease, transform 0.2s ease;
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.03); /* Ligero cambio de fondo */
-    transform: translateY(-5px); /* Efecto flotante */
+    background-color: rgba(0, 0, 0, 0.03);
+    transform: translateY(-5px);
   }
 `;
 

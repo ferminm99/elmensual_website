@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import styled, { keyframes } from "styled-components";
 import Product from "./Product";
 import { Product as ProductType } from "../types";
+import { mobile } from "../responsive";
 
 const spin = keyframes`
   0% {
@@ -24,13 +25,20 @@ const Spinner = styled.div`
 
 const Container = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 50px;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(250px, 1fr)
+  ); /* Default en pantallas grandes */
+  gap: 40px;
   width: 100%;
+  padding: 10px;
   background-color: #f9f9f9;
-  margin: 0 auto;
   box-sizing: border-box;
-  padding: 20px;
+  margin: 0;
+
+  ${mobile({
+    gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))" /* Móviles */,
+  })}
 `;
 
 const LoadingContainer = styled.div`

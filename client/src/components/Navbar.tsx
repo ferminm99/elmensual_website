@@ -7,6 +7,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { RootState } from "../redux/store";
 import Tooltip from "@mui/material/Tooltip";
 import { mobile } from "../responsive";
+import axios from "axios";
+import baseUrl from "../apiConfig";
+import { Product as ProductComplete } from "../types";
 
 interface Product {
   displayName: string;
@@ -20,12 +23,67 @@ type Category = {
 const Container = styled.div`
   height: 80px;
   margin-bottom: 10px;
-  max-width: 100vw;
+  width: 100%;
   overflow: hidden;
   position: sticky; /* Cambiado a relative */
   top: 0;
   z-index: 1000;
   background-color: white;
+`;
+
+const SearchContainerMobile = styled.div`
+  display: none;
+  ${mobile({
+    display: "block",
+    cursor: "pointer",
+  })}
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+`;
+
+const ModalContent = styled.div`
+  background-color: white;
+  padding: 10px;
+  border-radius: 8px;
+  width: 80%;
+  max-width: 400px;
+  text-align: center;
+  position: relative;
+`;
+
+const SearchButton = styled.button`
+  padding: 10px 20px;
+  background-color: #007bff;
+  margin-top: 20px;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  &:hover {
+    background-color: #0056b3;
+  }
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #333;
 `;
 
 const Wrapper = styled.div`
@@ -795,6 +853,8 @@ const Navbar: React.FC = () => {
     },
   };
 
+  const [isModalOpen, setModalOpen] = React.useState(false);
+  const [searchTerm, setSearchTerm] = React.useState("");
   //const quantity = useSelector((state: RootState) => state.cart.quantity);
   const [isMobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [activeCategory, setActiveCategory] = React.useState<string | null>(
@@ -834,6 +894,77 @@ const Navbar: React.FC = () => {
     navigate(path);
   };
 
+  const safeToLower = (str: string | undefined) =>
+    str ? str.toLowerCase() : "";
+
+  const handleSearch = (searchTerm: string) => {
+    const term = String(searchTerm).trim(); // Forzar string y trim
+    if (!term) return;
+
+    const normalizationMap: { [key: string]: string } = {
+      hombres: "hombre",
+      mujeres: "mujer",
+      niños: "ninos",
+      nenes: "ninos",
+      nena: "ninos",
+      niñas: "ninos",
+      niña: "ninos",
+      nenas: "ninos",
+      nene: "ninos",
+      niño: "ninos",
+      bombacha: "bombachas",
+      hombre: "hombre",
+      mujer: "mujer",
+    };
+
+    // Función para normalizar términos de búsqueda
+    const normalizeTerm = (term: string) => {
+      const lowerTerm = safeToLower(term);
+      return normalizationMap[lowerTerm] || lowerTerm;
+    };
+
+    // Normalizamos todas las palabras de búsqueda
+    const keywords = searchTerm
+      .split(" ")
+      .map(normalizeTerm)
+      .filter((word) => word); // Filtramos vacíos por si acaso
+
+    let results: any[] = [];
+
+    const searchInProducts = async () => {
+      try {
+        // Obtenemos todos los productos de la base de datos
+        const response = await axios.get<ProductComplete[]>(
+          `${baseUrl}/products`
+        );
+        const products: ProductComplete[] = response.data;
+
+        // Filtramos los productos que contienen TODAS las palabras clave en alguna categoría
+        results = products.filter((product) => {
+          const combinedCategories = (product.categories || [])
+            .map((category: string) => safeToLower(category))
+            .join(" ");
+
+          // Verifica si todas las keywords están presentes en las categorías
+          return keywords.every((keyword) =>
+            combinedCategories.includes(keyword)
+          );
+        });
+
+        if (results.length > 0) {
+          console.log("Resultados encontrados:", results);
+          navigate("/all-products", { state: { results } });
+        } else {
+          alert("No se encontraron resultados.");
+        }
+      } catch (error) {
+        console.error("Error fetching products for search:", error);
+      }
+    };
+
+    searchInProducts();
+  };
+
   return (
     <Container>
       <Wrapper>
@@ -849,9 +980,41 @@ const Navbar: React.FC = () => {
               alt="El Mensual Logo"
             />
           </Link>
+          <SearchContainerMobile onClick={() => setModalOpen(true)}>
+            <Search style={{ fontSize: "24px", color: "gray" }} />
+          </SearchContainerMobile>
+          {isModalOpen && (
+            <ModalOverlay onClick={() => setModalOpen(false)}>
+              <ModalContent onClick={(e) => e.stopPropagation()}>
+                <CloseButton onClick={() => setModalOpen(false)}>×</CloseButton>
+                <h3>Buscar Productos</h3>
+                <Input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Escribe tu búsqueda"
+                />
+                <SearchButton onClick={() => handleSearch(searchTerm)}>
+                  Buscar
+                </SearchButton>
+              </ModalContent>
+            </ModalOverlay>
+          )}
           <SearchContainer>
-            <Input placeholder="Search" />
-            <Search style={{ color: "gray", fontSize: 20 }} />
+            <Input
+              placeholder="Buscar productos..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === "Enter") {
+                  handleSearch(searchTerm);
+                }
+              }}
+            />
+            <Search
+              style={{ color: "gray", fontSize: 20, cursor: "pointer" }}
+              onClick={() => handleSearch(searchTerm)}
+            />
           </SearchContainer>
         </Left>
         <Center>

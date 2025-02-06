@@ -17,13 +17,18 @@ interface Filters {
 
 const MainContent = styled.div`
   max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 10;
+
+  ${mobile({
+    padding: "0 5px", // Reduce el padding en móviles
+  })}
 `;
 
 const BackgroundContainer = styled.div`
   background-color: #f9f9f9;
-  padding: 20px;
+  padding: 0px;
   border-radius: 8px;
 `;
 

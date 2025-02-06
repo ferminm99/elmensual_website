@@ -9,6 +9,13 @@ import Footer from "../components/Footer";
 import axios from "axios";
 import baseUrl from "../apiConfig";
 import { Product } from "../types";
+import styled from "styled-components";
+
+const Container = styled.div`
+  width: 100%;
+  margin: 0;
+  padding: 0;
+`;
 
 const Home = () => {
   const [defaultProducts, setDefaultProducts] = useState<Product[]>([]);
@@ -29,7 +36,7 @@ const Home = () => {
   }, []);
 
   return (
-    <div>
+    <Container>
       <Navbar />
       <Slider />
       <Categories />
@@ -37,7 +44,7 @@ const Home = () => {
       {/* Pasamos los productos como prop */}
       <Newsletter />
       <Footer />
-    </div>
+    </Container>
   );
 };
 

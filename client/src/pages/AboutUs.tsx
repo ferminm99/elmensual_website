@@ -107,7 +107,6 @@ const Image = styled.img`
 const AboutUs: React.FC = () => {
   return (
     <Container>
-      <Announcement />
       <Navbar />
       <HeroSection>
         <HeroOverlay />
