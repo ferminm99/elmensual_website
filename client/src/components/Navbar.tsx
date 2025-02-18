@@ -897,9 +897,32 @@ const Navbar: React.FC = () => {
   const safeToLower = (str: string | undefined) =>
     str ? str.toLowerCase() : "";
 
-  const handleSearch = (searchTerm: string) => {
-    const term = String(searchTerm).trim(); // Forzar string y trim
+  const handleSearch = async (searchTerm: string) => {
+    const term = String(searchTerm).trim(); // Asegurar que es un string y limpiar espacios
+
     if (!term) return;
+
+    // Lista de palabras irrelevantes a ignorar en la búsqueda
+    const stopWords = new Set([
+      "de",
+      "para",
+      "el",
+      "la",
+      "los",
+      "las",
+      "un",
+      "una",
+      "unos",
+      "unas",
+    ]);
+
+    // Función para normalizar términos eliminando acentos y caracteres especiales
+    const normalizeText = (text: string) => {
+      return text
+        .normalize("NFD") // Descompone caracteres con tildes
+        .replace(/[\u0300-\u036f]/g, "") // Remueve las tildes
+        .toLowerCase();
+    };
 
     const normalizationMap: { [key: string]: string } = {
       hombres: "hombre",
@@ -915,54 +938,59 @@ const Navbar: React.FC = () => {
       bombacha: "bombachas",
       hombre: "hombre",
       mujer: "mujer",
+      alpargata: "alpargatas",
+      dama: "mujer",
+      damas: "mujer",
     };
 
-    // Función para normalizar términos de búsqueda
+    // Normalización de términos de búsqueda
     const normalizeTerm = (term: string) => {
-      const lowerTerm = safeToLower(term);
+      const lowerTerm = normalizeText(term);
       return normalizationMap[lowerTerm] || lowerTerm;
     };
 
-    // Normalizamos todas las palabras de búsqueda
+    // Dividir búsqueda en palabras y eliminar palabras irrelevantes
     const keywords = searchTerm
-      .split(" ")
-      .map(normalizeTerm)
-      .filter((word) => word); // Filtramos vacíos por si acaso
+      .split(/\s+/) // Divide por espacios
+      .map(normalizeTerm) // Normaliza cada palabra
+      .filter((word) => !stopWords.has(word)); // Filtra palabras irrelevantes
 
     let results: any[] = [];
 
-    const searchInProducts = async () => {
-      try {
-        // Obtenemos todos los productos de la base de datos
-        const response = await axios.get<ProductComplete[]>(
-          `${baseUrl}/products`
-        );
-        const products: ProductComplete[] = response.data;
+    try {
+      // Obtener todos los productos desde la base de datos
+      const response = await axios.get<ProductComplete[]>(
+        `${baseUrl}/products`
+      );
+      const products: ProductComplete[] = response.data;
 
-        // Filtramos los productos que contienen TODAS las palabras clave en alguna categoría
-        results = products.filter((product) => {
-          const combinedCategories = (product.categories || [])
-            .map((category: string) => safeToLower(category))
-            .join(" ");
+      // Filtrar productos que coincidan con **todas** las palabras clave en alguna categoría o filtros
+      results = products.filter((product) => {
+        const combinedCategories = (product.categories || [])
+          .map((category: string) => normalizeText(category))
+          .join(" ");
 
-          // Verifica si todas las keywords están presentes en las categorías
-          return keywords.every((keyword) =>
-            combinedCategories.includes(keyword)
-          );
-        });
+        const combinedFilters = (product.filters || [])
+          .map((filter: string) => normalizeText(filter))
+          .join(" ");
 
-        if (results.length > 0) {
-          console.log("Resultados encontrados:", results);
-          navigate("/all-products", { state: { results } });
-        } else {
-          alert("No se encontraron resultados.");
-        }
-      } catch (error) {
-        console.error("Error fetching products for search:", error);
+        const combinedText = `${combinedCategories} ${combinedFilters}`;
+
+        // Verificar si todas las palabras clave están en la descripción del producto
+        return keywords.every((keyword) => combinedText.includes(keyword));
+      });
+
+      if (results.length > 0) {
+        console.log("Resultados encontrados:", results);
+        // **Desplazar al inicio antes de navegar**
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        navigate("/all-products", { state: { results } });
+      } else {
+        alert("No se encontraron resultados.");
       }
-    };
-
-    searchInProducts();
+    } catch (error) {
+      console.error("Error al buscar productos:", error);
+    }
   };
 
   return (

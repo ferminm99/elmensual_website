@@ -1,6 +1,7 @@
 // src/types.ts
 
 export interface Product {
+  filters: never[];
   _id: string;
   title: string;
   desc: string;
