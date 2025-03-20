@@ -1,10 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { Search, ViewList } from "@material-ui/icons";
-import Badge from "@mui/material/Badge";
-import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { RootState } from "../redux/store";
 import Tooltip from "@mui/material/Tooltip";
 import { mobile } from "../responsive";
 import axios from "axios";
@@ -21,14 +18,14 @@ type Category = {
 };
 
 const Container = styled.div`
-  height: 80px;
-  margin-bottom: 10px;
   width: 100%;
+  max-width: 100%;
   overflow: hidden;
-  position: sticky; /* Cambiado a relative */
+  position: fixed;
+  background-color: white;
   top: 0;
   z-index: 1000;
-  background-color: white;
+  height: 85px;
 `;
 
 const SearchContainerMobile = styled.div`
@@ -352,7 +349,6 @@ const MenuToggle = styled.div`
 const MobileMenu = styled.div`
   display: none;
   position: fixed; /* Menú fijo */
-  top: 80px; /* Aparece debajo del navbar */
   left: 0;
   width: 100%;
   background-color: white;
@@ -865,6 +861,14 @@ const Navbar: React.FC = () => {
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!isMobileMenuOpen);
   };
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detectar si el dispositivo es móvil
+  useEffect(() => {
+    const userAgent = navigator.userAgent.toLowerCase();
+    const mobileDevices = /android|iphone|ipad|ipod|blackberry|windows phone/i;
+    setIsMobile(mobileDevices.test(userAgent));
+  }, []);
 
   const handleNavigation = (path: string) => {
     setMobileMenuOpen(false);
@@ -1008,9 +1012,33 @@ const Navbar: React.FC = () => {
               alt="El Mensual Logo"
             />
           </Link>
-          <SearchContainerMobile onClick={() => setModalOpen(true)}>
-            <Search style={{ fontSize: "24px", color: "gray" }} />
-          </SearchContainerMobile>
+
+          {/* Si el usuario está en un móvil, mostrar el icono de búsqueda */}
+          {isMobile ? (
+            <SearchContainerMobile onClick={() => setModalOpen(true)}>
+              <Search style={{ fontSize: "24px", color: "gray" }} />
+            </SearchContainerMobile>
+          ) : (
+            // Si es PC, mostrar la barra de búsqueda normal
+            <SearchContainer>
+              <Input
+                placeholder="Buscar productos..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    handleSearch(searchTerm);
+                  }
+                }}
+              />
+              <Search
+                style={{ color: "gray", fontSize: 20, cursor: "pointer" }}
+                onClick={() => handleSearch(searchTerm)}
+              />
+            </SearchContainer>
+          )}
+
+          {/* Modal de búsqueda para móviles */}
           {isModalOpen && (
             <ModalOverlay onClick={() => setModalOpen(false)}>
               <ModalContent onClick={(e) => e.stopPropagation()}>
@@ -1028,23 +1056,8 @@ const Navbar: React.FC = () => {
               </ModalContent>
             </ModalOverlay>
           )}
-          <SearchContainer>
-            <Input
-              placeholder="Buscar productos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === "Enter") {
-                  handleSearch(searchTerm);
-                }
-              }}
-            />
-            <Search
-              style={{ color: "gray", fontSize: 20, cursor: "pointer" }}
-              onClick={() => handleSearch(searchTerm)}
-            />
-          </SearchContainer>
         </Left>
+
         <Center>
           {Object.keys(categories).map((mainCategory) => (
             <CategoryMenu

@@ -14,6 +14,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Success from "./pages/Success"; // Asegúrate de importar el componente
 import AllProducts from "./pages/AllProducts";
+import "./App.css";
 
 const App: React.FC = () => {
   useEffect(() => {

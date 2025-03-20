@@ -32,16 +32,23 @@ const BackgroundContainer = styled.div`
   border-radius: 8px;
 `;
 
-const Container = styled.div``;
+const Container = styled.div`
+  margin-top: 90px;
+`;
 
 const Title = styled.h1`
   margin: 20px;
   text-align: center;
-  font-size: 24px;
+  font-size: 35px;
 
   ${mobile({
     fontSize: "18px",
   })}
+`;
+
+const TitleWrapper = styled.div`
+  padding-top: 1px; /* Añadir espacio arriba */
+  text-align: center;
 `;
 
 const FilterContainer = styled.div<{ isMobileVisible: boolean }>`
@@ -366,7 +373,9 @@ const ProductList: React.FC = () => {
       {/* <Announcement /> */}
       <BackgroundContainer>
         <MainContent>
-          <Title>{formatTitle()}</Title>
+          <TitleWrapper>
+            <Title>{formatTitle()}</Title>
+          </TitleWrapper>
           <FilterToggle onClick={toggleMobileFilters}>
             {isMobileFiltersVisible ? "Ocultar Filtros" : "Mostrar Filtros"}
           </FilterToggle>

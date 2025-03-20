@@ -22,12 +22,19 @@ const BackgroundContainer = styled.div`
   border-radius: 8px;
 `;
 
-const Container = styled.div``;
+const Container = styled.div`
+  margin-top: 90px; /* Altura del navbar */
+`;
 
 const Title = styled.h1`
   margin: 20px;
   text-align: center;
-  font-size: 24px;
+  font-size: 35px;
+`;
+
+const TitleWrapper = styled.div`
+  padding-top: 1px; /* Añadir espacio arriba */
+  text-align: center;
 `;
 
 const PaginationContainer = styled.div`
@@ -101,11 +108,13 @@ const AllProducts: React.FC = () => {
       <Navbar />
       <BackgroundContainer>
         <MainContent>
-          <Title>
-            {searchResults.length > 0
-              ? `Resultados de búsqueda (${searchResults.length} productos)`
-              : "Todos los Productos"}
-          </Title>
+          <TitleWrapper>
+            <Title>
+              {searchResults.length > 0
+                ? `Resultados de búsqueda (${searchResults.length} productos)`
+                : "Todos los Productos"}
+            </Title>
+          </TitleWrapper>
 
           {/* Aquí utilizamos el mismo componente Products */}
           <Products products={displayedProducts} />

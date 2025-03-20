@@ -10,11 +10,12 @@ import axios from "axios";
 import baseUrl from "../apiConfig";
 import { Product } from "../types";
 import styled from "styled-components";
+import ImageSlider from "../components/ImageSlider";
 
 const Container = styled.div`
-  width: 100%;
-  margin: 0;
-  padding: 0;
+  width: 100%; /* Cambiar de 100vw a 100% */
+  max-width: 100%;
+  overflow-x: hidden;
 `;
 
 const Home = () => {
@@ -38,7 +39,8 @@ const Home = () => {
   return (
     <Container>
       <Navbar />
-      <Slider />
+      <ImageSlider />
+      {/* <Slider /> */}
       <Categories />
       <Products products={defaultProducts} />{" "}
       {/* Pasamos los productos como prop */}

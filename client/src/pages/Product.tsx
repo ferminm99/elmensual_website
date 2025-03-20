@@ -11,8 +11,11 @@ import { publicRequest } from "../requestMethods";
 import { addProduct } from "../redux/cartRedux";
 import { useDispatch } from "react-redux";
 import { Product as ProductType } from "../types";
+import { createGlobalStyle } from "styled-components";
 
-const Container = styled.div``;
+const Container = styled.div`
+  margin-top: 90px;
+`;
 
 const Wrapper = styled.div`
   padding: 50px;
@@ -43,6 +46,19 @@ const ImgContainer = styled.div`
     order: 2,
     marginBottom: "20px",
   })}
+`;
+
+const GlobalStyles = createGlobalStyle`
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: center; /* Centra los valores de todas las celdas */
+  }
 `;
 
 const ThumbnailContainer = styled.div`
@@ -433,111 +449,94 @@ const Product: React.FC = () => {
   };
 
   return (
-    <Container>
-      <Navbar />
-      {/* <Announcement /> */}
-      <Wrapper>
-        {product ? (
-          <>
-            <ThumbnailContainer>
-              {colorImages.map((img, index) => (
-                <Thumbnail
-                  key={index}
-                  src={img}
-                  onClick={() => setCurrentImageIndex(index)}
-                  className={index === currentImageIndex ? "active" : ""}
+    <div>
+      <GlobalStyles />
+      <Container>
+        <Navbar />
+        {/* <Announcement /> */}
+        <Wrapper>
+          {product ? (
+            <>
+              <ThumbnailContainer>
+                {colorImages.map((img, index) => (
+                  <Thumbnail
+                    key={index}
+                    src={img}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={index === currentImageIndex ? "active" : ""}
+                  />
+                ))}
+              </ThumbnailContainer>
+              <ImgContainer>
+                {colorImages.length > 1 && (
+                  <ArrowContainer
+                    direction="left"
+                    onClick={() => handleImageNavigation("left")}
+                  >
+                    <ArrowBackIos />
+                  </ArrowContainer>
+                )}
+                <Image
+                  src={colorImages[currentImageIndex]}
+                  zoomed={zoomed}
+                  transformOrigin={transformOrigin}
+                  onClick={handleImageClick}
                 />
-              ))}
-            </ThumbnailContainer>
-            <ImgContainer>
-              {colorImages.length > 1 && (
-                <ArrowContainer
-                  direction="left"
-                  onClick={() => handleImageNavigation("left")}
-                >
-                  <ArrowBackIos />
-                </ArrowContainer>
-              )}
-              <Image
-                src={colorImages[currentImageIndex]}
-                zoomed={zoomed}
-                transformOrigin={transformOrigin}
-                onClick={handleImageClick}
-              />
-              {colorImages.length > 1 && (
-                <ArrowContainer
-                  direction="right"
-                  onClick={() => handleImageNavigation("right")}
-                >
-                  <ArrowForwardIos />
-                </ArrowContainer>
-              )}
-            </ImgContainer>
-            <InfoContainer>
-              <Title>{product.title}</Title>
+                {colorImages.length > 1 && (
+                  <ArrowContainer
+                    direction="right"
+                    onClick={() => handleImageNavigation("right")}
+                  >
+                    <ArrowForwardIos />
+                  </ArrowContainer>
+                )}
+              </ImgContainer>
+              <InfoContainer>
+                <Title>{product.title}</Title>
 
-              <FilterContainer>
-                <Filter>
-                  <FilterTitle>Color</FilterTitle>
-                  <FilterColorsContainer>
-                    {Object.keys(product.images)
-                      .map((key) => key.replace(/\d+/g, ""))
-                      .filter((v, i, a) => a.indexOf(v) === i)
-                      .map((uniqueColor) => (
-                        <FilterColor
-                          color={translateColor(uniqueColor)}
-                          key={uniqueColor}
-                          onClick={() => handleColorChange(uniqueColor)}
-                          selected={color === uniqueColor}
-                        />
+                <FilterContainer>
+                  <Filter>
+                    <FilterTitle>Color</FilterTitle>
+                    <FilterColorsContainer>
+                      {Object.keys(product.images)
+                        .map((key) => key.replace(/\d+/g, ""))
+                        .filter((v, i, a) => a.indexOf(v) === i)
+                        .map((uniqueColor) => (
+                          <FilterColor
+                            color={translateColor(uniqueColor)}
+                            key={uniqueColor}
+                            onClick={() => handleColorChange(uniqueColor)}
+                            selected={color === uniqueColor}
+                          />
+                        ))}
+                    </FilterColorsContainer>
+                  </Filter>
+                  <Filter>
+                    <FilterTitle>Tamaño</FilterTitle>
+                    <FilterSize onChange={(e) => setSize(e.target.value)}>
+                      {product.size.map((s) => (
+                        <FilterSizeOption key={s}>{s}</FilterSizeOption>
                       ))}
-                  </FilterColorsContainer>
-                </Filter>
-                <Filter>
-                  <FilterTitle>Tamaño</FilterTitle>
-                  <FilterSize onChange={(e) => setSize(e.target.value)}>
-                    {product.size.map((s) => (
-                      <FilterSizeOption key={s}>{s}</FilterSizeOption>
-                    ))}
-                  </FilterSize>
-                </Filter>
-              </FilterContainer>
-              <AddContainer>
-                {/* <AmountContainer>
+                    </FilterSize>
+                  </Filter>
+                </FilterContainer>
+                <AddContainer>
+                  {/* <AmountContainer>
                   <Remove onClick={() => handleQuantity("dec")} />
                   <Amount>{quantity}</Amount>
                   <Add onClick={() => handleQuantity("inc")} />
                 </AmountContainer> */}
-                <Button onClick={() => setShowModal(true)}>CONTACTAR</Button>
-              </AddContainer>
-              <Desc>
-                <div>
-                  {/* Renderiza siempre la descripción hasta e incluyendo "Guía de talles" */}
-                  <div dangerouslySetInnerHTML={{ __html: firstPart }} />
+                  <Button onClick={() => setShowModal(true)}>CONTACTAR</Button>
+                </AddContainer>
+                <Desc>
+                  <div>
+                    {/* Renderiza siempre la descripción hasta e incluyendo "Guía de talles" */}
+                    <div dangerouslySetInnerHTML={{ __html: firstPart }} />
 
-                  {/* Botón para mostrar/ocultar la segunda parte (tabla o contenido extra) */}
-                  {!isExpanded && (
-                    <button
-                      onClick={() => setIsExpanded(true)}
-                      style={{
-                        cursor: "pointer",
-                        background: "none",
-                        border: "none",
-                        color: "blue",
-                        textDecoration: "underline",
-                        marginTop: "10px",
-                      }}
-                    >
-                      Ver más ▼
-                    </button>
-                  )}
-
-                  {/* Si está expandido, se muestra el contenido extra */}
-                  {isExpanded && (
-                    <div>
-                      <div dangerouslySetInnerHTML={{ __html: secondPart }} />
+                    {/* Botón para mostrar/ocultar la segunda parte (tabla o contenido extra) */}
+                    {!isExpanded && (
                       <button
-                        onClick={() => setIsExpanded(false)}
+                        onClick={() => setIsExpanded(true)}
                         style={{
                           cursor: "pointer",
                           background: "none",
@@ -547,54 +546,76 @@ const Product: React.FC = () => {
                           marginTop: "10px",
                         }}
                       >
-                        Ver menos ▲
+                        Ver más ▼
                       </button>
-                    </div>
-                  )}
-                </div>
-              </Desc>
-            </InfoContainer>
+                    )}
+
+                    {/* Si está expandido, se muestra el contenido extra */}
+                    {isExpanded && (
+                      <div>
+                        <div dangerouslySetInnerHTML={{ __html: secondPart }} />
+                        <button
+                          onClick={() => setIsExpanded(false)}
+                          style={{
+                            cursor: "pointer",
+                            background: "none",
+                            border: "none",
+                            color: "blue",
+                            textDecoration: "underline",
+                            marginTop: "10px",
+                          }}
+                        >
+                          Ver menos ▲
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </Desc>
+              </InfoContainer>
+            </>
+          ) : (
+            <p>Cargando producto...</p>
+          )}
+        </Wrapper>
+
+        {/* Modal de selección de contacto */}
+        {showModal && (
+          <>
+            <Overlay onClick={closeModal} />
+            <Modal>
+              <h2>Selecciona tu tipo de consulta</h2>
+              <Button onClick={() => setContactType("minorista")}>
+                Minorista
+              </Button>
+              <Button onClick={() => setContactType("mayorista")}>
+                Mayorista
+              </Button>
+
+              {contactType === "minorista" && (
+                <>
+                  <h3>Opciones de contacto:</h3>
+                  <Button onClick={handleInstagramContact}>Instagram</Button>
+                </>
+              )}
+
+              {contactType === "mayorista" && (
+                <>
+                  <h3>Opciones de contacto:</h3>
+                  <Button onClick={handleWhatsAppContact}>WhatsApp</Button>
+                  <Button onClick={handleEmailContact}>
+                    Correo Electrónico
+                  </Button>
+                </>
+              )}
+
+              <Button onClick={closeModal}>Cancelar</Button>
+            </Modal>
           </>
-        ) : (
-          <p>Cargando producto...</p>
         )}
-      </Wrapper>
-
-      {/* Modal de selección de contacto */}
-      {showModal && (
-        <>
-          <Overlay onClick={closeModal} />
-          <Modal>
-            <h2>Selecciona tu tipo de consulta</h2>
-            <Button onClick={() => setContactType("minorista")}>
-              Minorista
-            </Button>
-            <Button onClick={() => setContactType("mayorista")}>
-              Mayorista
-            </Button>
-
-            {contactType === "minorista" && (
-              <>
-                <h3>Opciones de contacto:</h3>
-                <Button onClick={handleInstagramContact}>Instagram</Button>
-              </>
-            )}
-
-            {contactType === "mayorista" && (
-              <>
-                <h3>Opciones de contacto:</h3>
-                <Button onClick={handleWhatsAppContact}>WhatsApp</Button>
-                <Button onClick={handleEmailContact}>Correo Electrónico</Button>
-              </>
-            )}
-
-            <Button onClick={closeModal}>Cancelar</Button>
-          </Modal>
-        </>
-      )}
-      <Newsletter />
-      <Footer />
-    </Container>
+        <Newsletter />
+        <Footer />
+      </Container>
+    </div>
   );
 };
 
