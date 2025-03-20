@@ -30,6 +30,28 @@ const ImageContainer = styled.div`
   margin-bottom: 10px; /* Espacio entre la imagen y el título */
 `;
 
+const Overlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3); /* Oscurece la imagen */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  text-transform: uppercase;
+
+  ${ImageContainer}:hover & {
+    opacity: 1; /* 👈 Aparece al pasar el mouse */
+  }
+`;
+
 const Card = styled.div`
   width: 100%;
   max-width: 100%; /* Elimina el ancho máximo para pantallas pequeñas */
@@ -52,6 +74,7 @@ const Image = styled.img`
   height: 100%;
   object-fit: contain; /* Asegura que la imagen no se recorte */
   transition: transform 0.3s ease;
+  cursor: pointer;
 
   ${Card}:hover & {
     transform: scale(1.05); /* Zoom suave al pasar el mouse */
@@ -135,24 +158,20 @@ const Price = styled.span`
 const Product: React.FC<ProductProps> = ({ item }) => {
   return (
     <Card>
-      <ImageContainer>
-        <Image src={item.img} alt={item.title} />
-        <Info>
-          <IconContainer>
-            {/* <Icon>
-                <ShoppingCartOutlined />
-              </Icon> */}
-            <Icon>
-              <Link to={`/product/${item._id}`}>
-                <SearchOutlined />
-              </Link>
-            </Icon>
-            {/* <Icon>
-                <FavoriteBorderOutlined />
-              </Icon> */}
-          </IconContainer>
-        </Info>
-      </ImageContainer>
+      <Link
+        to={`/product/${item._id}`}
+        style={{ textDecoration: "none", color: "inherit" }}
+      >
+        <ImageContainer>
+          <Image src={item.img} alt={item.title} />
+          <Overlay>Ver Producto</Overlay> {/* 👈 Texto superpuesto */}
+          <Info>
+            <IconContainer>
+              {/* Eliminamos la lupa, ya no es necesaria */}
+            </IconContainer>
+          </Info>
+        </ImageContainer>
+      </Link>
       <Details>
         <Title>{item.title}</Title>
         {/* <Subtitle>{item.categories[0]}</Subtitle> */}
