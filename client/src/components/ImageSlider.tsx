@@ -3,31 +3,31 @@ import styled from "styled-components";
 import { mobile } from "../responsive"; // Asegura que está bien importado
 
 const desktopImages = [
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742403710/DSC01999_o0pdhe.jpg",
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742403710/DSC01962_sdzmqh.jpg",
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742403710/DSC01980_p4zakh.jpg",
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742404593/DSC02222_f4hyvd.jpg",
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742404603/DSC02001_miaycd.jpg",
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742404605/DSC02005_mzbjo8.jpg",
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742404749/DSC01946_szlasc.jpg",
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742404749/DSC01888_dqbyyp.jpg",
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742404762/DSC01875_hpssih.jpg",
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742404774/DSC01853_r4rjdj.jpg",
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742425710/DSC01936_b39x9i.jpg",
+  "/images/DSC01999.jpg",
+  "/images/DSC01962.jpg",
+  "/images/DSC01980.jpg",
+  "/images/DSC02222.jpg",
+  "/images/DSC02001.jpg",
+  "/images/DSC02005.jpg",
+  "/images/DSC01946.jpg",
+  "/images/DSC01888.jpg",
+  "/images/DSC01875.jpg",
+  "/images/DSC01853.jpg",
+  "/images/DSC01936.jpg",
 ];
 
 const mobileImages = [
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742423561/DSC01978_nl0mof.jpg",
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742423561/DSC02226_1_ljwu0j.jpg",
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742423561/DSC02198_wauvxt.jpg",
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742423561/DSC01904_atyywz.jpg",
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742423561/DSC01876_xuemk0.jpg",
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742423561/DSC01872_p6nwnd.jpg",
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742425000/DSC01912_cs1ahn.jpg",
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742425722/fotomobile5_cwrwsl.png",
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742425721/fotomobile4_vakops.png",
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742425720/fotomobile2_sdl9dl.png",
-  "https://res.cloudinary.com/djovvsorv/image/upload/v1742425718/fotomobile3_hceplp.png",
+  "/images/DSC01978.jpg",
+  "/images/DSC02226_1.jpg",
+  "/images/DSC02198.jpg",
+  "/images/DSC01904.jpg",
+  "/images/DSC01876.jpg",
+  "/images/DSC01872.jpg",
+  "/images/DSC01912.jpg",
+  "/images/fotomobile5.png",
+  "/images/fotomobile4.png",
+  "/images/fotomobile2.png",
+  "/images/fotomobile3.png",
 ];
 
 const Container = styled.div`
