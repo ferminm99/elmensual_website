@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { mobile } from "../responsive"; // Asegura que está bien importado
 
 const desktopImages = [
   "/images/DSC01999.jpg",
@@ -30,6 +29,7 @@ const mobileImages = [
   "/images/fotomobile3.png",
 ];
 
+// CONTAINER Y STYLES
 const Container = styled.div`
   margin-top: 80px;
   width: 100vw;
@@ -58,24 +58,24 @@ const ImageSlider: React.FC = () => {
 
   useEffect(() => {
     const updateImages = () => {
+      const base = process.env.VITE_API_URL;
       if (window.innerWidth <= 768) {
-        setImages(mobileImages);
+        setImages(mobileImages.map((img) => `${base}${img}`));
       } else {
-        setImages(desktopImages);
+        setImages(desktopImages.map((img) => `${base}${img}`));
       }
     };
 
     updateImages();
     window.addEventListener("resize", updateImages);
-
     return () => window.removeEventListener("resize", updateImages);
   }, []);
 
   useEffect(() => {
+    if (!images.length) return;
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
     }, 6000);
-
     return () => clearInterval(interval);
   }, [images]);
 
