@@ -155,7 +155,31 @@ const Price = styled.span`
   color: #333;
 `;
 
+const getOptimizedImage = (url: string, width: number) => {
+  if (!url.includes("res.cloudinary.com")) return url;
+
+  const baseUrl = url.split("upload/")[0];
+  const afterUpload = url.split("upload/")[1];
+  return `${baseUrl}upload/f_auto,q_auto,w_${width}/${afterUpload}`;
+};
+
 const Product: React.FC<ProductProps> = ({ item }) => {
+  const [imageWidth, setImageWidth] = React.useState(400);
+
+  React.useEffect(() => {
+    const updateWidth = () => {
+      const vw = window.innerWidth;
+      if (vw < 400) setImageWidth(300);
+      else if (vw < 768) setImageWidth(400);
+      else setImageWidth(600);
+    };
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+
+  const optimizedImg = getOptimizedImage(item.img, imageWidth);
+
   return (
     <Card>
       <Link
@@ -163,7 +187,7 @@ const Product: React.FC<ProductProps> = ({ item }) => {
         style={{ textDecoration: "none", color: "inherit" }}
       >
         <ImageContainer>
-          <Image src={item.img} alt={item.title} />
+          <Image src={optimizedImg} alt={item.title} />
           <Overlay>Ver Producto</Overlay> {/* 👈 Texto superpuesto */}
           <Info>
             <IconContainer>
