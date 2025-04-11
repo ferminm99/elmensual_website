@@ -58,11 +58,10 @@ const ImageSlider: React.FC = () => {
 
   useEffect(() => {
     const updateImages = () => {
-      const base = process.env.VITE_API_URL;
       if (window.innerWidth <= 768) {
-        setImages(mobileImages.map((img) => `${base}${img}`));
+        setImages(mobileImages); // ✅ directamente
       } else {
-        setImages(desktopImages.map((img) => `${base}${img}`));
+        setImages(desktopImages); // ✅ directamente
       }
     };
 
