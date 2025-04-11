@@ -17,7 +17,7 @@ const desktopImages = [
 
 const mobileImages = [
   "/images/DSC01978.JPG",
-  "/images/DSC02226_1.JPG",
+  "/images/DSC02226.JPG",
   "/images/DSC02198.JPG",
   "/images/DSC01904.JPG",
   "/images/DSC01876.JPG",
