@@ -6,6 +6,7 @@ import {
 import React from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
+import { useContainerWidth } from "../utils/useContainerWidth";
 
 interface ProductProps {
   item: {
@@ -27,7 +28,7 @@ const ImageContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 10px; /* Espacio entre la imagen y el título */
+  margin-bottom: 10px;
 `;
 
 const Overlay = styled.div`
@@ -36,7 +37,7 @@ const Overlay = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.3); /* Oscurece la imagen */
+  background: rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -48,13 +49,13 @@ const Overlay = styled.div`
   text-transform: uppercase;
 
   ${ImageContainer}:hover & {
-    opacity: 1; /* 👈 Aparece al pasar el mouse */
+    opacity: 1;
   }
 `;
 
 const Card = styled.div`
   width: 100%;
-  max-width: 100%; /* Elimina el ancho máximo para pantallas pequeñas */
+  max-width: 100%;
   background-color: white;
   border-radius: 8px;
   overflow: hidden;
@@ -72,12 +73,12 @@ const Card = styled.div`
 const Image = styled.img`
   width: 100%;
   height: 100%;
-  object-fit: contain; /* Asegura que la imagen no se recorte */
+  object-fit: contain;
   transition: transform 0.3s ease;
   cursor: pointer;
 
   ${Card}:hover & {
-    transform: scale(1.05); /* Zoom suave al pasar el mouse */
+    transform: scale(1.05);
   }
 `;
 
@@ -113,7 +114,7 @@ const Icon = styled.div`
   justify-content: center;
   transition: all 0.3s ease;
   cursor: pointer;
-  color: black; /* Cambia el color del ícono a negro */
+  color: black;
 
   &:hover {
     background-color: #e9f5f5;
@@ -121,7 +122,7 @@ const Icon = styled.div`
   }
 
   a {
-    color: inherit; /* Asegura que los enlaces dentro tomen el color definido */
+    color: inherit;
     text-decoration: none;
   }
 `;
@@ -136,7 +137,7 @@ const Title = styled.h3`
   margin: 5px 0;
   text-align: center;
   overflow: visible;
-  white-space: normal; /* Mantener en una línea */
+  white-space: normal;
   width: 100%;
 `;
 
@@ -155,30 +156,21 @@ const Price = styled.span`
   color: #333;
 `;
 
-const getOptimizedImage = (url: string, width: number) => {
+const optimizedImageCache = {} as Record<string, string>;
+const getOptimizedCloudinaryURL = (url: string, width: number = 500) => {
   if (!url.includes("res.cloudinary.com")) return url;
-
-  const baseUrl = url.split("upload/")[0];
-  const afterUpload = url.split("upload/")[1];
-  return `${baseUrl}upload/f_auto,q_auto,w_${width}/${afterUpload}`;
+  const key = `${url}-w${width}`;
+  if (optimizedImageCache[key]) return optimizedImageCache[key];
+  const optimized = url.replace(
+    "/upload/",
+    `/upload/w_${width},f_auto,q_auto/`
+  );
+  optimizedImageCache[key] = optimized;
+  return optimized;
 };
 
 const Product: React.FC<ProductProps> = ({ item }) => {
-  const [imageWidth, setImageWidth] = React.useState(400);
-
-  React.useEffect(() => {
-    const updateWidth = () => {
-      const vw = window.innerWidth;
-      if (vw < 400) setImageWidth(300);
-      else if (vw < 768) setImageWidth(400);
-      else setImageWidth(600);
-    };
-    updateWidth();
-    window.addEventListener("resize", updateWidth);
-    return () => window.removeEventListener("resize", updateWidth);
-  }, []);
-
-  const optimizedImg = getOptimizedImage(item.img, imageWidth);
+  const { ref, width } = useContainerWidth();
 
   return (
     <Card>
@@ -186,14 +178,12 @@ const Product: React.FC<ProductProps> = ({ item }) => {
         to={`/product/${item._id}`}
         style={{ textDecoration: "none", color: "inherit" }}
       >
-        <ImageContainer>
-          <Image src={optimizedImg} alt={item.title} />
-          <Overlay>Ver Producto</Overlay> {/* 👈 Texto superpuesto */}
-          <Info>
-            <IconContainer>
-              {/* Eliminamos la lupa, ya no es necesaria */}
-            </IconContainer>
-          </Info>
+        <ImageContainer ref={ref}>
+          <Image
+            src={getOptimizedCloudinaryURL(item.img, width)}
+            alt={item.title}
+          />
+          <Overlay>Ver Producto</Overlay>
         </ImageContainer>
       </Link>
       <Details>

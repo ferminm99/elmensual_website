@@ -9,6 +9,7 @@ import Products from "../components/Products"; // Usar el mismo componente que P
 import baseUrl from "../apiConfig";
 import { Product as ProductType } from "../types";
 import { useLocation } from "react-router-dom";
+import { useCachedFetch } from "../hooks/useCachedFetch";
 
 const MainContent = styled.div`
   max-width: 1200px;
@@ -67,22 +68,18 @@ const AllProducts: React.FC = () => {
   const location = useLocation();
   const searchResults = location.state?.results || [];
 
+  const { data: allProducts, loading } = useCachedFetch<ProductType[]>(
+    "/products",
+    "all-products"
+  );
+
   useEffect(() => {
-    console.log("Resultados de búsqueda recibidos:", searchResults);
-    if (searchResults.length === 0) {
-      const fetchProducts = async () => {
-        try {
-          const res = await axios.get(`${baseUrl}/products`);
-          setProducts(res.data);
-        } catch (error) {
-          console.error("Error al obtener los productos:", error);
-        }
-      };
-      fetchProducts();
-    } else {
+    if (searchResults.length > 0) {
       setProducts(searchResults);
+    } else if (allProducts) {
+      setProducts(allProducts);
     }
-  }, [searchResults]);
+  }, [searchResults, allProducts]);
 
   const totalPages = Math.ceil(products.length / itemsPerPage);
 
@@ -102,6 +99,14 @@ const AllProducts: React.FC = () => {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  if (loading && searchResults.length === 0) {
+    return (
+      <p style={{ textAlign: "center", marginTop: "100px" }}>
+        Cargando productos...
+      </p>
+    );
+  }
 
   return (
     <Container>

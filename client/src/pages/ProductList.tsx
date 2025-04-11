@@ -10,6 +10,8 @@ import axios from "axios";
 import baseUrl from "../apiConfig";
 import { Product } from "../types";
 import Footer from "../components/Footer";
+import { useCachedFetch } from "../hooks/useCachedFetch";
+import { useContainerWidth } from "../utils/useContainerWidth";
 
 interface Filters {
   [key: string]: string | undefined;
@@ -192,13 +194,26 @@ const PaginationButton = styled.button<{ active?: boolean }>`
   }
 `;
 
+// AGREGADO: utilidad para optimizar imágenes
+const optimizedImageCache = {} as Record<string, string>;
+export const getOptimizedCloudinaryURL = (url: string, width: number = 500) => {
+  if (!url.includes("res.cloudinary.com")) return url;
+  const key = `${url}-w${width}`;
+  if (optimizedImageCache[key]) return optimizedImageCache[key];
+  const optimized = url.replace(
+    "/upload/",
+    `/upload/w_${width},f_auto,q_auto/`
+  );
+  optimizedImageCache[key] = optimized;
+  return optimized;
+};
+
 const ProductList: React.FC = () => {
   const location = useLocation();
   const paths = location.pathname.split("/").slice(2);
   const mainCategory = paths[0]?.toLowerCase();
   const subCategory = paths[1]?.toLowerCase();
   const type = paths[2]?.toLowerCase() || "";
-
   const [filters, setFilters] = useState<Filters>({});
   const [availableSizes, setAvailableSizes] = useState<number[]>([]);
   const [sort, setSort] = useState("newest");
@@ -269,42 +284,35 @@ const ProductList: React.FC = () => {
 
   const normalizeColor = (color: string) => color.replace(/[0-9]/g, "").trim();
 
+  const categoryKey = `products:${mainCategory}-${subCategory}-${type}`;
+
+  const categoryParams = [
+    mainCategory && `category=${mainCategory}`,
+    subCategory && `subcategory=${subCategory}`,
+    type && `type=${type}`,
+  ]
+    .filter(Boolean)
+    .join("&");
+
+  const url = `/products${categoryParams ? `?${categoryParams}` : ""}`;
+
+  const {
+    data: cachedProducts,
+    loading,
+    error,
+  } = useCachedFetch<Product[]>(url, categoryKey);
+
   useEffect(() => {
-    const fetchSizesAndProducts = async () => {
-      try {
-        const categoryParams = [
-          mainCategory && `category=${mainCategory}`,
-          subCategory && `subcategory=${subCategory}`,
-          type && `type=${type}`,
-        ]
-          .filter(Boolean)
-          .join("&");
+    if (!cachedProducts) return;
 
-        const url = `${baseUrl}/products${
-          categoryParams ? `?${categoryParams}` : ""
-        }`;
+    setProducts(cachedProducts);
 
-        console.log("URL generada para la API:", url); // Log de la URL generada
-
-        const res = await axios.get(url);
-        const productsData: Product[] = res.data;
-
-        console.log("Productos recibidos desde la API:", productsData); // Log de los productos recibidos
-
-        setProducts(productsData);
-
-        const sizesSet = new Set<number>();
-        productsData.forEach((product) =>
-          product.size.forEach((size) => sizesSet.add(Number(size)))
-        );
-        setAvailableSizes(Array.from(sizesSet).sort((a, b) => a - b));
-      } catch (err) {
-        console.error("Error fetching products and sizes:", err);
-      }
-    };
-
-    fetchSizesAndProducts();
-  }, [mainCategory, subCategory, type]);
+    const sizesSet = new Set<number>();
+    cachedProducts.forEach((product) =>
+      product.size.forEach((size) => sizesSet.add(Number(size)))
+    );
+    setAvailableSizes(Array.from(sizesSet).sort((a, b) => a - b));
+  }, [cachedProducts]);
 
   useEffect(() => {
     console.log("Productos antes del filtrado:", products);
@@ -367,6 +375,8 @@ const ProductList: React.FC = () => {
     currentPage * itemsPerPage
   );
 
+  if (loading) return <p>Cargando...</p>;
+
   return (
     <Container>
       <Navbar />
@@ -417,6 +427,7 @@ const ProductList: React.FC = () => {
             )}
             sort={sort}
           />
+
           <PaginationContainer>
             <PaginationButton
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}

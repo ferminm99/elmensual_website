@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import Navbar from "../components/Navbar";
 import Announcement from "../components/Announcement";
@@ -12,6 +12,8 @@ import { addProduct } from "../redux/cartRedux";
 import { useDispatch } from "react-redux";
 import { Product as ProductType } from "../types";
 import { createGlobalStyle } from "styled-components";
+import { useCachedFetch } from "../hooks/useCachedFetch";
+import { useContainerWidth } from "../utils/useContainerWidth";
 
 const Container = styled.div`
   margin-top: 90px;
@@ -280,10 +282,34 @@ interface ContactModalProps {
   handleInstagramContact: () => void;
 }
 
+// AGREGADO: utilidad para optimizar imágenes
+const optimizedImageCache = {} as Record<string, string>;
+const getOptimizedCloudinaryURL = (
+  url: string | undefined,
+  width: number = 800
+) => {
+  if (!url || typeof url !== "string" || !url.includes("res.cloudinary.com"))
+    return url || "";
+  const key = `${url}-w${width}`;
+  if (optimizedImageCache[key]) return optimizedImageCache[key];
+  const optimized = url.replace(
+    "/upload/",
+    `/upload/w_${width},f_auto,q_auto/`
+  );
+  optimizedImageCache[key] = optimized;
+  return optimized;
+};
+
 const Product: React.FC = () => {
   const location = useLocation();
   const id = location.pathname.split("/")[2];
-  const [product, setProduct] = useState<ProductType | null>(null);
+  const { data: product, loading } = useCachedFetch<ProductType>(
+    `/products/find/${id}`,
+    `product_${id}`
+  );
+  const { ref: imgContainerRef, width: imageWidth } = useContainerWidth();
+  const { ref: thumbnailRef, width: thumbnailWidth } = useContainerWidth();
+
   const [quantity, setQuantity] = useState(1);
   const [color, setColor] = useState("");
   const [colorImages, setColorImages] = useState<string[]>([]);
@@ -348,22 +374,14 @@ const Product: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const getProduct = async () => {
-      try {
-        const res = await publicRequest.get("/products/find/" + id);
-        setProduct(res.data);
-
-        const colors = Object.keys(res.data.images).map((color) =>
-          color.replace(/\d+/g, "")
-        );
-        setColor(colors[0]);
-        updateColorImages(colors[0], res.data.images);
-      } catch (error) {
-        console.error("Error fetching product:", error);
-      }
-    };
-    getProduct();
-  }, [id]);
+    if (product && product.images) {
+      const colors = Object.keys(product.images).map((color) =>
+        color.replace(/\d+/g, "")
+      );
+      setColor(colors[0]);
+      updateColorImages(colors[0], product.images);
+    }
+  }, [product]);
 
   const updateColorImages = (
     selectedColor: string,
@@ -380,14 +398,6 @@ const Product: React.FC = () => {
     setColor(selectedColor);
     if (product) {
       updateColorImages(selectedColor, product.images);
-    }
-  };
-
-  const handleQuantity = (type: "inc" | "dec") => {
-    if (type === "dec") {
-      quantity > 1 && setQuantity(quantity - 1);
-    } else {
-      setQuantity(quantity + 1);
     }
   };
 
@@ -448,6 +458,8 @@ const Product: React.FC = () => {
     return colorMap[colorName.toLowerCase()] || "#000000"; // Devuelve negro por defecto
   };
 
+  if (loading) return <p>Cargando...</p>;
+
   return (
     <div>
       <GlobalStyles />
@@ -457,17 +469,17 @@ const Product: React.FC = () => {
         <Wrapper>
           {product ? (
             <>
-              <ThumbnailContainer>
+              <ThumbnailContainer ref={thumbnailRef}>
                 {colorImages.map((img, index) => (
                   <Thumbnail
                     key={index}
-                    src={img}
+                    src={getOptimizedCloudinaryURL(img, thumbnailWidth)} // ⬅️ Tamaño chiquito
                     onClick={() => setCurrentImageIndex(index)}
                     className={index === currentImageIndex ? "active" : ""}
                   />
                 ))}
               </ThumbnailContainer>
-              <ImgContainer>
+              <ImgContainer ref={imgContainerRef}>
                 {colorImages.length > 1 && (
                   <ArrowContainer
                     direction="left"
@@ -477,11 +489,15 @@ const Product: React.FC = () => {
                   </ArrowContainer>
                 )}
                 <Image
-                  src={colorImages[currentImageIndex]}
+                  src={getOptimizedCloudinaryURL(
+                    colorImages[currentImageIndex],
+                    imageWidth
+                  )}
                   zoomed={zoomed}
                   transformOrigin={transformOrigin}
                   onClick={handleImageClick}
                 />
+
                 {colorImages.length > 1 && (
                   <ArrowContainer
                     direction="right"
