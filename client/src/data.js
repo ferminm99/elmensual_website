@@ -1,7 +1,7 @@
 export const sliderItems = [
   {
     id: 1,
-    img: "https://res.cloudinary.com/djovvsorv/image/upload/v1732905060/marrongrafa1_ouegjz.png",
+    img: "https://elmensual.com.ar/images/alforzada1.png",
     title: "BOMBACHAS DE GRAFA",
     desc: "EXPLORA NUESTRAS OPCIONES DE BOMBACHA DE CAMPO DE GRAFA PESADA O LIVIANA",
     bg: "f5fafd",
@@ -9,7 +9,7 @@ export const sliderItems = [
   },
   {
     id: 2,
-    img: "https://res.cloudinary.com/djovvsorv/image/upload/v1732905912/poplinverde1_jqupfv.png",
+    img: "https://elmensual.com.ar/images/alforzada1.png",
     title: "BOMBACHAS DE POPLIN/GRAFIL",
     desc: "LAS BOMBACHAS DE CAMPO DE POPLIN SON LA COMBINACION IDEAL DE ALGODON Y POLIESTER PARA NO SUFRIR EL CALOR",
     bg: "f5fafd",
@@ -17,7 +17,7 @@ export const sliderItems = [
   },
   {
     id: 3,
-    img: "https://res.cloudinary.com/djovvsorv/image/upload/v1733371979/verdecorderoy1_xoeggb.png",
+    img: "https://elmensual.com.ar/images/alforzada1.png",
     title: "BOMBACHAS DE CORDEROY",
     desc: "NUESTRAS BOMBACHAS DE CORDEROY SON DE LA MEJOR CALIDAD Y MAS TRABAJADAS PARA QUE PASES TU INVIERNO COMODAMENTE",
     bg: "f5fafd",
@@ -28,19 +28,19 @@ export const sliderItems = [
 export const categories = [
   {
     id: 1,
-    img: "https://res.cloudinary.com/djovvsorv/image/upload/v1733015991/alforzadamarron3_myjrak.png",
+    img: "https://elmensual.com.ar/images/alforzada1.png",
     title: "ROPA DE CAMPO DE HOMBRE",
     cat: "hombre",
   },
   {
     id: 2,
-    img: "https://res.cloudinary.com/djovvsorv/image/upload/v1732835197/marrongrafa1_lwcxd0.png",
+    img: "https://elmensual.com.ar/images/verdegrafa1.png",
     title: "ROPA DE CAMPO DE MUJER",
     cat: "mujer",
   },
   {
     id: 3,
-    img: "https://res.cloudinary.com/djovvsorv/image/upload/v1733097315/corderoychocolate3_xvjam6.png",
+    img: "https://elmensual.com.ar/images/poplinmarron3.png",
     title: "ROPA DE CAMPO DE ADOLESCENTES",
     cat: "adolescentes",
   },
