@@ -257,11 +257,11 @@ const Footer: React.FC = () => {
         </ContactItem>
         <ContactItem>
           <Phone />
-          (+54) 02344454-605 / (+54) 02344451-550 / (+54) 02345156-87094
+          (+54) 02344451-550 / (+54) 02345156-87094
         </ContactItem>
         <ContactItem>
           <MailOutline />
-          lamotex@elmensual.com.ar / ventas@elmensual.com.ar
+          administracion@elmensual.com.ar
         </ContactItem>
       </Right>
     </Container>

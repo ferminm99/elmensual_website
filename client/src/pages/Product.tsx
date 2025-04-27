@@ -42,7 +42,8 @@ const ImgContainer = styled.div`
   border-radius: 8px;
   padding: 0;
   overflow: hidden;
-  height: 500px; /* Fijamos el alto del contenedor */
+  aspect-ratio: 3 / 4; /* 🔥 NUEVO: en vez de height fijo */
+  width: 100%; /* 🔥 Siempre ocupar el ancho disponible */
 
   ${mobile({
     order: 2,
