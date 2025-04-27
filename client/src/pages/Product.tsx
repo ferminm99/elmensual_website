@@ -105,25 +105,20 @@ const Image = styled.img<{ zoomed: boolean; transformOrigin: string }>`
 const ArrowContainer = styled.div<{ direction: "left" | "right" }>`
   position: absolute;
   top: 50%;
-  ${({ direction }) => (direction === "left" ? "left: 10px" : "right: 10px")};
+  ${({ direction }) => (direction === "left" ? "left: 0" : "right: 0")};
   transform: translateY(-50%);
-  width: 40px; /* ⬅️ antes el area clickeable era como 25px, ahora 40px */
+  width: 40px; /* Área táctil más grande */
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(
-    0,
-    0,
-    0,
-    0.05
-  ); /* 🔥 área apenas visible para debug o eliminar */
+  /* background: rgba(0,0,0,0.05);  🔥 lo sacamos para que NO se vea */
   border-radius: 50%;
   cursor: pointer;
   z-index: 2;
 
   ${mobile({
-    width: "50px", // 🔥 Un poquito más grande aún en mobile
+    width: "50px", // Un poquito más grande en mobile
     height: "50px",
   })}
 `;
