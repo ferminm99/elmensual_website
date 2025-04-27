@@ -107,18 +107,26 @@ const ArrowContainer = styled.div<{ direction: "left" | "right" }>`
   top: 50%;
   ${({ direction }) => (direction === "left" ? "left: 0" : "right: 0")};
   transform: translateY(-50%);
-  width: 40px; /* Área táctil más grande */
+  width: 40px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  /* background: rgba(0,0,0,0.05);  🔥 lo sacamos para que NO se vea */
+  background: transparent; /* 🔥 aseguramos que NO tenga fondo */
   border-radius: 50%;
   cursor: pointer;
   z-index: 2;
 
+  &:hover {
+    background: transparent; /* 🔥 nada en hover */
+  }
+
+  & svg {
+    background: transparent; /* 🔥 los íconos también */
+  }
+
   ${mobile({
-    width: "50px", // Un poquito más grande en mobile
+    width: "50px",
     height: "50px",
   })}
 `;
