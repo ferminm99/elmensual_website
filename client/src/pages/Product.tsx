@@ -106,8 +106,26 @@ const ArrowContainer = styled.div<{ direction: "left" | "right" }>`
   position: absolute;
   top: 50%;
   ${({ direction }) => (direction === "left" ? "left: 10px" : "right: 10px")};
+  transform: translateY(-50%);
+  width: 40px; /* ⬅️ antes el area clickeable era como 25px, ahora 40px */
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(
+    0,
+    0,
+    0,
+    0.05
+  ); /* 🔥 área apenas visible para debug o eliminar */
+  border-radius: 50%;
   cursor: pointer;
   z-index: 2;
+
+  ${mobile({
+    width: "50px", // 🔥 Un poquito más grande aún en mobile
+    height: "50px",
+  })}
 `;
 
 const InfoContainer = styled.div`
@@ -427,6 +445,7 @@ const Product: React.FC = () => {
   };
 
   const handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
+    if (window.innerWidth <= 768) return; // 🔥 Si es celular, no hacemos nada
     const { left, top, width, height } =
       e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - left) / width) * 100; // Porcentaje X
