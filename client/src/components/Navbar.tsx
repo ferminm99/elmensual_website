@@ -346,20 +346,31 @@ const MenuToggle = styled.div`
   })}
 `;
 
+const MobileMenuContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow-y: auto;
+  height: 100%; /* muy importante */
+`;
+
 const MobileMenu = styled.div`
   display: none;
-  position: fixed; /* Menú fijo */
+  position: fixed;
+  top: 85px; /* para que quede debajo del navbar */
   left: 0;
   width: 100%;
+  height: calc(100% - 85px); /* ocupa toda la pantalla debajo del navbar */
   background-color: white;
   box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
   padding: 20px;
-  z-index: 999; /* Debajo del navbar */
+  z-index: 999;
   flex-direction: column;
   gap: 15px;
+  overflow-y: auto; /* ACA: para poder scrollear dentro */
 
   ${mobile({
-    display: "flex", // Visible en móviles
+    display: "flex",
   })}
 `;
 
@@ -857,6 +868,7 @@ const Navbar: React.FC = () => {
     null
   );
   const [activeSection, setActiveSection] = React.useState<string | null>(null);
+  const [activeSubSection, setActiveSubSection] = useState<string | null>(null);
   const navigate = useNavigate();
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!isMobileMenuOpen);
@@ -869,6 +881,17 @@ const Navbar: React.FC = () => {
     const mobileDevices = /android|iphone|ipad|ipod|blackberry|windows phone/i;
     setIsMobile(mobileDevices.test(userAgent));
   }, []);
+
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [isMobileMenuOpen]);
 
   const handleNavigation = (path: string) => {
     setMobileMenuOpen(false);
@@ -1058,84 +1081,88 @@ const Navbar: React.FC = () => {
           )}
         </Left>
 
-        <Center>
-          {Object.keys(categories).map((mainCategory) => (
-            <CategoryMenu
-              key={mainCategory}
-              onClick={(e) => {
-                e.stopPropagation(); // Detenemos la propagación del clic desde los hijos
-                handleCategoryClick(mainCategory, null, []);
-              }}
-            >
-              {mainCategory}
-              <Dropdown>
-                {Object.entries(
-                  categories[mainCategory as keyof typeof categories]
-                ).map(([section, data]) => {
-                  const isComplexSection =
-                    typeof data === "object" && !Array.isArray(data);
+        {!isMobile && (
+          <Center>
+            {Object.keys(categories).map((mainCategory) => (
+              <CategoryMenu
+                key={mainCategory}
+                onClick={(e) => {
+                  e.stopPropagation(); // Detenemos la propagación del clic desde los hijos
+                  handleCategoryClick(mainCategory, null, []);
+                }}
+              >
+                {mainCategory}
+                <Dropdown>
+                  {Object.entries(
+                    categories[mainCategory as keyof typeof categories]
+                  ).map(([section, data]) => {
+                    const isComplexSection =
+                      typeof data === "object" && !Array.isArray(data);
 
-                  return (
-                    <DropdownSection key={section}>
-                      <SectionTitle>{section}</SectionTitle>
-                      {isComplexSection &&
-                        Object.entries(data).map(([subSection, subData]) => (
-                          <DropdownItem
-                            key={subSection}
-                            onClick={(e) => {
-                              e.stopPropagation(); // Detenemos la propagación del clic
-                              const subCategoryFilters = subData.filters || [];
-                              handleCategoryClick(
-                                mainCategory, // Hombre, Mujer, etc.
-                                section, // BOMBACHAS
-                                subCategoryFilters // Filtros de la subcategoría
-                              );
-                            }}
-                          >
-                            {subSection}
-                            <SubDropdown className="sub-dropdown">
-                              {(subData.items || []).map((product: any) => (
-                                <DropdownItem
-                                  key={product.displayName}
-                                  onClick={(e) => {
-                                    e.stopPropagation(); // Detenemos la propagación del clic
-                                    handleCategoryClick(
-                                      mainCategory, // Hombre
-                                      section, // BOMBACHAS
-                                      product.filters // Filtros del producto
-                                    );
-                                  }}
-                                >
-                                  {product.displayName}
-                                </DropdownItem>
-                              ))}
-                            </SubDropdown>
-                          </DropdownItem>
-                        ))}
-                      {!isComplexSection &&
-                        (data as Product[]).map((product) => (
-                          <DropdownItem
-                            key={product.displayName}
-                            onClick={(e) => {
-                              e.stopPropagation(); // Detenemos la propagación del clic
-                              handleCategoryClick(
-                                mainCategory, // Hombre
-                                section, // PANTALONES, CAMISAS, etc.
-                                product.filters
-                              );
-                            }}
-                          >
-                            {product.displayName}
-                          </DropdownItem>
-                        ))}
-                    </DropdownSection>
-                  );
-                })}
-              </Dropdown>
-            </CategoryMenu>
-          ))}
-        </Center>
-
+                    return (
+                      <DropdownSection key={section}>
+                        <SectionTitle>{section}</SectionTitle>
+                        {isComplexSection &&
+                          Object.entries(data).map(([subSection, subData]) => (
+                            <DropdownItem
+                              key={subSection}
+                              onClick={(e) => {
+                                e.stopPropagation(); // Detenemos la propagación del clic
+                                const subCategoryFilters =
+                                  subData.filters || [];
+                                handleCategoryClick(
+                                  mainCategory, // Hombre, Mujer, etc.
+                                  section, // BOMBACHAS
+                                  subCategoryFilters // Filtros de la subcategoría
+                                );
+                              }}
+                            >
+                              {subSection}
+                              <SubDropdown className="sub-dropdown">
+                                {(subData.items || []).map(
+                                  (product: any, index: number) => (
+                                    <DropdownItem
+                                      key={`${product.displayName}-${index}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation(); // Detenemos la propagación del clic
+                                        handleCategoryClick(
+                                          mainCategory, // Hombre
+                                          section, // BOMBACHAS
+                                          product.filters // Filtros del producto
+                                        );
+                                      }}
+                                    >
+                                      {product.displayName}
+                                    </DropdownItem>
+                                  )
+                                )}
+                              </SubDropdown>
+                            </DropdownItem>
+                          ))}
+                        {!isComplexSection &&
+                          (data as Product[]).map((product) => (
+                            <DropdownItem
+                              key={product.displayName}
+                              onClick={(e) => {
+                                e.stopPropagation(); // Detenemos la propagación del clic
+                                handleCategoryClick(
+                                  mainCategory, // Hombre
+                                  section, // PANTALONES, CAMISAS, etc.
+                                  product.filters
+                                );
+                              }}
+                            >
+                              {product.displayName}
+                            </DropdownItem>
+                          ))}
+                      </DropdownSection>
+                    );
+                  })}
+                </Dropdown>
+              </CategoryMenu>
+            ))}
+          </Center>
+        )}
         <Right>
           <Link to="/all-products">
             <MenuItem>
@@ -1153,94 +1180,112 @@ const Navbar: React.FC = () => {
       {/* Menú para móviles */}
       {isMobileMenuOpen && (
         <MobileMenu>
-          {Object.entries(categories).map(([mainCategory, sections]) => (
-            <div key={mainCategory}>
-              {/* Título principal */}
-              <MobileCategoryTitle
-                onClick={() =>
-                  setActiveCategory(
-                    activeCategory === mainCategory ? null : mainCategory
-                  )
-                }
-              >
-                {mainCategory}
-              </MobileCategoryTitle>
+          <MobileMenuContent>
+            {Object.entries(categories).map(([mainCategory, sections]) => (
+              <div key={mainCategory}>
+                {/* CATEGORIA */}
+                <MobileCategoryTitle
+                  onClick={() => {
+                    setActiveCategory(
+                      activeCategory === mainCategory ? null : mainCategory
+                    );
+                    setActiveSection(null);
+                    setActiveSubSection(null);
+                  }}
+                >
+                  {mainCategory}
+                </MobileCategoryTitle>
 
-              {/* Subcategorías y elementos secundarios */}
-              {activeCategory === mainCategory &&
-                Object.entries(sections).map(([section, data]) => {
-                  const isComplexSection =
-                    typeof data === "object" && !Array.isArray(data);
+                {activeCategory === mainCategory && (
+                  <>
+                    {Object.entries(sections).map(([section, data]) => {
+                      const isComplexSection =
+                        typeof data === "object" && !Array.isArray(data);
 
-                  return (
-                    <div key={section}>
-                      {/* Subcategoría */}
-                      <MobileSubCategoryTitle
-                        onClick={() =>
-                          setActiveSection(
-                            activeSection === section ? null : section
-                          )
-                        }
-                      >
-                        {section}
-                      </MobileSubCategoryTitle>
+                      return (
+                        <div key={section}>
+                          {/* SECTION */}
+                          <MobileSubCategoryTitle
+                            onClick={() => {
+                              setActiveSection(
+                                activeSection === section ? null : section
+                              );
+                              setActiveSubSection(null);
+                            }}
+                          >
+                            {section}
+                          </MobileSubCategoryTitle>
 
-                      {/* Elementos secundarios */}
-                      {activeSection === section &&
-                        (isComplexSection
-                          ? Object.entries(data).map(
-                              ([subSection, subData]: any) => (
-                                <div key={subSection}>
-                                  <MobileDropdownItem
-                                    onClick={() =>
-                                      handleCategoryClick(
-                                        mainCategory,
-                                        section,
-                                        subData.filters
-                                      )
-                                    }
-                                  >
-                                    {subSection}
-                                  </MobileDropdownItem>
-                                  {(subData.items || []).map((product: any) => (
-                                    <MobileDropdownItem
-                                      key={product.displayName}
-                                      onClick={() =>
-                                        handleCategoryClick(
-                                          mainCategory,
-                                          section,
-                                          [
-                                            ...subData.filters,
-                                            ...product.filters,
-                                          ]
-                                        )
-                                      }
-                                    >
-                                      {product.displayName}
-                                    </MobileDropdownItem>
-                                  ))}
-                                </div>
-                              )
-                            )
-                          : (data as any[]).map((product: any) => (
-                              <MobileDropdownItem
-                                key={product.displayName}
-                                onClick={() =>
-                                  handleCategoryClick(
-                                    mainCategory,
-                                    section,
-                                    product.filters
+                          {activeSection === section && (
+                            <>
+                              {isComplexSection
+                                ? Object.entries(data).map(
+                                    ([subSection, subData]: any) => (
+                                      <div key={subSection}>
+                                        {/* SUBSECTION */}
+                                        <MobileDropdownItem
+                                          onClick={() => {
+                                            setActiveSubSection(
+                                              activeSubSection === subSection
+                                                ? null
+                                                : subSection
+                                            );
+                                          }}
+                                          style={{ fontWeight: "bold" }}
+                                        >
+                                          {subSection}
+                                        </MobileDropdownItem>
+
+                                        {activeSubSection === subSection &&
+                                          (subData.items || []).map(
+                                            (product: any, idx: number) => (
+                                              <MobileDropdownItem
+                                                key={`${product.displayName}-${idx}`}
+                                                style={{ marginLeft: "30px" }}
+                                                onClick={() =>
+                                                  handleCategoryClick(
+                                                    mainCategory,
+                                                    section,
+                                                    [
+                                                      ...subData.filters,
+                                                      ...product.filters,
+                                                    ]
+                                                  )
+                                                }
+                                              >
+                                                {product.displayName}
+                                              </MobileDropdownItem>
+                                            )
+                                          )}
+                                      </div>
+                                    )
                                   )
-                                }
-                              >
-                                {product.displayName}
-                              </MobileDropdownItem>
-                            )))}
-                    </div>
-                  );
-                })}
-            </div>
-          ))}
+                                : (data as any[]).map(
+                                    (product: any, idx: number) => (
+                                      <MobileDropdownItem
+                                        key={`${product.displayName}-${idx}`}
+                                        onClick={() =>
+                                          handleCategoryClick(
+                                            mainCategory,
+                                            section,
+                                            product.filters
+                                          )
+                                        }
+                                      >
+                                        {product.displayName}
+                                      </MobileDropdownItem>
+                                    )
+                                  )}
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
+              </div>
+            ))}
+          </MobileMenuContent>
         </MobileMenu>
       )}
     </Container>

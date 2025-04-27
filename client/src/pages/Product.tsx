@@ -92,13 +92,13 @@ const Thumbnail = styled.img`
   }
 `;
 
-const Image = styled.img<{ zoomed: boolean; transformOrigin: string }>`
+const Image = styled.img<{ $zoomed: boolean; $transformOrigin: string }>`
   width: 100%; /* Asegura que la imagen tome todo el ancho */
   height: 100%; /* Asegura que la imagen tome todo el alto */
   object-fit: contain; /* Ajusta la imagen dentro del contenedor sin recortar */
-  cursor: ${({ zoomed }) => (zoomed ? "zoom-out" : "zoom-in")};
-  transform: ${({ zoomed }) => (zoomed ? "scale(1.5)" : "scale(1)")};
-  transform-origin: ${({ transformOrigin }) => transformOrigin};
+  cursor: ${({ $zoomed }) => ($zoomed ? "zoom-out" : "zoom-in")};
+  transform: ${({ $zoomed }) => ($zoomed ? "scale(1.5)" : "scale(1)")};
+  transform-origin: ${({ $transformOrigin }) => $transformOrigin};
   transition: transform 0.3s ease, transform-origin 0.3s ease;
 `;
 
@@ -516,8 +516,8 @@ const Product: React.FC = () => {
                     colorImages[currentImageIndex],
                     imageWidth
                   )}
-                  zoomed={zoomed}
-                  transformOrigin={transformOrigin}
+                  $zoomed={zoomed}
+                  $transformOrigin={transformOrigin}
                   onClick={handleImageClick}
                 />
 
