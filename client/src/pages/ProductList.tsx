@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import Navbar from "../components/Navbar";
 import Announcement from "../components/Announcement";
 import Newsletter from "../components/Newsletter";
@@ -28,6 +28,48 @@ const MainContent = styled.div`
   })}
 `;
 
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+const LoadingContainer = styled.div`
+  height: 100vh; /* Pantalla completa */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white; /* Fondo opcional */
+`;
+
+const SpinnerWrapper = styled.div`
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const SpinnerCircle = styled.div`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #3498db;
+  border-radius: 50%;
+  animation: ${spin} 1s linear infinite;
+  top: 0;
+  left: 0;
+`;
+
+const Logo = styled.img`
+  width: 80px; /* Podés ajustar el tamaño */
+  height: 80px;
+  object-fit: contain;
+  /* animation: ${spin} 2s linear infinite; */
+  position: relative;
+  z-index: 2; /* Asegura que esté encima del spinner */
+`;
 const BackgroundContainer = styled.div`
   background-color: #f9f9f9;
   padding: 0px;
@@ -208,6 +250,20 @@ export const getOptimizedCloudinaryURL = (url: string, width: number = 500) => {
   return optimized;
 };
 
+export const LoadingScreen = () => {
+  return (
+    <LoadingContainer>
+      <SpinnerWrapper>
+        <SpinnerCircle />
+        <Logo
+          src="https://res.cloudinary.com/djovvsorv/image/upload/v1730838721/gpehr6bac6stvmcbpuqg.png"
+          alt="Loading..."
+        />
+      </SpinnerWrapper>
+    </LoadingContainer>
+  );
+};
+
 const ProductList: React.FC = () => {
   const location = useLocation();
   const paths = location.pathname.split("/").slice(2);
@@ -375,7 +431,7 @@ const ProductList: React.FC = () => {
     currentPage * itemsPerPage
   );
 
-  if (loading) return <p>Cargando...</p>;
+  if (loading) return <LoadingScreen />;
 
   return (
     <Container>
