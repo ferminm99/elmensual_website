@@ -426,7 +426,7 @@ const Product: React.FC = () => {
         : `Hola, quisiera información sobre compras al por mayor.`
     );
     window.open(
-      `mailto:lamotex@elmensual.com.ar?subject=${subject}&body=${body}`,
+      `mailto:administracion@elmensual.com.ar?subject=${subject}&body=${body}`,
       "_blank"
     );
   };

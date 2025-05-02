@@ -103,7 +103,7 @@ const Newsletter: React.FC = () => {
       return;
     }
 
-    const mailtoLink = `mailto:lamotex@elmensual.com.ar?subject=Consulta desde Página Web&body=${encodeURIComponent(
+    const mailtoLink = `mailto:administracion@elmensual.com.ar?subject=Consulta desde Página Web&body=${encodeURIComponent(
       `${message}`
     )}`;
     window.location.href = mailtoLink;
