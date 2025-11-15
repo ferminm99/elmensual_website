@@ -139,8 +139,7 @@ const Thumbnail = styled.img`
 const Image = styled.img<{ $zoomed: boolean; $transformOrigin: string }>`
   width: 100%; /* Asegura que la imagen tome todo el ancho */
   height: 100%; /* Asegura que la imagen tome todo el alto */
-  // object-fit: contain; /* Ajusta la imagen dentro del contenedor sin recortar */
-  object-fit: cover;
+  object-fit: contain; /* Ajusta la imagen dentro del contenedor sin recortar */
   cursor: ${({ $zoomed }) => ($zoomed ? "zoom-out" : "zoom-in")};
   transform: ${({ $zoomed }) => ($zoomed ? "scale(1.5)" : "scale(1)")};
   transform-origin: ${({ $transformOrigin }) => $transformOrigin};
