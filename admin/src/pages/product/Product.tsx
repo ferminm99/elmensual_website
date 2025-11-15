@@ -16,6 +16,13 @@ import Compressor from "compressorjs";
 import { updateProduct } from "../../redux/apiCalls";
 import { useDrag, useDrop } from "react-dnd";
 
+// Fuerza 3:4 con recorte inteligente (sin condicionales)
+const toSmart34 = (url: string) => {
+  if (!url || !url.includes("/upload/")) return url;
+  const [prefix, rest] = url.split("/upload/");
+  return `${prefix}/upload/c_fill,ar_3:4,g_auto/${rest}`;
+};
+
 interface ProductState {
   product: {
     products: {
@@ -64,7 +71,11 @@ const DraggableImage: React.FC<{
 
   return (
     <div ref={ref} className="productImageContainer">
-      <img src={image.url} alt={image.color} className="productImage" />
+      <img
+        src={toSmart34(image.url)}
+        alt={image.color}
+        className="productImage"
+      />
       <div className="imageLabel">{image.color}</div>
       <Delete
         className="deleteIcon"
@@ -245,16 +256,24 @@ const Product: React.FC = () => {
       return;
     }
 
-    // Encuentra el producto seleccionado
     const selectedProduct = allProducts.find(
       (prod) => prod._id === selectedProductForImages
     );
 
     if (selectedProduct && selectedProduct.images) {
+      // 🔥 Normalizamos TODAS las URLs a 3:4 con padding antes de copiarlas
+      const normalized = Object.fromEntries(
+        Object.entries(selectedProduct.images).map(([color, url]) => [
+          color,
+          toSmart34(url as string),
+        ])
+      );
+
       setColorImages((prevImages) => ({
         ...prevImages,
-        ...selectedProduct.images, // Agrega las imágenes del producto seleccionado
+        ...normalized,
       }));
+
       alert("Imágenes copiadas exitosamente.");
     }
   };
@@ -276,7 +295,7 @@ const Product: React.FC = () => {
 
       if (selectedExistingImage) {
         // Usar imagen existente seleccionada
-        imageUrl = selectedExistingImage.url;
+        imageUrl = toSmart34(selectedExistingImage.url);
       } else if (file) {
         try {
           const compressedBlob = await new Promise<Blob>((resolve, reject) => {
@@ -349,7 +368,7 @@ const Product: React.FC = () => {
       );
 
       const data = await response.json();
-      return data.secure_url;
+      return toSmart34(data.secure_url);
     } catch (error) {
       console.error("Error al subir a Cloudinary", error);
       throw error;
@@ -419,7 +438,11 @@ const Product: React.FC = () => {
         </div>
         <div className="productTopRight">
           <div className="productInfoTop">
-            <img src={product?.img} alt="" className="productInfoImg" />
+            <img
+              src={toSmart34(product?.img || "")}
+              alt=""
+              className="productInfoImg"
+            />
             <span className="productName">{product?.title}</span>
           </div>
           <div className="productInfoBottom">

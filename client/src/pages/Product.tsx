@@ -81,8 +81,8 @@ const ImgContainer = styled.div`
   align-items: center;
   justify-content: center;
   position: relative;
-  /* background-color: #e0e0e0; */
-  background-color: transparent;
+  background-color: #e0e0e0;
+  /* background-color: transparent; */
   border-radius: 8px;
   padding: 0;
   overflow: hidden;
@@ -349,21 +349,45 @@ interface ContactModalProps {
 }
 
 // AGREGADO: utilidad para optimizar imágenes
-const optimizedImageCache = {} as Record<string, string>;
+const optimizedImageCache: Record<string, string> = {};
+
 const getOptimizedCloudinaryURL = (
   url: string | undefined,
   width: number = 800
 ) => {
-  if (!url || typeof url !== "string" || !url.includes("res.cloudinary.com"))
+  if (!url || typeof url !== "string" || !url.includes("/upload/"))
     return url || "";
+
   const key = `${url}-w${width}`;
   if (optimizedImageCache[key]) return optimizedImageCache[key];
-  const optimized = url.replace(
-    "/upload/",
-    `/upload/w_${width},f_auto,q_auto/`
-  );
-  optimizedImageCache[key] = optimized;
-  return optimized;
+
+  // Partimos en '/upload/'
+  const [prefix, rest] = url.split("/upload/");
+  // rest = "<posibles-transformaciones>/<public_id...>"
+
+  // Tomamos el primer segmento de 'rest' hasta la primera '/'
+  const firstSlash = rest.indexOf("/");
+  const maybeTransforms = firstSlash !== -1 ? rest.slice(0, firstSlash) : rest;
+  const hasTransforms =
+    maybeTransforms.includes(",") ||
+    maybeTransforms.includes("_") ||
+    maybeTransforms.includes(":");
+
+  let newUrl: string;
+
+  if (hasTransforms) {
+    // Ya hay transformaciones (p.ej. "c_pad,ar_3:4,b_auto:predominant")
+    const existingTransforms = maybeTransforms;
+    const restWithoutTransforms =
+      firstSlash !== -1 ? rest.slice(firstSlash + 1) : "";
+    newUrl = `${prefix}/upload/${existingTransforms},w_${width},f_auto,q_auto/${restWithoutTransforms}`;
+  } else {
+    // No hay transformaciones todavía
+    newUrl = `${prefix}/upload/w_${width},f_auto,q_auto/${rest}`;
+  }
+
+  optimizedImageCache[key] = newUrl;
+  return newUrl;
 };
 
 export const LoadingScreen = () => {
