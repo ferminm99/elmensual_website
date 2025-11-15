@@ -2,7 +2,7 @@ import axios from "axios";
 import { store } from "./redux/store";
 import { logout } from "./redux/userRedux";
 
-const BASE_URL = "https://elmensual-website.onrender.com/api";
+const BASE_URL = "https://elmensualwebsite-production.up.railway.app";
 
 export const publicRequest = axios.create({
   baseURL: BASE_URL,
