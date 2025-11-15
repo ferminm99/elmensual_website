@@ -1,60 +1,108 @@
 const dotenv = require("dotenv");
+dotenv.config();
+
 const express = require("express");
-const crypto = require("crypto");
 const app = express();
 const mongoose = require("mongoose");
 const path = require("path");
+const crypto = require("crypto");
 const cloudinary = require("cloudinary").v2;
+const cors = require("cors");
 
-dotenv.config();
+// === RUTAS ===
 const userRoute = require("./routes/user");
 const authRoute = require("./routes/auth");
 const productRoute = require("./routes/product");
 const cartRoute = require("./routes/cart");
 const orderRoute = require("./routes/order");
-const cors = require("cors");
 
-const corsOptions = {
-  origin: [
-    "http://localhost:3000",
-    "http://localhost:5000",
-    "https://elmensual-website.onrender.com",
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  credentials: true,
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
+// (Render suele estar detrás de proxy)
+app.set("trust proxy", 1);
 
-// Configuración de CORS
-app.use(cors(corsOptions));
+// ---------- CORS: a prueba de balas ----------
+const ALLOWED_ORIGINS = [
+  "http://localhost:3000",
+  "http://localhost:5000",
+  "http://127.0.0.1:3000",
+  "https://elmensual-website.onrender.com",
+  // agrega aquí otros frontends que uses (Vercel, etc.)
+];
+
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true); // curl, healthchecks
+      return cb(null, ALLOWED_ORIGINS.includes(origin));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Origin",
+      "X-Requested-With",
+      "Content-Type",
+      "Accept",
+      "Authorization",
+    ],
+    exposedHeaders: ["Content-Length"],
+  })
+);
+
+// Responder explícito a TODOS los preflight
+app.options("*", (req, res) => {
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Access-Control-Allow-Credentials", "true");
+  }
+  res.header("Vary", "Origin");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+  );
+  return res.sendStatus(204);
+});
+
+// Refuerzo de headers CORS en cualquier respuesta (incluye errores)
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Access-Control-Allow-Credentials", "true");
+  }
+  res.header("Vary", "Origin");
+  next();
+});
+
+// Body parser
 app.use(express.json());
 
-// Servir archivos estáticos del frontend (carpeta build)
+// ---------- STATIC (si servís el build aquí) ----------
 app.use(express.static(path.join(__dirname, "build")));
 
-// Rutas de API
+// ---------- API ----------
 app.use("/api/auth", authRoute);
 app.use("/api/users", userRoute);
 app.use("/api/products", productRoute);
 app.use("/api/carts", cartRoute);
 app.use("/api/orders", orderRoute);
 
-// Configuración de Cloudinary
+// ---------- CLOUDINARY ----------
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Ruta para generar la firma de Cloudinary
 app.get("/generate-signature", (req, res) => {
   const timestamp = Math.round(new Date().getTime() / 1000);
-  const paramsToSign = `format=png&timestamp=${timestamp}`;
   const signature = cloudinary.utils.api_sign_request(
     { timestamp, format: "png" },
     process.env.CLOUDINARY_API_SECRET
   );
-
   res.json({
     signature,
     timestamp,
@@ -63,7 +111,7 @@ app.get("/generate-signature", (req, res) => {
   });
 });
 
-// Conexión a MongoDB
+// ---------- DB ----------
 const mongoURI =
   process.env.NODE_ENV === "production"
     ? process.env.MONGODB_URI
@@ -80,12 +128,13 @@ mongoose
   })
   .catch((err) => console.log("DB Connection error:", err));
 
-// Redirección de rutas desconocidas al index.html
+// ---------- SPA fallback ----------
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "build", "index.html"));
 });
 
-// Iniciar el servidor
-app.listen(process.env.PORT || 5000, () => {
-  console.log("Backend server is running");
+// ---------- START ----------
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Backend server is running on :${PORT}`);
 });
