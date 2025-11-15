@@ -25,6 +25,7 @@ const ALLOWED_ORIGINS = [
   "http://localhost:5000",
   "http://127.0.0.1:3000",
   "https://elmensual-website.onrender.com",
+  "https://elmensualwebsite-production.up.railway.app",
   // agrega aquí otros frontends que uses (Vercel, etc.)
 ];
 
