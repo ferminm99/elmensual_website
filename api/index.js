@@ -14,8 +14,19 @@ const cartRoute = require("./routes/cart");
 const orderRoute = require("./routes/order");
 const cors = require("cors");
 
+const corsOptions = {
+  origin: [
+    "http://localhost:3000",
+    "http://localhost:5000",
+    "https://elmensual-website.onrender.com",
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
 // Configuración de CORS
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Servir archivos estáticos del frontend (carpeta build)
@@ -27,18 +38,6 @@ app.use("/api/users", userRoute);
 app.use("/api/products", productRoute);
 app.use("/api/carts", cartRoute);
 app.use("/api/orders", orderRoute);
-
-const corsOptions = {
-  origin: [
-    "http://localhost:3000",
-    "http://localhost:5000",
-    "https://elmensual-website.onrender.com",
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  credentials: true,
-  responseHeader: ["Content-Type", "Authorization"],
-};
-app.use(cors(corsOptions));
 
 // Configuración de Cloudinary
 cloudinary.config({
