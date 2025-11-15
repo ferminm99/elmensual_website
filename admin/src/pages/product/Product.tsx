@@ -547,7 +547,7 @@ const Product: React.FC = () => {
             />
             <input
               type="file"
-              accept="image/png"
+              accept="image/png, image/jpeg"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
             {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
