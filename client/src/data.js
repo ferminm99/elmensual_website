@@ -28,7 +28,7 @@ export const sliderItems = [
 export const categories = [
   {
     id: 1,
-    img: "https://elmensual.com.ar/images/grafa1.jpg",
+    img: "https://elmensual.com.ar/images/poplin2.jpg",
     title: "ROPA DE CAMPO DE HOMBRE",
     cat: "hombre",
   },
