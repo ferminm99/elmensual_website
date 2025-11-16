@@ -20,21 +20,22 @@ const Container = styled.div`
 `;
 
 /* ======================= Utils ======================= */
+// Remueve tildes y normaliza
 const strip = (s: string) =>
   (s || "")
     .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[\u0300-\u036f]/g, "") // diacríticos sin \p{Diacritic}
     .toLowerCase()
     .replace(/[._/-]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 
-/** palabras que no cambian el diseño visual */
+// palabras que no cambian el diseño visual
 const VARIANT_PATTERNS: RegExp[] = [
-  /\bpesad[ao]s?\b/gi,
-  /\blivian[ao]s?\b/gi,
-  /\blargo(?:a)?(?:\s+especial)?\b/gi,
-  /\bcorto(?:a)?(?:\s+especial)?\b/gi,
+  /\bpesad[ao]s?\b/g,
+  /\blivian[ao]s?\b/g,
+  /\blargo(?:a)?(?:\s+especial)?\b/g,
+  /\bcorto(?:a)?(?:\s+especial)?\b/g,
 ];
 
 const canonicalName = (title: string) => {
@@ -69,6 +70,16 @@ const dedupeByTitle = (arr: Product[]) => {
   });
   return picked;
 };
+
+// helper para detectar niños/adolescentes con y sin tildes
+const isKidsOrTeens = (title: string) => {
+  const t = strip(title);
+  // niño/niña/niños/niñas -> "nino|nina|ninos|ninas" (porque ya quitamos tildes)
+  if (/\bnin[oa]s?\b/.test(t)) return true;
+  // adolescente/adolescentes
+  if (/\badolesc(?:ente|entes)\b/.test(t)) return true;
+  return false;
+};
 /* ===================================================== */
 
 const Home = () => {
@@ -84,14 +95,8 @@ const Home = () => {
         const cleaned = res.data
           // 0) sólo en stock
           .filter((p) => !!p.inStock)
-          // 1) fuera: niños/adolescentes (sin tildes y con sing/plural)
-          .filter((p) => {
-            const t = strip(p.title);
-            const isKids =
-              /\bnin[oa]s?\b/.test(t) || // niño/niña/niños/niñas/ninos/ninas
-              /\badolescent(e|es)\b/.test(t); // adolescente/adolescentes
-            return !isKids;
-          })
+          // 1) fuera: niños/adolescentes
+          .filter((p) => !isKidsOrTeens(p.title))
           // 2) fuera: largo/corto
           .filter((p) => {
             const t = strip(p.title);

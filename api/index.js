@@ -23,6 +23,7 @@ app.set("trust proxy", 1);
 const ALLOWED_ORIGINS = [
   "http://localhost:3000",
   "http://localhost:5000",
+  "http://localhost:5173",
   "http://127.0.0.1:3000",
   "https://elmensual-website.onrender.com",
   "https://www.elmensual.com.ar",
