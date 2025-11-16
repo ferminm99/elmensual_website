@@ -1,7 +1,7 @@
 export const sliderItems = [
   {
     id: 1,
-    img: "https://elmensual.com.ar/images/alforzada3.png",
+    img: "https://elmensual.com.ar/images/grafa1.png",
     title: "BOMBACHAS DE GRAFA",
     desc: "EXPLORA NUESTRAS OPCIONES DE BOMBACHA DE CAMPO DE GRAFA PESADA O LIVIANA",
     bg: "f5fafd",
@@ -9,7 +9,7 @@ export const sliderItems = [
   },
   {
     id: 2,
-    img: "https://elmensual.com.ar/images/alforzada3.png",
+    img: "https://elmensual.com.ar/images/poplin1.png",
     title: "BOMBACHAS DE POPLIN/GRAFIL",
     desc: "LAS BOMBACHAS DE CAMPO DE POPLIN SON LA COMBINACION IDEAL DE ALGODON Y POLIESTER PARA NO SUFRIR EL CALOR",
     bg: "f5fafd",
@@ -17,7 +17,7 @@ export const sliderItems = [
   },
   {
     id: 3,
-    img: "https://elmensual.com.ar/images/alforzada3.png",
+    img: "https://elmensual.com.ar/images/corderoy1.png",
     title: "BOMBACHAS DE CORDEROY",
     desc: "NUESTRAS BOMBACHAS DE CORDEROY SON DE LA MEJOR CALIDAD Y MAS TRABAJADAS PARA QUE PASES TU INVIERNO COMODAMENTE",
     bg: "f5fafd",
