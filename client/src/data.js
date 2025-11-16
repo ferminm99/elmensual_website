@@ -28,19 +28,19 @@ export const sliderItems = [
 export const categories = [
   {
     id: 1,
-    img: "https://elmensual.com.ar/images/alforzada3.png",
+    img: "https://elmensual.com.ar/images/grafa1.png",
     title: "ROPA DE CAMPO DE HOMBRE",
     cat: "hombre",
   },
   {
     id: 2,
-    img: "https://elmensual.com.ar/images/verdegrafa1.png",
+    img: "https://elmensual.com.ar/images/poplin1.png",
     title: "ROPA DE CAMPO DE MUJER",
     cat: "mujer",
   },
   {
     id: 3,
-    img: "https://elmensual.com.ar/images/poplinmarron3.png",
+    img: "https://elmensual.com.ar/images/corderoy1.png",
     title: "ROPA DE CAMPO DE ADOLESCENTES",
     cat: "adolescentes",
   },
