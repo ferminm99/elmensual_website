@@ -5,7 +5,7 @@ import Announcement from "../components/Announcement";
 import Slider from "../components/Slider";
 import Categories from "../components/Categories";
 import Products from "../components/Products";
-import Newsletter from "../components/Newsletter";
+import Newsletter from "../components/Newsletter"];
 import Footer from "../components/Footer";
 import axios from "axios";
 import baseUrl from "../apiConfig";
@@ -19,7 +19,7 @@ const Container = styled.div`
   overflow-x: hidden;
 `;
 
-/* ======================= Utils de normalización ======================= */
+/* ======================= Utils ======================= */
 const strip = (s: string) =>
   (s || "")
     .normalize("NFD")
@@ -29,7 +29,7 @@ const strip = (s: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-/** Variantes que no cambian el diseño visual */
+/** palabras que no cambian el diseño visual */
 const VARIANT_PATTERNS: RegExp[] = [
   /\bpesad[ao]s?\b/gi,
   /\blivian[ao]s?\b/gi,
@@ -46,22 +46,14 @@ const canonicalName = (title: string) => {
 const scorePriority = (p: Product) => {
   const t = strip(p.title);
   let score = 0;
-  // Prioridad fuerte para EN STOCK
-  if (p.inStock) score += 100;
-  else score -= 100;
-
-  // Por si se colara alguno de largo/corto (igual los filtramos antes)
+  if (p.inStock) score += 100; else score -= 100;
   if (/\blarg[oa]\b/.test(t) || /\bcort[oa]\b/.test(t)) score -= 5;
-
-  // Preferencias: Común > Liviana > Pesada
   if (/\bcomun\b/.test(t)) score += 3;
   if (/\blivian[ao]s?\b/.test(t)) score += 2;
   if (/\bpesad[ao]s?\b/.test(t)) score += 1;
-
   return score;
 };
 
-/** Agrupa por nombre canónico y se queda con la mejor variante según prioridad */
 const dedupeByTitle = (arr: Product[]) => {
   const groups = new Map<string, Product[]>();
   for (const p of arr) {
@@ -76,7 +68,7 @@ const dedupeByTitle = (arr: Product[]) => {
   });
   return picked;
 };
-/* ===================================================================== */
+/* ===================================================== */
 
 const Home = () => {
   const [defaultProducts, setDefaultProducts] = useState<Product[]>([]);
@@ -88,19 +80,27 @@ const Home = () => {
           `${baseUrl}/products?category=bombachas`
         );
 
-        // 0) Excluir SIN STOCK
-        const onlyInStock = res.data.filter((p) => !!p.inStock);
+        const cleaned = res.data
+          // 0) sólo en stock
+          .filter((p) => !!p.inStock)
+          // 1) fuera: niños/adolescentes (sin tildes y con sing/plural)
+          .filter((p) => {
+            const t = strip(p.title);
+            const isKids =
+              /\bnin[oa]s?\b/.test(t) ||        // niño/niña/niños/niñas/ninos/ninas
+              /\badolescent(e|es)\b/.test(t);   // adolescente/adolescentes
+            return !isKids;
+          })
+          // 2) fuera: largo/corto
+          .filter((p) => {
+            const t = strip(p.title);
+            return !/\b(larg[oa]|cort[oa])\b/.test(t);
+          });
 
-        // 1) Excluir todo lo que diga “largo/larga” o “corto/corta”
-        const noLengthVariants = onlyInStock.filter((p) => {
-          const t = strip(p.title);
-          return !/\b(larg[oa]|cort[oa])\b/.test(t);
-        });
+        // 3) dedupe liviana/pesada/etc por diseño visual
+        const uniqueDesigns = dedupeByTitle(cleaned);
 
-        // 2) Deduplicar Pesada/Liviana (y cualquier rastro de largo/corto)
-        const uniqueDesigns = dedupeByTitle(noLengthVariants);
-
-        // 3) Mostrar hasta 12
+        // 4) limitar a 12
         setDefaultProducts(uniqueDesigns.slice(0, 12));
       } catch (err) {
         console.error("Error fetching default products:", err);
