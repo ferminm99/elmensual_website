@@ -5,7 +5,7 @@ import Announcement from "../components/Announcement";
 import Slider from "../components/Slider";
 import Categories from "../components/Categories";
 import Products from "../components/Products";
-import Newsletter from "../components/Newsletter"];
+import Newsletter from "../components/Newsletter";
 import Footer from "../components/Footer";
 import axios from "axios";
 import baseUrl from "../apiConfig";
@@ -46,7 +46,8 @@ const canonicalName = (title: string) => {
 const scorePriority = (p: Product) => {
   const t = strip(p.title);
   let score = 0;
-  if (p.inStock) score += 100; else score -= 100;
+  if (p.inStock) score += 100;
+  else score -= 100;
   if (/\blarg[oa]\b/.test(t) || /\bcort[oa]\b/.test(t)) score -= 5;
   if (/\bcomun\b/.test(t)) score += 3;
   if (/\blivian[ao]s?\b/.test(t)) score += 2;
@@ -87,8 +88,8 @@ const Home = () => {
           .filter((p) => {
             const t = strip(p.title);
             const isKids =
-              /\bnin[oa]s?\b/.test(t) ||        // niño/niña/niños/niñas/ninos/ninas
-              /\badolescent(e|es)\b/.test(t);   // adolescente/adolescentes
+              /\bnin[oa]s?\b/.test(t) || // niño/niña/niños/niñas/ninos/ninas
+              /\badolescent(e|es)\b/.test(t); // adolescente/adolescentes
             return !isKids;
           })
           // 2) fuera: largo/corto
