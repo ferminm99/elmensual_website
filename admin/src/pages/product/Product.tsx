@@ -14,9 +14,8 @@ import { userRequest } from "../../requestMethods";
 // @ts-ignore
 import Compressor from "compressorjs";
 import { updateProduct } from "../../redux/apiCalls";
-import { useDrag, useDrop } from "react-dnd";
 
-// Fuerza 3:4 con recorte inteligente (sin condicionales)
+// Fuerza 3:4 con recorte inteligente
 const toSmart34 = (url: string) => {
   if (!url || !url.includes("/upload/")) return url;
   const [prefix, rest] = url.split("/upload/");
@@ -41,42 +40,70 @@ interface ProductState {
   };
 }
 
-// Subcomponente para cada imagen
-const DraggableImage: React.FC<{
+/* ---------- Item de imagen con input de posición arriba-izquierda ---------- */
+const ImageItem: React.FC<{
   image: { color: string; url: string };
-  index: number;
+  index: number; // índice actual (0-based)
+  total: number; // total de imágenes
   moveImage: (fromIndex: number, toIndex: number) => void;
   handleDeleteImage: (color: string) => void;
-}> = ({ image, index, moveImage, handleDeleteImage }) => {
-  const ref = React.useRef<HTMLDivElement>(null);
+}> = ({ image, index, total, moveImage, handleDeleteImage }) => {
+  const [pos, setPos] = useState(String(index + 1)); // UI 1-based
 
-  const [, drag] = useDrag({
-    type: "image",
-    item: { index },
-  });
+  useEffect(() => setPos(String(index + 1)), [index]);
 
-  const [, drop] = useDrop({
-    accept: "image",
-    hover: (draggedItem: { index: number }) => {
-      if (!ref.current) return;
-
-      if (draggedItem.index !== index) {
-        moveImage(draggedItem.index, index);
-        draggedItem.index = index; // Actualizamos el índice del elemento arrastrado
-      }
-    },
-  });
-
-  drag(drop(ref));
+  const commitPosition = () => {
+    let n = parseInt(pos, 10);
+    if (Number.isNaN(n)) return;
+    n = Math.max(1, Math.min(total, n)); // clamp 1..total
+    if (n - 1 !== index) moveImage(index, n - 1);
+  };
 
   return (
-    <div ref={ref} className="productImageContainer">
+    <div className="productImageContainer" style={{ position: "relative" }}>
+      {/* POS INPUT arriba-izquierda */}
+      <div
+        style={{
+          position: "absolute",
+          top: 6,
+          left: 8,
+          zIndex: 2,
+          background: "rgba(0,0,0,0.55)",
+          padding: "2px 4px",
+          borderRadius: 6,
+          display: "flex",
+          alignItems: "center",
+          gap: 4,
+        }}
+      >
+        <input
+          type="number"
+          min={1}
+          max={total}
+          value={pos}
+          title={`Posición (1-${total})`}
+          onChange={(e) => setPos(e.target.value)}
+          onBlur={commitPosition}
+          onKeyDown={(e) => e.key === "Enter" && commitPosition()}
+          style={{
+            width: 46,
+            padding: "2px 4px",
+            border: "1px solid #ddd",
+            borderRadius: 4,
+            fontSize: 12,
+            color: "#111",
+            background: "#fff",
+          }}
+        />
+      </div>
+
       <img
         src={toSmart34(image.url)}
         alt={image.color}
         className="productImage"
       />
       <div className="imageLabel">{image.color}</div>
+
       <Delete
         className="deleteIcon"
         onClick={() => handleDeleteImage(image.color)}
@@ -86,7 +113,7 @@ const DraggableImage: React.FC<{
   );
 };
 
-// Componente para manejar las imágenes actuales
+/* ---------- Contenedor de imágenes (reordenamiento por número) ---------- */
 const ProductImages: React.FC<{
   images: { color: string; url: string }[];
   setImages: (updatedImages: { color: string; url: string }[]) => void;
@@ -94,20 +121,21 @@ const ProductImages: React.FC<{
 }> = ({ images, setImages, handleDeleteImage }) => {
   const moveImage = (fromIndex: number, toIndex: number) => {
     if (toIndex < 0 || toIndex >= images.length) return;
+    if (fromIndex === toIndex) return;
 
-    const updatedImages = [...images];
-    const [movedImage] = updatedImages.splice(fromIndex, 1);
-    updatedImages.splice(toIndex, 0, movedImage);
-
-    setImages(updatedImages);
+    const updated = [...images];
+    const [moved] = updated.splice(fromIndex, 1);
+    updated.splice(toIndex, 0, moved); // corre las demás 1 lugar
+    setImages(updated);
   };
 
   return (
     <div className="productImages">
       {images.map((image, index) => (
-        <DraggableImage
+        <ImageItem
           key={image.color}
           index={index}
+          total={images.length}
           image={image}
           moveImage={moveImage}
           handleDeleteImage={handleDeleteImage}
@@ -125,7 +153,7 @@ const Product: React.FC = () => {
   const [desc, setDesc] = useState("");
   const [price, setPrice] = useState<number | string>("");
   const [inStock, setInStock] = useState("true");
-  const [categories, setCategories] = useState<string>(""); // Para editar en un solo input
+  const [categories, setCategories] = useState<string>("");
   const [sizes, setSizes] = useState<number[]>([]);
   const [showSizeDropdown, setShowSizeDropdown] = useState(false);
   const [colorImages, setColorImages] = useState<{ [key: string]: string }>({});
@@ -168,7 +196,7 @@ const Product: React.FC = () => {
       setPrice(product.price);
       setInStock(product.inStock ? "true" : "false");
       setCategories(product.categories.join(", "));
-      setSizes(product.size.map((size) => Number(size))); // Convertir a número
+      setSizes(product.size.map((size) => Number(size)));
       setColorImages(product.images);
     }
   }, [product]);
@@ -176,10 +204,10 @@ const Product: React.FC = () => {
   useEffect(() => {
     const fetchExistingImages = async () => {
       try {
-        const res = await userRequest.get("/products"); // Asegúrate de que la URL sea correcta
+        const res = await userRequest.get("/products");
         const images = res.data.flatMap((product: any) =>
           Object.entries(product.images).map(([color, url]) => ({
-            color: color.replace(/\d+/g, ""), // Remueve los números
+            color: color.replace(/\d+/g, ""),
             url,
             productName: product.title,
           }))
@@ -229,10 +257,8 @@ const Product: React.FC = () => {
   }, [productId, MONTHS]);
 
   const handleSizeChange = (size: number) => {
-    setSizes((prevSizes) =>
-      prevSizes.includes(size)
-        ? prevSizes.filter((s) => s !== size)
-        : [...prevSizes, size]
+    setSizes((prev) =>
+      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
     );
   };
 
@@ -244,10 +270,8 @@ const Product: React.FC = () => {
   };
 
   const handleSelectCommonSizes = () => {
-    const commonSizes = Array.from({ length: 10 }, (_, i) => 36 + i * 2); // Solo del 36 al 54
-    setSizes((prevSizes) => [
-      ...new Set([...prevSizes, ...commonSizes]), // Eliminar duplicados
-    ]);
+    const commonSizes = Array.from({ length: 10 }, (_, i) => 36 + i * 2);
+    setSizes((prev) => [...new Set([...prev, ...commonSizes])]);
   };
 
   const handleSelectProductForImages = () => {
@@ -255,25 +279,17 @@ const Product: React.FC = () => {
       alert("Por favor, selecciona un producto.");
       return;
     }
-
     const selectedProduct = allProducts.find(
       (prod) => prod._id === selectedProductForImages
     );
-
     if (selectedProduct && selectedProduct.images) {
-      // 🔥 Normalizamos TODAS las URLs a 3:4 con padding antes de copiarlas
       const normalized = Object.fromEntries(
         Object.entries(selectedProduct.images).map(([color, url]) => [
           color,
           toSmart34(url as string),
         ])
       );
-
-      setColorImages((prevImages) => ({
-        ...prevImages,
-        ...normalized,
-      }));
-
+      setColorImages((prev) => ({ ...prev, ...normalized }));
       alert("Imágenes copiadas exitosamente.");
     }
   };
@@ -283,8 +299,6 @@ const Product: React.FC = () => {
       alert("Por favor, ingresa un nombre de color.");
       return;
     }
-
-    // Validar si el color ya existe
     if (colorImages[newColor]) {
       alert("El color ya existe. Por favor, elige otro nombre.");
       return;
@@ -292,9 +306,7 @@ const Product: React.FC = () => {
 
     if (file || selectedExistingImage) {
       let imageUrl: string;
-
       if (selectedExistingImage) {
-        // Usar imagen existente seleccionada
         imageUrl = toSmart34(selectedExistingImage.url);
       } else if (file) {
         try {
@@ -303,8 +315,8 @@ const Product: React.FC = () => {
               quality: 0.8,
               maxWidth: 1000,
               maxHeight: 1000,
-              mimeType: "image/png", // Asegura que sea PNG
-              convertSize: Infinity, // Evita convertir archivos pequeños a JPEG
+              mimeType: "image/png",
+              convertSize: Infinity,
               success(compressedBlob: Blob | PromiseLike<Blob>) {
                 resolve(compressedBlob);
               },
@@ -314,7 +326,6 @@ const Product: React.FC = () => {
             });
           });
 
-          // Convertir el Blob a un File
           const compressedFile = new File([compressedBlob], file.name, {
             type: "image/png",
             lastModified: Date.now(),
@@ -323,7 +334,6 @@ const Product: React.FC = () => {
           const formData = new FormData();
           formData.append("file", compressedFile);
 
-          // Subir archivo a Cloudinary
           imageUrl = await uploadToCloudinary(formData);
         } catch (error) {
           console.error("Error al comprimir/subir la imagen:", error);
@@ -335,10 +345,7 @@ const Product: React.FC = () => {
         return;
       }
 
-      setColorImages((prevImages) => ({
-        ...prevImages,
-        [newColor]: imageUrl,
-      }));
+      setColorImages((prev) => ({ ...prev, [newColor]: imageUrl }));
       setFile(null);
       setNewColor("");
       setSelectedExistingImage(null);
@@ -357,14 +364,11 @@ const Product: React.FC = () => {
       formData.append("api_key", api_key);
       formData.append("timestamp", timestamp.toString());
       formData.append("signature", signature);
-      formData.append("format", "png"); // Asegurarse de que se guarde como PNG
+      formData.append("format", "png");
 
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
-        {
-          method: "POST",
-          body: formData,
-        }
+        { method: "POST", body: formData }
       );
 
       const data = await response.json();
@@ -376,22 +380,19 @@ const Product: React.FC = () => {
   };
 
   const handleDeleteImage = (color: string) => {
-    setColorImages((prevImages) => {
-      const newImages = { ...prevImages };
-      delete newImages[color];
-      return newImages;
+    setColorImages((prev) => {
+      const next = { ...prev };
+      delete next[color];
+      return next;
     });
   };
 
   const handleSetPrimaryImage = (url: string) => {
     if (product) {
-      product.img = url; // Actualizamos la imagen principal
-      alert("Imagen principal actualizada correctamente."); // Mensaje de éxito
+      product.img = url;
+      alert("Imagen principal actualizada correctamente.");
     }
-
-    setColorImages((prevImages) => ({
-      ...prevImages,
-    }));
+    setColorImages((prev) => ({ ...prev }));
   };
 
   const handleCategoriesChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -402,8 +403,16 @@ const Product: React.FC = () => {
     e.preventDefault();
     if (!product) return;
 
-    // Eliminar duplicados en el array de talles, manteniéndolos como strings
     const uniqueSizes = Array.from(new Set(sizes.map(String)));
+
+    const orderedArray = Object.entries(colorImages).map(([color, url]) => ({
+      color,
+      url,
+    })); // el orden de la UI ya lo mantenemos al reconstruir más abajo
+
+    // reconstruimos en el mismo orden para que se preserve:
+    const orderedObject: { [k: string]: string } = {};
+    orderedArray.forEach(({ color, url }) => (orderedObject[color] = url));
 
     const updatedProduct = {
       _id: product._id,
@@ -412,9 +421,9 @@ const Product: React.FC = () => {
       price: Number(price),
       inStock: inStock === "true",
       categories: categories.split(",").map((cat) => cat.trim()),
-      size: uniqueSizes, // Utilizar los talles sin duplicados y como strings
-      images: colorImages,
-      img: colorImages[Object.keys(colorImages)[0]] || product.img,
+      size: uniqueSizes,
+      images: orderedObject,
+      img: orderedObject[Object.keys(orderedObject)[0] as any] || product.img,
       colors: product.colors || [],
       createdAt: product.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -432,6 +441,7 @@ const Product: React.FC = () => {
           <button className="productAddButton">Create</button>
         </RouterLink>
       </div>
+
       <div className="productTop">
         <div className="productTopLeft">
           <Chart data={pStats} title="Sales Performance" grid dataKey="Sales" />
@@ -463,6 +473,7 @@ const Product: React.FC = () => {
           </div>
         </div>
       </div>
+
       <div className="productBottom">
         <form className="productForm" onSubmit={handleUpdate}>
           <div className="productFormLeft">
@@ -472,18 +483,21 @@ const Product: React.FC = () => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
+
             <label>Product Description</label>
             <input
               type="text"
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
             />
+
             <label>Price</label>
             <input
               type="number"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
             />
+
             <label>In Stock</label>
             <select
               value={inStock}
@@ -492,6 +506,7 @@ const Product: React.FC = () => {
               <option value="true">Yes</option>
               <option value="false">No</option>
             </select>
+
             <label>Categories</label>
             <input
               type="text"
@@ -499,6 +514,7 @@ const Product: React.FC = () => {
               placeholder="Categorías separadas por coma"
               onChange={handleCategoriesChange}
             />
+
             <label>Sizes</label>
             <div
               className="dropdown"
@@ -528,6 +544,7 @@ const Product: React.FC = () => {
                 ))}
               </div>
             )}
+
             <label>Seleccionar Producto para Copiar Imágenes</label>
             <select
               value={selectedProductForImages}
@@ -578,6 +595,7 @@ const Product: React.FC = () => {
               Add Color Image
             </button>
           </div>
+
           <div className="productFormRight">
             <div className="productUpload">
               <img src={product?.img} alt="" className="productUploadImg" />
@@ -591,6 +609,7 @@ const Product: React.FC = () => {
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
               />
             </div>
+
             <button
               type="button"
               onClick={() => setColorImages({})}
