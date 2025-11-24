@@ -23,7 +23,7 @@ interface User {
 
 interface NewProduct extends Omit<Product, "_id"> {}
 // Interfaz para producto completo, todas las propiedades son requeridas
-interface Product {
+export interface Product {
   _id: string;
   title: string;
   desc: string;
@@ -74,13 +74,14 @@ export const updateProduct = async (
   id: string,
   product: Product,
   dispatch: Dispatch
-) => {
+): Promise<Product | undefined> => {
   dispatch(updateProductStart());
   try {
     const res = await userRequest.put(`/products/${id}`, product); // Envía la actualización al servidor
     console.log("Respuesta del servidor tras actualización:", res.data); // Log para confirmar
     dispatch(updateProductSuccess({ id, product: res.data }));
     alert("Producto actualizado correctamente");
+    return res.data as Product;
   } catch (err) {
     console.error("Error al actualizar el producto:", err); // Log de error
     dispatch(updateProductFailure());
@@ -88,7 +89,10 @@ export const updateProduct = async (
   }
 };
 
-export const addProduct = async (product: any, dispatch: Dispatch) => {
+export const addProduct = async (
+  product: any,
+  dispatch: Dispatch
+): Promise<Product | undefined> => {
   dispatch(addProductStart());
   try {
     console.log("Datos del producto que se van a enviar:", product); // Añadir este log
@@ -97,6 +101,7 @@ export const addProduct = async (product: any, dispatch: Dispatch) => {
     dispatch(addProductSuccess(res.data));
     getProducts(dispatch);
     alert("Product added successfully!");
+    return res.data as Product;
   } catch (err) {
     console.error("Error al agregar el producto:", err); // Añadir este log
     dispatch(addProductFailure());
