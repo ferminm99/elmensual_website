@@ -12,6 +12,10 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
 });
 
+const PUBLIC_STORAGE_ROOT =
+  process.env.PUBLIC_STORAGE_ROOT ||
+  path.join(__dirname, "..", "..", "client", "public");
+
 router.post(
   "/product-image",
   verifyTokenAndAdmin,
@@ -26,15 +30,7 @@ router.post(
     }
 
     try {
-      const targetDir = path.join(
-        __dirname,
-        "..",
-        "..",
-        "client",
-        "public",
-        "products",
-        productId
-      );
+      const targetDir = path.join(PUBLIC_STORAGE_ROOT, "products", productId);
       await fs.mkdir(targetDir, { recursive: true });
 
       const filename = `${key}.webp`;

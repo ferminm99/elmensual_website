@@ -73,7 +73,6 @@ const Wrapper = styled.div`
     padding: "20px",
   })}
 `;
-
 const ImgContainer = styled.div`
   flex: 1;
   display: flex;
@@ -81,16 +80,19 @@ const ImgContainer = styled.div`
   justify-content: center;
   position: relative;
   background-color: #e0e0e0;
-  /* background-color: transparent; */
   border-radius: 8px;
   padding: 0;
   overflow: hidden;
-  aspect-ratio: 3 / 4; /* 🔥 NUEVO: en vez de height fijo */
-  width: 100%; /* 🔥 Siempre ocupar el ancho disponible */
+
+  /* 👇 este cuadro va a ser siempre igual, para TODAS las imágenes */
+  width: 100%;
+  max-width: 500px; /* opcional, para que no se haga gigante en pantallas enormes */
+  aspect-ratio: 2 / 3; /* relación vertical tipo foto de producto */
 
   ${mobile({
     order: 2,
     marginBottom: "20px",
+    maxWidth: "100%", // en mobile que use todo el ancho posible
   })}
 `;
 
