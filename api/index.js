@@ -15,6 +15,7 @@ const authRoute = require("./routes/auth");
 const productRoute = require("./routes/product");
 const cartRoute = require("./routes/cart");
 const orderRoute = require("./routes/order");
+const uploadRoute = require("./routes/upload");
 
 // (Render suele estar detrás de proxy)
 app.set("trust proxy", 1);
@@ -93,6 +94,7 @@ app.use("/api/users", userRoute);
 app.use("/api/products", productRoute);
 app.use("/api/carts", cartRoute);
 app.use("/api/orders", orderRoute);
+app.use("/api/uploads", uploadRoute);
 
 // ---------- CLOUDINARY ----------
 cloudinary.config({

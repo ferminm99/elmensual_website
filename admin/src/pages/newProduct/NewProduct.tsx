@@ -1,11 +1,11 @@
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import "./newProduct.css";
-import { addProduct } from "../../redux/apiCalls";
+import { addProduct, updateProduct } from "../../redux/apiCalls";
 import { useDispatch } from "react-redux";
 // @ts-ignore
 import Compressor from "compressorjs";
 import { useNavigate } from "react-router-dom";
-import { publicRequest } from "../../requestMethods";
+import { publicRequest, userRequest } from "../../requestMethods";
 
 interface Inputs {
   [key: string]: any;
@@ -16,6 +16,15 @@ interface ColorImagePair {
   imageFile: File | null;
   imageUrl?: string; // Agregar imageUrl como opcional
 }
+
+const buildStaticPath = (productId: string, key: string) =>
+  `/products/${productId}/${key}.webp`;
+
+const normalizeImagePath = (url: string, productId: string, key: string) => {
+  if (!url) return url;
+  if (url.startsWith("/products/")) return url;
+  return buildStaticPath(productId, key);
+};
 
 export default function NewProduct() {
   const [inputs, setInputs] = useState<Inputs>({});
@@ -96,35 +105,56 @@ export default function NewProduct() {
     setCat(e.target.value.split(","));
   };
 
-  const uploadToCloudinary = async (file: File): Promise<string> => {
-    try {
-      const signatureResponse = await fetch(
-        "http://localhost:5000/generate-signature"
-      );
-      const { signature, timestamp, api_key, cloud_name } =
-        await signatureResponse.json();
+  // const uploadToCloudinary = async (file: File): Promise<string> => {
+  //   try {
+  //     const signatureResponse = await fetch(
+  //       "http://localhost:5000/generate-signature"
+  //     );
+  //     const { signature, timestamp, api_key, cloud_name } =
+  //       await signatureResponse.json();
 
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("api_key", api_key);
-      formData.append("timestamp", timestamp.toString());
-      formData.append("signature", signature);
-      formData.append("format", "png");
+  //     const formData = new FormData();
+  //     formData.append("file", file);
+  //     formData.append("api_key", api_key);
+  //     formData.append("timestamp", timestamp.toString());
+  //     formData.append("signature", signature);
+  //     formData.append("format", "png");
 
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+  //     const response = await fetch(
+  //       `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
+  //       {
+  //         method: "POST",
+  //         body: formData,
+  //       }
+  //     );
 
-      const data = await response.json();
-      return data.secure_url;
-    } catch (error) {
-      console.error("Error al subir a Cloudinary", error);
-      throw error;
-    }
+  //     const data = await response.json();
+  //     return data.secure_url;
+  //   } catch (error) {
+  //     console.error("Error al subir a Cloudinary", error);
+  //     throw error;
+  //   }
+  // };
+
+  const uploadToPublicStorage = async (
+    productId: string,
+    key: string,
+    file: File
+  ): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("productId", productId);
+    formData.append("key", key);
+
+    const response = await userRequest.post(
+      "/uploads/product-image",
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
+
+    return response.data.path as string;
   };
 
   const handleFileUpload = (file: File): Promise<File> => {
@@ -165,46 +195,58 @@ export default function NewProduct() {
     setSelectedExistingImage(null);
     setInputs((prev) => ({ ...prev, color: "" }));
   };
-
   const handleClick = async (e: FormEvent) => {
     e.preventDefault();
+    try {
+      const baseProduct = {
+        title: inputs.title || "",
+        desc: inputs.desc || "",
+        size: sizes.map(String), // Asegurarse de que los talles estén como strings
+        colors: [],
+        price: Number(inputs.price) || 0,
+        inStock: inStock === "true", // Asigna el valor booleano según el estado de inStock
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        images: {},
+        img: "",
+        categories: cat,
+      };
 
-    const imageMap: { [key: string]: string } = {};
-    for (const { color, imageFile, imageUrl } of colorImages) {
-      if (imageUrl) {
-        imageMap[color] = imageUrl;
-      } else if (imageFile) {
-        const compressedFile = await handleFileUpload(imageFile);
-        const uploadedUrl = await uploadToCloudinary(compressedFile);
-        imageMap[color] = uploadedUrl;
+      const savedProduct = await addProduct(baseProduct, dispatch);
+      const productId = savedProduct?._id;
+
+      if (!productId) {
+        console.error("No se pudo obtener el ID del producto");
+        return;
       }
-    }
 
-    const firstImageUrl = Object.values(imageMap)[0];
-    if (firstImageUrl) {
-      try {
-        const product = {
-          title: inputs.title || "",
-          desc: inputs.desc || "",
-          size: sizes.map(String), // Asegurarse de que los talles estén como strings
-          colors: Object.keys(imageMap),
-          price: Number(inputs.price) || 0,
-          inStock: inStock === "true", // Asigna el valor booleano según el estado de inStock
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          images: imageMap,
-          img: firstImageUrl,
-          categories: cat,
-        };
-
-        await addProduct(product, dispatch);
-        alert("Producto agregado exitosamente");
-        //navigate("/");
-      } catch (error) {
-        console.error("Error al manejar el archivo", error);
+      const imageMap: { [key: string]: string } = {};
+      for (const { color, imageFile, imageUrl } of colorImages) {
+        if (imageUrl) {
+          imageMap[color] = normalizeImagePath(imageUrl, productId, color);
+        } else if (imageFile) {
+          const compressedFile = await handleFileUpload(imageFile);
+          const uploadedUrl = await uploadToPublicStorage(
+            productId,
+            color,
+            compressedFile
+          );
+          imageMap[color] = uploadedUrl;
+        }
       }
-    } else {
-      console.error("No hay imágenes para establecer como principal");
+
+      const firstImageUrl = Object.values(imageMap)[0] || "";
+      const updatedProduct = {
+        ...baseProduct,
+        _id: productId,
+        images: imageMap,
+        img: firstImageUrl || buildStaticPath(productId, "img"),
+        colors: Object.keys(imageMap),
+      };
+
+      await updateProduct(productId, updatedProduct as any, dispatch);
+    } catch (error) {
+      console.error("Error al manejar el archivo", error);
     }
   };
 

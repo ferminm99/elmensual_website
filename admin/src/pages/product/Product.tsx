@@ -22,6 +22,15 @@ const toSmart34 = (url: string) => {
   return `${prefix}/upload/c_fill,ar_3:4,g_auto/${rest}`;
 };
 
+const buildStaticPath = (productId: string, key: string) =>
+  `/products/${productId}/${key}.webp`;
+
+const normalizeImagePath = (url: string, productId: string, key: string) => {
+  if (!url) return url;
+  if (url.startsWith("/products/")) return url;
+  return buildStaticPath(productId, key);
+};
+
 interface ProductState {
   product: {
     products: {
@@ -295,6 +304,7 @@ const Product: React.FC = () => {
   };
 
   const handleColorChange = async () => {
+    if (!product) return;
     if (!newColor) {
       alert("Por favor, ingresa un nombre de color.");
       return;
@@ -305,9 +315,13 @@ const Product: React.FC = () => {
     }
 
     if (file || selectedExistingImage) {
-      let imageUrl: string;
+      let imageUrl: string | undefined;
       if (selectedExistingImage) {
-        imageUrl = toSmart34(selectedExistingImage.url);
+        imageUrl = normalizeImagePath(
+          selectedExistingImage.url,
+          product._id,
+          newColor
+        );
       } else if (file) {
         try {
           const compressedBlob = await new Promise<Blob>((resolve, reject) => {
@@ -326,15 +340,16 @@ const Product: React.FC = () => {
             });
           });
 
-          const compressedFile = new File([compressedBlob], file.name, {
+          const compressedFile = new File([compressedBlob], `${newColor}.png`, {
             type: "image/png",
             lastModified: Date.now(),
           });
 
-          const formData = new FormData();
-          formData.append("file", compressedFile);
-
-          imageUrl = await uploadToCloudinary(formData);
+          imageUrl = await uploadToPublicStorage(
+            product._id,
+            newColor,
+            compressedFile
+          );
         } catch (error) {
           console.error("Error al comprimir/subir la imagen:", error);
           alert("Hubo un problema al subir la imagen. Intenta de nuevo.");
@@ -345,7 +360,7 @@ const Product: React.FC = () => {
         return;
       }
 
-      setColorImages((prev) => ({ ...prev, [newColor]: imageUrl }));
+      setColorImages((prev) => ({ ...prev, [newColor]: imageUrl! }));
       setFile(null);
       setNewColor("");
       setSelectedExistingImage(null);
@@ -353,30 +368,25 @@ const Product: React.FC = () => {
     }
   };
 
-  const uploadToCloudinary = async (formData: FormData): Promise<string> => {
-    try {
-      const signatureResponse = await fetch(
-        "http://localhost:5000/generate-signature"
-      );
-      const { signature, timestamp, api_key, cloud_name } =
-        await signatureResponse.json();
+  const uploadToPublicStorage = async (
+    productId: string,
+    key: string,
+    fileToUpload: File
+  ): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", fileToUpload);
+    formData.append("productId", productId);
+    formData.append("key", key);
 
-      formData.append("api_key", api_key);
-      formData.append("timestamp", timestamp.toString());
-      formData.append("signature", signature);
-      formData.append("format", "png");
+    const response = await userRequest.post(
+      "/uploads/product-image",
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
 
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
-        { method: "POST", body: formData }
-      );
-
-      const data = await response.json();
-      return toSmart34(data.secure_url);
-    } catch (error) {
-      console.error("Error al subir a Cloudinary", error);
-      throw error;
-    }
+    return response.data.path as string;
   };
 
   const handleDeleteImage = (color: string) => {
@@ -389,7 +399,7 @@ const Product: React.FC = () => {
 
   const handleSetPrimaryImage = (url: string) => {
     if (product) {
-      product.img = url;
+      product.img = normalizeImagePath(url, product._id, "img");
       alert("Imagen principal actualizada correctamente.");
     }
     setColorImages((prev) => ({ ...prev }));
@@ -410,9 +420,10 @@ const Product: React.FC = () => {
       url,
     })); // el orden de la UI ya lo mantenemos al reconstruir más abajo
 
-    // reconstruimos en el mismo orden para que se preserve:
-    const orderedObject: { [k: string]: string } = {};
-    orderedArray.forEach(({ color, url }) => (orderedObject[color] = url));
+    const normalizedImages: { [k: string]: string } = {};
+    orderedArray.forEach(({ color, url }) => {
+      normalizedImages[color] = normalizeImagePath(url, product._id, color);
+    });
 
     const updatedProduct = {
       _id: product._id,
@@ -422,8 +433,10 @@ const Product: React.FC = () => {
       inStock: inStock === "true",
       categories: categories.split(",").map((cat) => cat.trim()),
       size: uniqueSizes,
-      images: orderedObject,
-      img: orderedObject[Object.keys(orderedObject)[0] as any] || product.img,
+      images: normalizedImages,
+      img:
+        normalizedImages[Object.keys(normalizedImages)[0] as any] ||
+        normalizeImagePath(product.img, product._id, "img"),
       colors: product.colors || [],
       createdAt: product.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -432,6 +445,32 @@ const Product: React.FC = () => {
     console.log("Producto actualizado:", updatedProduct);
     await updateProduct(productId, updatedProduct, dispatch);
   };
+
+  // const uploadToCloudinary = async (formData: FormData): Promise<string> => {
+  //   try {
+  //     const signatureResponse = await fetch(
+  //       "http://localhost:5000/generate-signature"
+  //     );
+  //     const { signature, timestamp, api_key, cloud_name } =
+  //       await signatureResponse.json();
+
+  //     formData.append("api_key", api_key);
+  //     formData.append("timestamp", timestamp.toString());
+  //     formData.append("signature", signature);
+  //     formData.append("format", "png");
+
+  //     const response = await fetch(
+  //       `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
+  //       { method: "POST", body: formData }
+  //     );
+
+  //     const data = await response.json();
+  //     return toSmart34(data.secure_url);
+  //   } catch (error) {
+  //     console.error("Error al subir a Cloudinary", error);
+  //     throw error;
+  //   }
+  // };
 
   return (
     <div className="product">
