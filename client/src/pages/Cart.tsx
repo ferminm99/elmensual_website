@@ -7,6 +7,7 @@ import { Add, Remove } from "@material-ui/icons";
 import { mobile } from "../responsive";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { normalizeProductImageUrl } from "../utils/imageUrl";
 
 // Define los tipos para los productos y el estado del carrito
 interface Product {
@@ -210,7 +211,7 @@ const Cart: React.FC = () => {
             {cart.products.map((product) => (
               <ProductContainer key={product._id}>
                 <ProductDetail>
-                  <Image src={product.img} />
+                  <Image src={normalizeProductImageUrl(product.img)} />
                   <Details>
                     <ProductName>
                       <b>Producto:</b> {product.title}

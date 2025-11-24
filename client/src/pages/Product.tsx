@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled, { keyframes } from "styled-components";
 import Navbar from "../components/Navbar";
 import Announcement from "../components/Announcement";
@@ -7,13 +7,12 @@ import Footer from "../components/Footer";
 import { Add, Remove, ArrowBackIos, ArrowForwardIos } from "@material-ui/icons";
 import { mobile } from "../responsive";
 import { useLocation } from "react-router-dom";
-import { publicRequest } from "../requestMethods";
 import { addProduct } from "../redux/cartRedux";
 import { useDispatch } from "react-redux";
 import { Product as ProductType } from "../types";
 import { createGlobalStyle } from "styled-components";
 import { useCachedFetch } from "../hooks/useCachedFetch";
-import { useContainerWidth } from "../utils/useContainerWidth";
+import { normalizeProductImageUrl } from "../utils/imageUrl";
 
 const Container = styled.div`
   margin-top: 90px;
@@ -348,47 +347,47 @@ interface ContactModalProps {
   handleInstagramContact: () => void;
 }
 
-// AGREGADO: utilidad para optimizar imágenes
-const optimizedImageCache: Record<string, string> = {};
+// // AGREGADO: utilidad para optimizar imágenes
+// const optimizedImageCache: Record<string, string> = {};
 
-const getOptimizedCloudinaryURL = (
-  url: string | undefined,
-  width: number = 800
-) => {
-  if (!url || typeof url !== "string" || !url.includes("/upload/"))
-    return url || "";
+// const getOptimizedCloudinaryURL = (
+//   url: string | undefined,
+//   width: number = 800
+// ) => {
+//   if (!url || typeof url !== "string" || !url.includes("/upload/"))
+//     return url || "";
 
-  const key = `${url}-w${width}`;
-  if (optimizedImageCache[key]) return optimizedImageCache[key];
+//   const key = `${url}-w${width}`;
+//   if (optimizedImageCache[key]) return optimizedImageCache[key];
 
-  // Partimos en '/upload/'
-  const [prefix, rest] = url.split("/upload/");
-  // rest = "<posibles-transformaciones>/<public_id...>"
+//   // Partimos en '/upload/'
+//   const [prefix, rest] = url.split("/upload/");
+//   // rest = "<posibles-transformaciones>/<public_id...>"
 
-  // Tomamos el primer segmento de 'rest' hasta la primera '/'
-  const firstSlash = rest.indexOf("/");
-  const maybeTransforms = firstSlash !== -1 ? rest.slice(0, firstSlash) : rest;
-  const hasTransforms =
-    maybeTransforms.includes(",") ||
-    maybeTransforms.includes("_") ||
-    maybeTransforms.includes(":");
+//   // Tomamos el primer segmento de 'rest' hasta la primera '/'
+//   const firstSlash = rest.indexOf("/");
+//   const maybeTransforms = firstSlash !== -1 ? rest.slice(0, firstSlash) : rest;
+//   const hasTransforms =
+//     maybeTransforms.includes(",") ||
+//     maybeTransforms.includes("_") ||
+//     maybeTransforms.includes(":");
 
-  let newUrl: string;
+//   let newUrl: string;
 
-  if (hasTransforms) {
-    // Ya hay transformaciones (p.ej. "c_pad,ar_3:4,b_auto:predominant")
-    const existingTransforms = maybeTransforms;
-    const restWithoutTransforms =
-      firstSlash !== -1 ? rest.slice(firstSlash + 1) : "";
-    newUrl = `${prefix}/upload/${existingTransforms},w_${width},f_auto,q_auto/${restWithoutTransforms}`;
-  } else {
-    // No hay transformaciones todavía
-    newUrl = `${prefix}/upload/w_${width},f_auto,q_auto/${rest}`;
-  }
+//   if (hasTransforms) {
+//     // Ya hay transformaciones (p.ej. "c_pad,ar_3:4,b_auto:predominant")
+//     const existingTransforms = maybeTransforms;
+//     const restWithoutTransforms =
+//       firstSlash !== -1 ? rest.slice(firstSlash + 1) : "";
+//     newUrl = `${prefix}/upload/${existingTransforms},w_${width},f_auto,q_auto/${restWithoutTransforms}`;
+//   } else {
+//     // No hay transformaciones todavía
+//     newUrl = `${prefix}/upload/w_${width},f_auto,q_auto/${rest}`;
+//   }
 
-  optimizedImageCache[key] = newUrl;
-  return newUrl;
-};
+//   optimizedImageCache[key] = newUrl;
+//   return newUrl;
+// };
 
 export const LoadingScreen = () => {
   return (
@@ -411,8 +410,8 @@ const Product: React.FC = () => {
     `/products/find/${id}`,
     `product_${id}`
   );
-  const { ref: imgContainerRef, width: imageWidth } = useContainerWidth();
-  const { ref: thumbnailRef, width: thumbnailWidth } = useContainerWidth();
+  // const { ref: imgContainerRef, width: imageWidth } = useContainerWidth();
+  // const { ref: thumbnailRef, width: thumbnailWidth } = useContainerWidth();
 
   const [quantity, setQuantity] = useState(1);
   const [color, setColor] = useState("");
@@ -493,7 +492,7 @@ const Product: React.FC = () => {
   ) => {
     const filteredImages = Object.keys(images)
       .filter((key) => key.startsWith(selectedColor))
-      .map((key) => images[key]);
+      .map((key) => normalizeProductImageUrl(images[key]));
     setColorImages(filteredImages);
     setCurrentImageIndex(0);
   };
@@ -574,17 +573,17 @@ const Product: React.FC = () => {
         <Wrapper>
           {product ? (
             <>
-              <ThumbnailContainer ref={thumbnailRef}>
+              <ThumbnailContainer>
                 {colorImages.map((img, index) => (
                   <Thumbnail
                     key={index}
-                    src={getOptimizedCloudinaryURL(img, thumbnailWidth)} // ⬅️ Tamaño chiquito
+                    src={normalizeProductImageUrl(img)}
                     onClick={() => setCurrentImageIndex(index)}
                     className={index === currentImageIndex ? "active" : ""}
                   />
                 ))}
               </ThumbnailContainer>
-              <ImgContainer ref={imgContainerRef}>
+              <ImgContainer>
                 {colorImages.length > 1 && (
                   <ArrowContainer
                     direction="left"
@@ -594,10 +593,7 @@ const Product: React.FC = () => {
                   </ArrowContainer>
                 )}
                 <Image
-                  src={getOptimizedCloudinaryURL(
-                    colorImages[currentImageIndex],
-                    imageWidth
-                  )}
+                  src={normalizeProductImageUrl(colorImages[currentImageIndex])}
                   $zoomed={zoomed}
                   $transformOrigin={transformOrigin}
                   onClick={handleImageClick}

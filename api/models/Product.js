@@ -10,10 +10,10 @@ const ProductSchema = new mongoose.Schema(
     colors: { type: Array }, // Lista de colores
     images: {
       type: Map,
-      of: String, // Mapa de color a URL de imagen
+      of: String, // Mapa de color a ruta relativa (/products/...) o URL
       default: {},
     },
-    img: { type: String }, // Imagen principal
+    img: { type: String }, // Imagen principal (ruta relativa o URL)
     price: { type: Number, required: true },
     inStock: { type: Boolean, default: true },
   },

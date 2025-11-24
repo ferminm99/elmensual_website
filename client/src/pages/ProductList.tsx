@@ -11,7 +11,6 @@ import baseUrl from "../apiConfig";
 import { Product } from "../types";
 import Footer from "../components/Footer";
 import { useCachedFetch } from "../hooks/useCachedFetch";
-import { useContainerWidth } from "../utils/useContainerWidth";
 
 interface Filters {
   [key: string]: string | undefined;
@@ -236,19 +235,19 @@ const PaginationButton = styled.button<{ active?: boolean }>`
   }
 `;
 
-// AGREGADO: utilidad para optimizar imágenes
-const optimizedImageCache = {} as Record<string, string>;
-export const getOptimizedCloudinaryURL = (url: string, width: number = 500) => {
-  if (!url.includes("res.cloudinary.com")) return url;
-  const key = `${url}-w${width}`;
-  if (optimizedImageCache[key]) return optimizedImageCache[key];
-  const optimized = url.replace(
-    "/upload/",
-    `/upload/w_${width},f_auto,q_auto/`
-  );
-  optimizedImageCache[key] = optimized;
-  return optimized;
-};
+// // AGREGADO: utilidad para optimizar imágenes
+// const optimizedImageCache = {} as Record<string, string>;
+// export const getOptimizedCloudinaryURL = (url: string, width: number = 500) => {
+//   if (!url.includes("res.cloudinary.com")) return url;
+//   const key = `${url}-w${width}`;
+//   if (optimizedImageCache[key]) return optimizedImageCache[key];
+//   const optimized = url.replace(
+//     "/upload/",
+//     `/upload/w_${width},f_auto,q_auto/`
+//   );
+//   optimizedImageCache[key] = optimized;
+//   return optimized;
+// };
 
 export const LoadingScreen = () => {
   return (

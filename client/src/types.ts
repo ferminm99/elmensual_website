@@ -8,8 +8,8 @@ export interface Product {
   categories: string[];
   size: string[];
   colors: string[]; // Lista de colores
-  images: { [color: string]: string }; // Mapa de color a URL de imagen
-  img: string;
+  images: { [color: string]: string }; // Mapa de color a ruta relativa (/products/...) o URL
+  img: string; // Ruta principal relativa o URL
   price: number;
   inStock: boolean;
   createdAt: string;

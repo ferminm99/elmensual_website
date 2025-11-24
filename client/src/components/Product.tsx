@@ -6,7 +6,7 @@ import {
 import React from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
-import { useContainerWidth } from "../utils/useContainerWidth";
+import { normalizeProductImageUrl } from "../utils/imageUrl";
 
 interface ProductProps {
   item: {
@@ -170,19 +170,14 @@ const getOptimizedCloudinaryURL = (url: string, width: number = 500) => {
 };
 
 const Product: React.FC<ProductProps> = ({ item }) => {
-  const { ref, width } = useContainerWidth();
-
   return (
     <Card>
       <Link
         to={`/product/${item._id}`}
         style={{ textDecoration: "none", color: "inherit" }}
       >
-        <ImageContainer ref={ref}>
-          <Image
-            src={getOptimizedCloudinaryURL(item.img, width)}
-            alt={item.title}
-          />
+        <ImageContainer>
+          <Image src={normalizeProductImageUrl(item.img)} alt={item.title} />
           <Overlay>Ver Producto</Overlay>
         </ImageContainer>
       </Link>
