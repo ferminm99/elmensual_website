@@ -17,7 +17,7 @@ export const sliderItems = [
   },
   {
     id: 3,
-    img: "https://elmensual.com.ar/images/corderoy1.jpg",
+    img: "https://elmensual.com.ar/images/corderoy1.webp",
     title: "BOMBACHAS DE CORDEROY",
     desc: "NUESTRAS BOMBACHAS DE CORDEROY SON DE LA MEJOR CALIDAD Y MAS TRABAJADAS PARA QUE PASES TU INVIERNO COMODAMENTE",
     bg: "f5fafd",
