@@ -2,31 +2,31 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 
 const desktopImages = [
-  "/images/DSC01999.JPG",
-  "/images/DSC01962.JPG",
-  "/images/DSC01980.JPG",
-  "/images/DSC02222.JPG",
-  "/images/DSC02001.JPG",
-  "/images/DSC02005.JPG",
-  "/images/DSC01946.JPG",
-  "/images/DSC01888.JPG",
-  "/images/DSC01875.JPG",
-  "/images/DSC01853.JPG",
-  "/images/DSC01936.JPG",
+  "/images/DSC01999.webp",
+  "/images/DSC01962.webp",
+  "/images/DSC01980.webp",
+  "/images/DSC02222.webp",
+  "/images/DSC02001.webp",
+  "/images/DSC02005.webp",
+  "/images/DSC01946.webp",
+  "/images/DSC01888.webp",
+  "/images/DSC01875.webp",
+  "/images/DSC01853.webp",
+  "/images/DSC01936.webp",
 ];
 
 const mobileImages = [
-  "/images/DSC01978.JPG",
-  "/images/DSC02226.JPG",
-  "/images/DSC02198.JPG",
-  "/images/DSC01904.JPG",
-  "/images/DSC01876.JPG",
-  "/images/DSC01872.JPG",
-  "/images/DSC01912.JPG",
-  "/images/fotomobile5.png",
-  "/images/fotomobile4.png",
-  "/images/fotomobile2.png",
-  "/images/fotomobile3.png",
+  "/images/DSC01978.webp",
+  "/images/DSC02226.webp",
+  "/images/DSC02198.webp",
+  "/images/DSC01904.webp",
+  "/images/DSC01876.webp",
+  "/images/DSC01872.webp",
+  "/images/DSC01912.webp",
+  "/images/fotomobile5.webp",
+  "/images/fotomobile4.webp",
+  "/images/fotomobile2.webp",
+  "/images/fotomobile3.webp",
 ];
 
 // CONTAINER Y STYLES

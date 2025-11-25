@@ -1,7 +1,7 @@
 export const sliderItems = [
   {
     id: 1,
-    img: "https://elmensual.com.ar/images/grafa1.jpg",
+    img: "https://elmensual.com.ar/images/grafa1.webp",
     title: "BOMBACHAS DE GRAFA",
     desc: "EXPLORA NUESTRAS OPCIONES DE BOMBACHA DE CAMPO DE GRAFA PESADA O LIVIANA",
     bg: "f5fafd",
@@ -9,7 +9,7 @@ export const sliderItems = [
   },
   {
     id: 2,
-    img: "https://elmensual.com.ar/images/poplin1.jpg",
+    img: "https://elmensual.com.ar/images/poplin1.webp",
     title: "BOMBACHAS DE POPLIN/GRAFIL",
     desc: "LAS BOMBACHAS DE CAMPO DE POPLIN SON LA COMBINACION IDEAL DE ALGODON Y POLIESTER PARA NO SUFRIR EL CALOR",
     bg: "f5fafd",
@@ -28,13 +28,13 @@ export const sliderItems = [
 export const categories = [
   {
     id: 1,
-    img: "https://elmensual.com.ar/images/poplin2.jpg",
+    img: "https://elmensual.com.ar/images/poplin2.webp",
     title: "ROPA DE CAMPO DE HOMBRE",
     cat: "hombre",
   },
   {
     id: 2,
-    img: "https://elmensual.com.ar/images/poplin1.jpg",
+    img: "https://elmensual.com.ar/images/poplin1.webp",
     title: "ROPA DE CAMPO DE MUJER",
     cat: "mujer",
   },
