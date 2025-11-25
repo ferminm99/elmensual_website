@@ -20,7 +20,7 @@ interface ProductProps {
 
 const ImageContainer = styled.div`
   width: 100%;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 2 / 3;
   background-color: #f0f0f0;
   position: relative;
   border-radius: 8px;

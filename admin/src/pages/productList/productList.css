@@ -16,9 +16,10 @@
 }
 
 .productListImg {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 60px; /* ancho fijo */
+  height: 90px; /* 2:3 aprox, igual criterio que en el producto */
+  object-fit: contain; /* 🔥 NO se deforma, entra completa */
+  border-radius: 4px;
   object-fit: cover;
   margin-right: 10px;
 }
