@@ -87,6 +87,14 @@ app.use(express.json());
 
 // ---------- STATIC (si servís el build aquí) ----------
 app.use(express.static(path.join(__dirname, "build")));
+// Static de assets subidos (PUBLIC_STORAGE_ROOT/products/...)
+const PUBLIC_STORAGE_ROOT =
+  process.env.PUBLIC_STORAGE_ROOT ||
+  path.join(__dirname, "..", "client", "public");
+app.use(
+  "/products",
+  express.static(path.join(PUBLIC_STORAGE_ROOT, "products"))
+);
 
 // ---------- API ----------
 app.use("/api/auth", authRoute);

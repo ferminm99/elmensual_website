@@ -14,6 +14,7 @@ import { userRequest } from "../../requestMethods";
 // @ts-ignore
 import Compressor from "compressorjs";
 import { updateProduct } from "../../redux/apiCalls";
+import { resolveImageUrl } from "../../utils/imageUrl";
 
 // Fuerza 3:4 con recorte inteligente
 const toSmart34 = (url: string) => {
@@ -107,7 +108,7 @@ const ImageItem: React.FC<{
       </div>
 
       <img
-        src={toSmart34(image.url)}
+        src={toSmart34(resolveImageUrl(image.url))}
         alt={image.color}
         className="productImage"
       />
@@ -488,7 +489,7 @@ const Product: React.FC = () => {
         <div className="productTopRight">
           <div className="productInfoTop">
             <img
-              src={toSmart34(product?.img || "")}
+              src={toSmart34(resolveImageUrl(product?.img || ""))}
               alt=""
               className="productInfoImg"
             />
@@ -637,7 +638,11 @@ const Product: React.FC = () => {
 
           <div className="productFormRight">
             <div className="productUpload">
-              <img src={product?.img} alt="" className="productUploadImg" />
+              <img
+                src={resolveImageUrl(product?.img)}
+                alt=""
+                className="productUploadImg"
+              />
               <label htmlFor="file">
                 <Publish />
               </label>

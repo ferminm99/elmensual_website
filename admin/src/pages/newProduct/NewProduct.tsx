@@ -1,11 +1,12 @@
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import "./newProduct.css";
-import { addProduct, updateProduct } from "../../redux/apiCalls";
+import { addProduct, updateProduct, Product } from "../../redux/apiCalls";
 import { useDispatch } from "react-redux";
 // @ts-ignore
 import Compressor from "compressorjs";
 import { useNavigate } from "react-router-dom";
 import { publicRequest, userRequest } from "../../requestMethods";
+import { resolveImageUrl } from "../../utils/imageUrl";
 
 interface Inputs {
   [key: string]: any;
@@ -195,6 +196,7 @@ export default function NewProduct() {
     setSelectedExistingImage(null);
     setInputs((prev) => ({ ...prev, color: "" }));
   };
+
   const handleClick = async (e: FormEvent) => {
     e.preventDefault();
     try {
@@ -212,7 +214,10 @@ export default function NewProduct() {
         categories: cat,
       };
 
-      const savedProduct = await addProduct(baseProduct, dispatch);
+      const savedProduct: Product | undefined = await addProduct(
+        baseProduct,
+        dispatch
+      );
       const productId = savedProduct?._id;
 
       if (!productId) {
@@ -365,7 +370,7 @@ export default function NewProduct() {
               ci.imageFile.name
             ) : (
               <img
-                src={ci.imageUrl}
+                src={resolveImageUrl(ci.imageUrl)}
                 alt={ci.color}
                 style={{ width: "50px", height: "50px", marginLeft: "10px" }}
               />
