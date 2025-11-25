@@ -40,7 +40,7 @@ export const categories = [
   },
   {
     id: 3,
-    img: "https://elmensual.com.ar/images/corderoy1.jpg",
+    img: "https://elmensual.com.ar/images/corderoy1.webp",
     title: "ROPA DE CAMPO DE ADOLESCENTES",
     cat: "adolescentes",
   },
