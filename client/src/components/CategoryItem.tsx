@@ -14,27 +14,33 @@ interface ItemProps {
 
 const Container = styled.div`
   flex: 1;
-  margin: 3px;
+  margin: 10px;
   height: 70vh;
   position: relative;
-  overflow: hidden; /* Oculta cualquier contenido que sobresalga */
-  background-color: #f9f9f9; /* Fondo claro */
-  cursor: pointer; /* Indica que es interactivo */
+  overflow: hidden; /* Oculta todo lo que se salga del cuadro */
+  background-color: #f9f9f9;
+  cursor: pointer;
 
   &:hover img {
     transform: scale(1.05); /* Zoom suave */
   }
 
   &:hover div {
-    background-color: rgba(0, 0, 0, 0.5); /* Aumenta la opacidad del fondo */
+    background-color: rgba(0, 0, 0, 0.5); /* Aumenta la opacidad del overlay */
   }
+
+  ${mobile({
+    height: "50vh",
+    margin: "5px 0",
+  })}
 `;
 
 const Image = styled.img`
   width: 100%;
   height: 100%;
-  object-fit: contain; /* Asegura que la imagen se vea completa */
-  transition: transform 0.3s ease; /* Transición suave para el zoom */
+  display: block;
+  object-fit: cover; /* 👈 Llena TODO el fondo, aunque recorte un poco */
+  transition: transform 0.3s ease;
 `;
 
 const Info = styled.div`
@@ -77,13 +83,13 @@ const Button = styled.button`
 
 const CategoryItem: React.FC<ItemProps> = ({ item }) => {
   const handleClick = () => {
-    window.scrollTo(0, 0); // Desplaza la ventana al inicio
+    window.scrollTo(0, 0);
   };
 
   return (
     <Container>
       <Link to={`/products/${item.cat}`} onClick={handleClick}>
-        <Image src={item.img} />
+        <Image src={item.img} alt={item.title} />
         <Info>
           <Title>{item.title}</Title>
           <Button>VER MÁS</Button>

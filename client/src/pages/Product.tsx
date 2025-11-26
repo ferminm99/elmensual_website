@@ -71,6 +71,7 @@ const Wrapper = styled.div`
   ${mobile({
     flexDirection: "column-reverse", // Título arriba, imagen abajo
     padding: "20px",
+    maxWidth: "100%",
   })}
 `;
 const ImgContainer = styled.div`
@@ -93,6 +94,7 @@ const ImgContainer = styled.div`
     order: 2,
     marginBottom: "20px",
     maxWidth: "100%", // en mobile que use todo el ancho posible
+    aspectRatio: "auto",
   })}
 `;
 
