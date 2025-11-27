@@ -86,15 +86,29 @@ const findVariant = (variants = [], { variantId, size, color } = {}) => {
 const formatProductResponse = (product, filters = {}) => {
   const base = product.toObject ? product.toObject() : { ...product };
   const filteredVariants = filterVariants(base.variants || [], filters);
-  const totalStock = computeTotalStock(filteredVariants);
-  const legacyFields = buildLegacyFields(filteredVariants);
+
+  if (filteredVariants.length > 0) {
+    const totalStock = computeTotalStock(filteredVariants);
+    const legacyFields = buildLegacyFields(filteredVariants);
+
+    return {
+      ...base,
+      variants: filteredVariants,
+      totalStock,
+      inStock: totalStock > 0,
+      ...legacyFields,
+    };
+  }
+
+  const fallbackTotal = computeTotalStock(base.variants || []);
 
   return {
     ...base,
     variants: filteredVariants,
-    totalStock,
-    inStock: totalStock > 0,
-    ...legacyFields,
+    totalStock: base.totalStock !== undefined ? base.totalStock : fallbackTotal,
+    inStock: base.inStock !== undefined ? base.inStock : fallbackTotal > 0,
+    size: base.size,
+    colors: base.colors,
   };
 };
 
