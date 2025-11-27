@@ -67,6 +67,7 @@ const Wrapper = styled.div`
   margin: 0 auto;
   display: flex;
   gap: 30px; /* Ajusta el espacio entre las columnas */
+  align-items: flex-start; /* 🔥 que NO estire la columna de la imagen */
 
   ${mobile({
     flexDirection: "column-reverse", // Título arriba, imagen abajo
@@ -74,8 +75,9 @@ const Wrapper = styled.div`
     maxWidth: "100%",
   })}
 `;
+
 const ImgContainer = styled.div`
-  flex: 1;
+  flex: 0 0 auto; /* 🔥 ancho propio, no se estira más de la cuenta */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -85,16 +87,17 @@ const ImgContainer = styled.div`
   padding: 0;
   overflow: hidden;
 
-  /* 👇 este cuadro va a ser siempre igual, para TODAS las imágenes */
+  /* 👇 cuadro fijo para todas las imágenes en desktop */
   width: 100%;
-  max-width: 500px; /* opcional, para que no se haga gigante en pantallas enormes */
-  aspect-ratio: 2 / 3; /* relación vertical tipo foto de producto */
+  max-width: 480px; /* podés subir/bajar este valor si la querés más grande o chica */
+  aspect-ratio: 2 / 3; /* foto vertical */
+  max-height: 80vh; /* 🔥 nunca más alta que el 80% de la pantalla */
 
   ${mobile({
     order: 2,
     marginBottom: "20px",
-    maxWidth: "100%", // en mobile que use todo el ancho posible
-    aspectRatio: "auto",
+    maxWidth: "100%", // ocupa todo el ancho disponible
+    aspectRatio: "auto", // en mobile dejamos que fluya naturalmente
   })}
 `;
 
