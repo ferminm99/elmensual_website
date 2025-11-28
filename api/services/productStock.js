@@ -55,13 +55,18 @@ const normalizeVariants = (payload = {}, fallbackVariants = []) => {
 
   const totalStock = computeTotalStock(variants);
   const legacyFields = buildLegacyFields(variants);
+  const size = legacyFields.size.length ? legacyFields.size : payload.size;
+  const colors = legacyFields.colors.length
+    ? legacyFields.colors
+    : payload.colors;
 
   return {
     ...payload,
     variants,
     totalStock,
     inStock: totalStock > 0,
-    ...legacyFields,
+    size,
+    colors,
   };
 };
 
@@ -90,13 +95,18 @@ const formatProductResponse = (product, filters = {}) => {
   if (filteredVariants.length > 0) {
     const totalStock = computeTotalStock(filteredVariants);
     const legacyFields = buildLegacyFields(filteredVariants);
+    const size = legacyFields.size.length ? legacyFields.size : base.size;
+    const colors = legacyFields.colors.length
+      ? legacyFields.colors
+      : base.colors;
 
     return {
       ...base,
       variants: filteredVariants,
       totalStock,
       inStock: totalStock > 0,
-      ...legacyFields,
+      size,
+      colors,
     };
   }
 
