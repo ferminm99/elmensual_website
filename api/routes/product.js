@@ -38,7 +38,7 @@ router.put("/:id", verifyTokenAndAdmin, async (req, res) => {
     }
 
     const mergedPayload = {
-      ...product.toObject(),
+      ...product.toObject({ flattenMaps: true }),
       ...req.body,
     };
 

@@ -89,7 +89,9 @@ const findVariant = (variants = [], { variantId, size, color } = {}) => {
 };
 
 const formatProductResponse = (product, filters = {}) => {
-  const base = product.toObject ? product.toObject() : { ...product };
+  const base = product.toObject
+    ? product.toObject({ flattenMaps: true })
+    : { ...product };
   const filteredVariants = filterVariants(base.variants || [], filters);
 
   if (filteredVariants.length > 0) {
