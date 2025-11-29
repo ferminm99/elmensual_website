@@ -18,6 +18,13 @@ interface ColorImagePair {
   imageUrl?: string; // Agregar imageUrl como opcional
 }
 
+interface VariantDraft {
+  _id?: string;
+  size: string;
+  color: string;
+  stock: number;
+}
+
 const buildStaticPath = (productId: string, key: string) =>
   `/products/${productId}/${key}.webp`;
 
@@ -43,6 +50,15 @@ export default function NewProduct() {
     url: string;
     productName: string;
   } | null>(null);
+  const [variants, setVariants] = useState<VariantDraft[]>([]);
+  const [variantForm, setVariantForm] = useState({
+    size: "",
+    color: "",
+    stock: 0,
+  });
+  const [editingVariantIndex, setEditingVariantIndex] = useState<number | null>(
+    null
+  );
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -104,6 +120,89 @@ export default function NewProduct() {
 
   const handleCat = (e: ChangeEvent<HTMLInputElement>) => {
     setCat(e.target.value.split(","));
+  };
+
+  const resetVariantForm = () => {
+    setVariantForm({ size: "", color: "", stock: 0 });
+    setEditingVariantIndex(null);
+  };
+
+  const handleVariantChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setVariantForm((prev) => ({
+      ...prev,
+      [name]: name === "stock" ? Number(value) : value,
+    }));
+  };
+
+  const handleVariantSubmit = () => {
+    const trimmedSize = variantForm.size.trim();
+    const trimmedColor = variantForm.color.trim();
+    const stockValue = Number(variantForm.stock);
+
+    if (!trimmedSize || !trimmedColor) {
+      alert("Ingresá talle y color para la variante.");
+      return;
+    }
+
+    if (Number.isNaN(stockValue) || stockValue < 0) {
+      alert("El stock debe ser un número mayor o igual a 0.");
+      return;
+    }
+
+    const duplicateIndex = variants.findIndex(
+      (variant, index) =>
+        index !== editingVariantIndex &&
+        variant.size.trim().toLowerCase() === trimmedSize.toLowerCase() &&
+        variant.color.trim().toLowerCase() === trimmedColor.toLowerCase()
+    );
+
+    if (duplicateIndex !== -1) {
+      alert("Ya existe una variante con ese talle y color.");
+      return;
+    }
+
+    const normalizedVariant: VariantDraft = {
+      ...variants[editingVariantIndex ?? variants.length],
+      size: trimmedSize,
+      color: trimmedColor,
+      stock: stockValue,
+    };
+
+    if (editingVariantIndex !== null) {
+      setVariants((prev) =>
+        prev.map((variant, index) =>
+          index === editingVariantIndex ? normalizedVariant : variant
+        )
+      );
+    } else {
+      setVariants((prev) => [...prev, normalizedVariant]);
+    }
+
+    const parsedSize = Number(trimmedSize);
+    if (Number.isFinite(parsedSize)) {
+      setSizes((prev) => Array.from(new Set([...prev, parsedSize])));
+    }
+    resetVariantForm();
+  };
+
+  const handleVariantEdit = (index: number) => {
+    const variant = variants[index];
+    setVariantForm({
+      size: variant.size,
+      color: variant.color,
+      stock: variant.stock,
+    });
+    setEditingVariantIndex(index);
+  };
+
+  const handleVariantDelete = (index: number) => {
+    setVariants((prev) => prev.filter((_, i) => i !== index));
+    if (editingVariantIndex === index) {
+      resetVariantForm();
+    }
   };
 
   // const uploadToCloudinary = async (file: File): Promise<string> => {
@@ -197,6 +296,10 @@ export default function NewProduct() {
     setInputs((prev) => ({ ...prev, color: "" }));
   };
 
+  const totalVariantStock = variants.reduce(
+    (sum, variant) => sum + Number(variant.stock || 0),
+    0
+  );
   const handleClick = async (e: FormEvent) => {
     e.preventDefault();
     try {
@@ -212,10 +315,30 @@ export default function NewProduct() {
         images: {},
         img: "",
         categories: cat,
+        variants: variants.map((variant) => ({
+          ...variant,
+          stock: Number(variant.stock),
+        })),
+        totalStock: variants.reduce(
+          (sum, variant) => sum + Number(variant.stock),
+          0
+        ),
       };
 
+      const variantSizes =
+        baseProduct.variants
+          ?.map((variant) => String(variant.size).trim())
+          .filter(Boolean) || [];
+      const variantColors =
+        baseProduct.variants?.map((variant) => variant.color).filter(Boolean) ||
+        [];
+      const finalSizes = variantSizes.length ? variantSizes : baseProduct.size;
+      const finalColors = variantColors.length
+        ? variantColors
+        : baseProduct.colors;
+
       const savedProduct: Product | undefined = await addProduct(
-        baseProduct,
+        { ...baseProduct, size: finalSizes, colors: finalColors },
         dispatch
       );
       const productId = savedProduct?._id;
@@ -246,7 +369,10 @@ export default function NewProduct() {
         _id: productId,
         images: imageMap,
         img: firstImageUrl || buildStaticPath(productId, "img"),
-        colors: Object.keys(imageMap),
+        colors: Array.from(
+          new Set([...Object.keys(imageMap), ...variantColors, ...finalColors])
+        ),
+        size: Array.from(new Set([...finalSizes, ...variantSizes])),
       };
 
       await updateProduct(productId, updatedProduct as any, dispatch);
@@ -317,6 +443,82 @@ export default function NewProduct() {
             placeholder="Precio"
             onChange={handleChange}
           />
+        </div>
+        <div className="addProductItem">
+          <label>Variantes</label>
+          <div className="variantForm">
+            <input
+              name="size"
+              type="text"
+              placeholder="Talle"
+              value={variantForm.size}
+              onChange={handleVariantChange}
+            />
+            <input
+              name="color"
+              type="text"
+              placeholder="Color"
+              value={variantForm.color}
+              onChange={handleVariantChange}
+            />
+            <input
+              name="stock"
+              type="number"
+              min={0}
+              placeholder="Stock"
+              value={variantForm.stock}
+              onChange={handleVariantChange}
+            />
+            <button type="button" onClick={handleVariantSubmit}>
+              {editingVariantIndex !== null
+                ? "Guardar cambios"
+                : "Agregar variante"}
+            </button>
+            {editingVariantIndex !== null && (
+              <button type="button" onClick={resetVariantForm}>
+                Cancelar edición
+              </button>
+            )}
+          </div>
+          <div className="variantList">
+            <p>Total de stock: {totalVariantStock}</p>
+            {variants.length === 0 && <p>No hay variantes agregadas.</p>}
+            {variants.length > 0 && (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Talle</th>
+                    <th>Color</th>
+                    <th>Stock</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {variants.map((variant, index) => (
+                    <tr key={`${variant.size}-${variant.color}-${index}`}>
+                      <td>{variant.size}</td>
+                      <td>{variant.color}</td>
+                      <td>{variant.stock}</td>
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() => handleVariantEdit(index)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleVariantDelete(index)}
+                        >
+                          Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
         <div className="addProductItem">
           <label>Talles</label>

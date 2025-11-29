@@ -13,6 +13,8 @@ interface Product {
   inStock: boolean;
   createdAt: string;
   updatedAt: string;
+  variants?: { _id?: string; size?: string; color?: string; stock: number }[];
+  totalStock?: number;
 }
 
 interface ProductState {

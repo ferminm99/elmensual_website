@@ -23,6 +23,13 @@ interface User {
 
 interface NewProduct extends Omit<Product, "_id"> {}
 // Interfaz para producto completo, todas las propiedades son requeridas
+export interface Variant {
+  _id?: string;
+  size?: string;
+  color?: string;
+  stock: number;
+}
+
 export interface Product {
   _id: string;
   title: string;
@@ -36,6 +43,8 @@ export interface Product {
   inStock: boolean;
   createdAt: string;
   updatedAt: string;
+  variants?: Variant[];
+  totalStock?: number;
 }
 
 export const login = async (dispatch: Dispatch, user: User) => {
@@ -84,8 +93,11 @@ export const updateProduct = async (
     return res.data as Product;
   } catch (err) {
     console.error("Error al actualizar el producto:", err); // Log de error
+    const message =
+      (err as any)?.response?.data?.message ||
+      "Error al actualizar el producto";
     dispatch(updateProductFailure());
-    alert("Error al actualizar el producto");
+    throw new Error(message);
   }
 };
 

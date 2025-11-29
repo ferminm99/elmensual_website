@@ -13,7 +13,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { userRequest } from "../../requestMethods";
 // @ts-ignore
 import Compressor from "compressorjs";
-import { updateProduct } from "../../redux/apiCalls";
+import { updateProduct, Variant } from "../../redux/apiCalls";
 import { resolveImageUrl } from "../../utils/imageUrl";
 
 // Fuerza 3:4 con recorte inteligente
@@ -44,12 +44,13 @@ interface ProductState {
       categories: string[];
       size: number[];
       colors: string[];
+      variants?: Variant[];
+      totalStock?: number;
       createdAt: string;
       images: { [key: string]: string };
     }[];
   };
 }
-
 /* ---------- Item de imagen con input de posición arriba-izquierda ---------- */
 const ImageItem: React.FC<{
   image: { color: string; url: string };
@@ -180,7 +181,15 @@ const Product: React.FC = () => {
   } | null>(null);
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [selectedProductForImages, setSelectedProductForImages] = useState("");
-
+  const [variants, setVariants] = useState<Variant[]>([]);
+  const [variantForm, setVariantForm] = useState<Variant>({
+    size: "",
+    color: "",
+    stock: 0,
+  });
+  const [editingVariantIndex, setEditingVariantIndex] = useState<number | null>(
+    null
+  );
   const dispatch = useDispatch();
 
   const product = useSelector((state: ProductState) =>
@@ -207,6 +216,15 @@ const Product: React.FC = () => {
       setInStock(product.inStock ? "true" : "false");
       setCategories(product.categories.join(", "));
       setSizes(product.size.map((size) => Number(size)));
+      const variantSizes = (product.variants || [])
+        .map((variant) => Number(variant.size))
+        .filter((size) => Number.isFinite(size));
+      const sizeList = variantSizes.length
+        ? variantSizes
+        : product.size.map((size) => Number(size));
+      setSizes(sizeList);
+      setColorImages(product.images);
+      setVariants(product.variants || []);
       setColorImages(product.images);
     }
   }, [product]);
@@ -282,6 +300,92 @@ const Product: React.FC = () => {
   const handleSelectCommonSizes = () => {
     const commonSizes = Array.from({ length: 10 }, (_, i) => 36 + i * 2);
     setSizes((prev) => [...new Set([...prev, ...commonSizes])]);
+  };
+
+  const resetVariantForm = () => {
+    setVariantForm({ size: "", color: "", stock: 0 });
+    setEditingVariantIndex(null);
+  };
+
+  const handleVariantChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setVariantForm((prev) => ({
+      ...prev,
+      [name]: name === "stock" ? Number(value) : value,
+    }));
+  };
+
+  const handleVariantSubmit = () => {
+    const trimmedSize = String(variantForm.size || "").trim();
+    const trimmedColor = String(variantForm.color || "").trim();
+    const stockValue = Number(variantForm.stock);
+
+    if (!trimmedSize || !trimmedColor) {
+      alert("Ingresá talle y color para la variante.");
+      return;
+    }
+
+    if (Number.isNaN(stockValue) || stockValue < 0) {
+      alert("El stock debe ser un número mayor o igual a 0.");
+      return;
+    }
+
+    const duplicateIndex = variants.findIndex(
+      (variant, index) =>
+        index !== editingVariantIndex &&
+        String(variant.size).trim().toLowerCase() ===
+          trimmedSize.toLowerCase() &&
+        String(variant.color).trim().toLowerCase() ===
+          trimmedColor.toLowerCase()
+    );
+
+    if (duplicateIndex !== -1) {
+      alert("Ya existe una variante con ese talle y color.");
+      return;
+    }
+
+    const normalizedVariant: Variant = {
+      ...variants[editingVariantIndex ?? variants.length],
+      size: trimmedSize,
+      color: trimmedColor,
+      stock: stockValue,
+    };
+
+    if (editingVariantIndex !== null) {
+      setVariants((prev) =>
+        prev.map((variant, index) =>
+          index === editingVariantIndex ? normalizedVariant : variant
+        )
+      );
+    } else {
+      setVariants((prev) => [...prev, normalizedVariant]);
+    }
+
+    const parsedSize = Number(trimmedSize);
+    if (Number.isFinite(parsedSize)) {
+      setSizes((prev) => Array.from(new Set([...prev, parsedSize])));
+    }
+    resetVariantForm();
+  };
+
+  const handleVariantEdit = (index: number) => {
+    const variant = variants[index];
+    setVariantForm({
+      size: variant.size || "",
+      color: variant.color || "",
+      stock: variant.stock || 0,
+      _id: variant._id,
+    });
+    setEditingVariantIndex(index);
+  };
+
+  const handleVariantDelete = (index: number) => {
+    setVariants((prev) => prev.filter((_, i) => i !== index));
+    if (editingVariantIndex === index) {
+      resetVariantForm();
+    }
   };
 
   const handleSelectProductForImages = () => {
@@ -413,6 +517,7 @@ const Product: React.FC = () => {
   const handleUpdate = async (e: FormEvent) => {
     e.preventDefault();
     if (!product) return;
+    setErrorMessage(null);
 
     const uniqueSizes = Array.from(new Set(sizes.map(String)));
 
@@ -426,26 +531,61 @@ const Product: React.FC = () => {
       normalizedImages[color] = normalizeImagePath(url, product._id, color);
     });
 
+    const normalizedVariants: Variant[] = variants.map((variant) => ({
+      _id: variant._id,
+      size: String(variant.size),
+      color: variant.color,
+      stock: Math.max(0, Number(variant.stock) || 0),
+    }));
+
+    const totalStock = normalizedVariants.reduce(
+      (sum, variant) => sum + Number(variant.stock || 0),
+      0
+    );
+
+    const variantSizes = normalizedVariants
+      .map((variant) => String(variant.size).trim())
+      .filter(Boolean);
+    const variantColors = normalizedVariants
+      .map((variant) => variant.color)
+      .filter(Boolean) as string[];
+
+    const finalSizes = Array.from(new Set([...variantSizes, ...uniqueSizes]));
+
+    const finalColors = Array.from(
+      new Set([...variantColors, ...Object.keys(colorImages)])
+    );
     const updatedProduct = {
       _id: product._id,
       title,
       desc,
       price: Number(price),
-      inStock: inStock === "true",
+      inStock: totalStock > 0 ? true : inStock === "true",
       categories: categories.split(",").map((cat) => cat.trim()),
-      size: uniqueSizes,
+      size: finalSizes,
       images: normalizedImages,
       img:
         normalizedImages[Object.keys(normalizedImages)[0] as any] ||
         normalizeImagePath(product.img, product._id, "img"),
-      colors: product.colors || [],
+      colors: finalColors,
+      variants: normalizedVariants,
+      totalStock,
       createdAt: product.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
     console.log("Producto actualizado:", updatedProduct);
-    await updateProduct(productId, updatedProduct, dispatch);
+    try {
+      await updateProduct(productId, updatedProduct as any, dispatch);
+    } catch (error: any) {
+      setErrorMessage(error.message || "No se pudo actualizar el producto.");
+    }
   };
+
+  const totalVariantStock = variants.reduce(
+    (sum, variant) => sum + Number(variant.stock || 0),
+    0
+  );
 
   // const uploadToCloudinary = async (formData: FormData): Promise<string> => {
   //   try {
@@ -510,6 +650,10 @@ const Product: React.FC = () => {
                 {product?.inStock ? "Yes" : "No"}
               </span>
             </div>
+            <div className="productInfoItem">
+              <span className="productInfoKey">total stock:</span>
+              <span className="productInfoValue">{totalVariantStock}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -517,6 +661,7 @@ const Product: React.FC = () => {
       <div className="productBottom">
         <form className="productForm" onSubmit={handleUpdate}>
           <div className="productFormLeft">
+            {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
             <label>Product Name</label>
             <input
               type="text"
@@ -554,6 +699,86 @@ const Product: React.FC = () => {
               placeholder="Categorías separadas por coma"
               onChange={handleCategoriesChange}
             />
+
+            <label>Variantes</label>
+            <div className="variantForm">
+              <input
+                name="size"
+                type="text"
+                placeholder="Talle"
+                value={variantForm.size}
+                onChange={handleVariantChange}
+              />
+              <input
+                name="color"
+                type="text"
+                placeholder="Color"
+                value={variantForm.color}
+                onChange={handleVariantChange}
+              />
+              <input
+                name="stock"
+                type="number"
+                min={0}
+                placeholder="Stock"
+                value={variantForm.stock}
+                onChange={handleVariantChange}
+              />
+              <button type="button" onClick={handleVariantSubmit}>
+                {editingVariantIndex !== null
+                  ? "Guardar cambios"
+                  : "Agregar variante"}
+              </button>
+              {editingVariantIndex !== null && (
+                <button type="button" onClick={resetVariantForm}>
+                  Cancelar edición
+                </button>
+              )}
+            </div>
+
+            <div className="variantList">
+              <p>Total de stock: {totalVariantStock}</p>
+              {variants.length === 0 && <p>No hay variantes cargadas.</p>}
+              {variants.length > 0 && (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Talle</th>
+                      <th>Color</th>
+                      <th>Stock</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {variants.map((variant, index) => (
+                      <tr
+                        key={`${
+                          variant._id || `${variant.size}-${variant.color}`
+                        }-${index}`}
+                      >
+                        <td>{variant.size}</td>
+                        <td>{variant.color}</td>
+                        <td>{variant.stock}</td>
+                        <td>
+                          <button
+                            type="button"
+                            onClick={() => handleVariantEdit(index)}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleVariantDelete(index)}
+                          >
+                            Eliminar
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
 
             <label>Sizes</label>
             <div
@@ -630,7 +855,6 @@ const Product: React.FC = () => {
               accept="image/png, image/jpeg"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
-            {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
             <button type="button" onClick={handleColorChange}>
               Add Color Image
             </button>
