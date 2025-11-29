@@ -584,6 +584,10 @@ const Product: React.FC = () => {
         quantity,
         color,
         size,
+        cartItemId: `${product._id}-${size}-${color}`,
+        variants: product.variants,
+        availableSizes: product.size as string[],
+        availableColors: product.colors as string[],
       })
     );
   };
