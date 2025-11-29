@@ -4,7 +4,7 @@ import Navbar from "../components/Navbar";
 import Announcement from "../components/Announcement";
 import Newsletter from "../components/Newsletter";
 import Footer from "../components/Footer";
-import { Add, Remove, ArrowBackIos, ArrowForwardIos } from "@material-ui/icons";
+import { ArrowBackIos, ArrowForwardIos } from "@material-ui/icons";
 import { mobile } from "../responsive";
 import { useLocation } from "react-router-dom";
 import { addProduct } from "../redux/cartRedux";
@@ -13,6 +13,12 @@ import { Product as ProductType } from "../types";
 import { createGlobalStyle } from "styled-components";
 import { useCachedFetch } from "../hooks/useCachedFetch";
 import { normalizeProductImageUrl } from "../utils/imageUrl";
+import {
+  getAvailableColorsForSize,
+  getAvailableSizes,
+  hasStockForSize,
+  hasStockForVariant,
+} from "../utils/productVariants";
 
 const Container = styled.div`
   margin-top: 90px;
@@ -343,6 +349,10 @@ const Button = styled.button`
   &:hover {
     background: #555;
   }
+  &:disabled {
+    background: #aaa;
+    cursor: not-allowed;
+  }
 `;
 
 interface ContactModalProps {
@@ -480,18 +490,13 @@ const Product: React.FC = () => {
       : "";
 
   useEffect(() => {
-    window.scrollTo(0, 0); // Desplaza la página al inicio
-  }, []);
-
-  useEffect(() => {
-    if (product && product.images) {
-      const colors = Object.keys(product.images).map((color) =>
-        color.replace(/\d+/g, "")
-      );
-      setColor(colors[0]);
-      updateColorImages(colors[0], product.images);
+    if (!product || !color) {
+      setColorImages([]);
+      return;
     }
-  }, [product]);
+
+    updateColorImages(color, product.images);
+  }, [color, product]);
 
   const updateColorImages = (
     selectedColor: string,
@@ -504,10 +509,50 @@ const Product: React.FC = () => {
     setCurrentImageIndex(0);
   };
 
+  useEffect(() => {
+    window.scrollTo(0, 0); // Desplaza la página al inicio
+  }, []);
+
+  useEffect(() => {
+    if (!product) return;
+
+    const initialSize = getAvailableSizes(product)[0] || "";
+    setSize(initialSize);
+
+    const colorsForSize = getAvailableColorsForSize(product, initialSize);
+    const initialColor = colorsForSize[0] || "";
+    setColor(initialColor);
+  }, [product]);
+
+  useEffect(() => {
+    if (!product || !color) {
+      setColorImages([]);
+      return;
+    }
+
+    updateColorImages(color, product.images);
+  }, [color, product]);
+
+  const availableColors =
+    product && size ? getAvailableColorsForSize(product, size) : [];
+  const canAddToCart = Boolean(
+    product && size && color && hasStockForVariant(product, size, color)
+  );
+
   const handleColorChange = (selectedColor: string) => {
+    if (!availableColors.includes(selectedColor)) return;
     setColor(selectedColor);
+  };
+
+  const handleSizeChange = (selectedSize: string) => {
+    setSize(selectedSize);
+
     if (product) {
-      updateColorImages(selectedColor, product.images);
+      const validColors = getAvailableColorsForSize(product, selectedSize);
+      const nextColor = validColors.includes(color)
+        ? color
+        : validColors[0] || "";
+      setColor(nextColor);
     }
   };
 
@@ -524,15 +569,23 @@ const Product: React.FC = () => {
   };
 
   const handleClick = () => {
-    if (product) {
-      const completeProduct = {
-        ...product,
+    if (!product || !size || !color) return;
+
+    const variantAvailable = hasStockForVariant(product, size, color);
+    if (!variantAvailable) return;
+
+    dispatch(
+      addProduct({
+        _id: product._id,
+        productId: product._id,
+        title: product.title,
+        price: product.price,
+        img: product.img,
         quantity,
         color,
         size,
-      };
-      dispatch(addProduct(completeProduct));
-    }
+      })
+    );
   };
 
   const handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
@@ -622,25 +675,41 @@ const Product: React.FC = () => {
                   <Filter>
                     <FilterTitle>Color</FilterTitle>
                     <FilterColorsContainer>
-                      {Object.keys(product.images)
-                        .map((key) => key.replace(/\d+/g, ""))
-                        .filter((v, i, a) => a.indexOf(v) === i)
-                        .map((uniqueColor) => (
+                      {availableColors.length > 0 ? (
+                        availableColors.map((uniqueColor) => (
                           <FilterColor
                             color={translateColor(uniqueColor)}
                             key={uniqueColor}
                             onClick={() => handleColorChange(uniqueColor)}
                             selected={color === uniqueColor}
                           />
-                        ))}
+                        ))
+                      ) : (
+                        <span>Sin stock para este talle</span>
+                      )}
                     </FilterColorsContainer>
                   </Filter>
                   <Filter>
                     <FilterTitle>Tamaño</FilterTitle>
-                    <FilterSize onChange={(e) => setSize(e.target.value)}>
-                      {product.size.map((s) => (
-                        <FilterSizeOption key={s}>{s}</FilterSizeOption>
-                      ))}
+                    <FilterSize
+                      value={size}
+                      onChange={(e) => handleSizeChange(e.target.value)}
+                    >
+                      <FilterSizeOption value="" disabled>
+                        Selecciona un talle
+                      </FilterSizeOption>
+                      {product.size.map((s) => {
+                        const sizeIsAvailable = hasStockForSize(product, s);
+                        return (
+                          <FilterSizeOption
+                            key={s}
+                            value={s}
+                            disabled={!sizeIsAvailable}
+                          >
+                            {sizeIsAvailable ? s : `${s} (sin stock)`}
+                          </FilterSizeOption>
+                        );
+                      })}
                     </FilterSize>
                   </Filter>
                 </FilterContainer>
@@ -650,6 +719,9 @@ const Product: React.FC = () => {
                   <Amount>{quantity}</Amount>
                   <Add onClick={() => handleQuantity("inc")} />
                 </AmountContainer> */}
+                  <Button onClick={handleClick} disabled={!canAddToCart}>
+                    AGREGAR AL CARRITO
+                  </Button>
                   <Button onClick={() => setShowModal(true)}>CONTACTAR</Button>
                 </AddContainer>
                 <Desc>

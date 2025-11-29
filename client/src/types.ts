@@ -12,6 +12,12 @@ export interface Product {
   img: string; // Ruta principal relativa o URL
   price: number;
   inStock: boolean;
+  totalStock?: number;
+  variants?: Array<{
+    size: string;
+    color: string;
+    stock: number;
+  }>;
   createdAt: string;
   updatedAt: string;
 }

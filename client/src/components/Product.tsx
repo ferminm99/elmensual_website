@@ -7,15 +7,10 @@ import React from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 import { normalizeProductImageUrl } from "../utils/imageUrl";
+import { Product as ProductType } from "../types";
 
 interface ProductProps {
-  item: {
-    _id: string;
-    img: string;
-    title: string;
-    categories: string[];
-    price: number;
-  };
+  item: ProductType;
 }
 
 const ImageContainer = styled.div`
@@ -156,6 +151,20 @@ const Price = styled.span`
   color: #333;
 `;
 
+const Availability = styled.span<{ $available: boolean }>`
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: ${({ $available }) => ($available ? "#2e7d32" : "#c62828")};
+`;
+
+const SizeSummary = styled.span`
+  display: block;
+  font-size: 13px;
+  color: #666;
+  margin-top: 4px;
+`;
+
 const optimizedImageCache = {} as Record<string, string>;
 const getOptimizedCloudinaryURL = (url: string, width: number = 500) => {
   if (!url.includes("res.cloudinary.com")) return url;
@@ -168,8 +177,25 @@ const getOptimizedCloudinaryURL = (url: string, width: number = 500) => {
   optimizedImageCache[key] = optimized;
   return optimized;
 };
-
 const Product: React.FC<ProductProps> = ({ item }) => {
+  const hasStock =
+    (typeof item.totalStock === "number"
+      ? item.totalStock
+      : item.inStock
+      ? 1
+      : 0) > 0;
+
+  const availabilityText =
+    typeof item.totalStock === "number"
+      ? item.totalStock > 0
+        ? `Stock: ${item.totalStock}`
+        : "Sin stock"
+      : hasStock
+      ? "Disponible"
+      : "Sin stock";
+
+  const sizeSummary = item.size?.length ? item.size.join(", ") : "";
+
   return (
     <Card>
       <Link
@@ -178,13 +204,13 @@ const Product: React.FC<ProductProps> = ({ item }) => {
       >
         <ImageContainer>
           <Image src={normalizeProductImageUrl(item.img)} alt={item.title} />
-          <Overlay>Ver Producto</Overlay>
+          <Overlay>{hasStock ? "Ver Producto" : "Sin stock"}</Overlay>
         </ImageContainer>
       </Link>
       <Details>
         <Title>{item.title}</Title>
-        {/* <Subtitle>{item.categories[0]}</Subtitle> */}
-        {/* <Price>${item.price}</Price> */}
+        <Availability $available={hasStock}>{availabilityText}</Availability>
+        {sizeSummary && <SizeSummary>Talles: {sizeSummary}</SizeSummary>}
       </Details>
     </Card>
   );

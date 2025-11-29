@@ -2,10 +2,14 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 // Define la interfaz del producto en el carrito
 interface Product {
+  productId: string;
   _id: string;
   title: string;
   price: number;
   quantity: number;
+  img: string;
+  color?: string;
+  size?: string;
 }
 
 // Define la interfaz del estado inicial
@@ -16,7 +20,7 @@ interface CartState {
 }
 
 const initialState: CartState = {
-  products: [],
+  products: [] as Product[],
   quantity: 0,
   total: 0,
 };

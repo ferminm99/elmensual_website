@@ -11,6 +11,7 @@ import { normalizeProductImageUrl } from "../utils/imageUrl";
 
 // Define los tipos para los productos y el estado del carrito
 interface Product {
+  productId?: string;
   _id: string;
   img: string;
   title: string;
