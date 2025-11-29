@@ -3,12 +3,12 @@ import styled from "styled-components";
 import Navbar from "../components/Navbar";
 import Announcement from "../components/Announcement";
 import Footer from "../components/Footer";
-import { Add, Remove } from "@material-ui/icons";
+import { Add, DeleteOutline, Remove } from "@material-ui/icons";
 import { mobile } from "../responsive";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { normalizeProductImageUrl } from "../utils/imageUrl";
-import { updateProduct } from "../redux/cartRedux";
+import { removeProduct, updateProduct } from "../redux/cartRedux";
 import { userRequest } from "../requestMethods";
 
 // Define los tipos para los productos y el estado del carrito
@@ -42,21 +42,24 @@ interface CartState {
 const Container = styled.div``;
 
 const Wrapper = styled.div`
-  padding: 20px;
-  ${mobile({ padding: "10px" })}
+  padding: 32px 24px;
+  background: #f7f7f8;
+  min-height: 100vh;
+  ${mobile({ padding: "16px" })}
 `;
 
 const Title = styled.div`
-  font-weight: 300;
+  font-weight: 700;
   text-align: center;
-  font-size: 40px;
+  font-size: 32px;
+  letter-spacing: 0.4px;
 `;
 
 const Top = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px;
+  padding: 24px 0;
 `;
 
 interface TopButtonProps {
@@ -64,13 +67,17 @@ interface TopButtonProps {
 }
 
 const TopButton = styled.button<TopButtonProps>`
-  padding: 10px;
+  padding: 12px 18px;
   font-weight: 600;
   cursor: pointer;
-  border: ${(props) => props.type === "filled" && "none"};
+  border-radius: 10px;
+  border: ${(props) =>
+    props.type === "filled" ? "none" : "1px solid #d1d5db"};
   background-color: ${(props) =>
-    props.type === "filled" ? "black" : "transparent"};
-  color: ${(props) => props.type === "filled" && "white"};
+    props.type === "filled" ? "#111827" : "white"};
+  color: ${(props) => (props.type === "filled" ? "white" : "#111827")};
+  box-shadow: ${(props) =>
+    props.type === "filled" && "0 10px 30px rgba(0,0,0,0.15)"};
 `;
 
 const TopTexts = styled.div`
@@ -84,25 +91,32 @@ const TopText = styled.span`
 `;
 
 const Bottom = styled.div`
-  display: flex;
-  justify-content: space-between;
-  ${mobile({ flexDirection: "column" })}
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  align-items: start;
+  ${mobile({ gridTemplateColumns: "1fr" })}
 `;
 
 const Info = styled.div`
-  flex: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 `;
 
 const Summary = styled.div`
-  flex: 1;
-  border: 0.5px solid lightgray;
-  border-radius: 10px;
-  padding: 20px;
-  height: 50vh;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 24px;
+  background: white;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.06);
+  position: sticky;
+  top: 110px;
 `;
 
 const SummaryTitle = styled.h1`
-  font-weight: 200;
+  font-weight: 700;
+  font-size: 22px;
 `;
 
 interface SummaryItemProps {
@@ -110,11 +124,13 @@ interface SummaryItemProps {
 }
 
 const SummaryItem = styled.div<SummaryItemProps>`
-  margin: 30px 0px;
+  margin: 16px 0px;
   display: flex;
   justify-content: space-between;
-  font-weight: ${(props) => props.type === "total" && "500"};
-  font-size: ${(props) => props.type === "total" && "24px"};
+  align-items: center;
+  font-weight: ${(props) => (props.type === "total" ? "700" : "500")};
+  font-size: ${(props) => (props.type === "total" ? "20px" : "16px")};
+  color: ${(props) => (props.type === "total" ? "#111827" : "#4b5563")};
 `;
 
 const SummaryItemText = styled.span``;
@@ -123,92 +139,186 @@ const SummaryItemPrice = styled.span``;
 
 const Button = styled.button`
   width: 100%;
-  padding: 10px;
-  background-color: black;
+  padding: 12px 14px;
+  background-color: #111827;
   color: white;
-  font-weight: 600;
+  font-weight: 700;
+  border-radius: 10px;
   cursor: pointer;
+  border: none;
+  letter-spacing: 0.4px;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  }
 `;
 
 const ProductContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  ${mobile({ flexDirection: "column" })}
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.05);
+  ${mobile({ gridTemplateColumns: "1fr", padding: "14px", gap: "12px" })}
 `;
 
 const ProductDetail = styled.div`
-  flex: 2;
-  display: flex;
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 14px;
+  align-items: start;
+  ${mobile({ gridTemplateColumns: "1fr", alignItems: "center" })}
 `;
 
 const Image = styled.img`
-  width: 200px;
+  width: 100%;
+  max-width: 160px;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  ${mobile({ maxWidth: "100%" })}
 `;
 
 const Details = styled.div`
-  padding: 20px;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
+  gap: 10px;
+`;
+const ProductName = styled.span`
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
 `;
 
-const ProductName = styled.span``;
-
-const ProductID = styled.span``;
+const ProductID = styled.span`
+  font-size: 13px;
+  color: #9ca3af;
+`;
 
 interface ProductColorProps {
   color: string;
 }
 
 const ProductColor = styled.div<ProductColorProps>`
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background-color: ${(props) => props.color};
+  border: 2px solid #e5e7eb;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.6);
 `;
 
-const ProductSize = styled.span``;
+const ProductSize = styled.span`
+  font-weight: 700;
+`;
+
+const VariationRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+`;
+
+const VariationBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f3f4f6;
+  color: #111827;
+  padding: 8px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 13px;
+`;
 
 const Selector = styled.select`
-  padding: 8px 12px;
+  padding: 10px 12px;
   margin-top: 6px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  font-weight: 600;
+  color: #111827;
 `;
 
 const SelectorLabel = styled.span`
   display: block;
-  font-size: 14px;
+  font-size: 13px;
   margin-bottom: 4px;
+  color: #6b7280;
+  font-weight: 600;
 `;
 
 const PriceDetail = styled.div`
-  flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  ${mobile({ alignItems: "flex-start" })}
 `;
 
 const ProductAmountContainer = styled.div`
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  margin-bottom: 20px;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
 `;
 
 const ProductAmount = styled.div`
-  font-size: 24px;
-  margin: 5px;
-  ${mobile({ margin: "5px 15px" })}
+  font-size: 18px;
+  font-weight: 700;
+  min-width: 28px;
+  text-align: center;
+  ${mobile({ margin: "0 6px" })}
 `;
 
 const ProductPrice = styled.div`
-  font-size: 30px;
-  ${mobile({ marginBottom: "20px" })}
+  font-size: 22px;
+  font-weight: 800;
+  color: #111827;
+  ${mobile({ marginBottom: "10px" })}
 `;
 
 const Hr = styled.hr`
-  background-color: #eee;
+  background-color: #f3f4f6;
   border: none;
   height: 1px;
+`;
+
+const ProductHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+`;
+
+const RemoveButton = styled.button`
+  background: #fef2f2;
+  border: 1px solid #fecdd3;
+  color: #b91c1c;
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  transition: transform 0.08s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
 `;
 
 const uniqueValues = (values: (string | undefined)[]) =>
@@ -353,13 +463,40 @@ const Cart: React.FC = () => {
                 <ProductDetail>
                   <Image src={normalizeProductImageUrl(product.img)} />
                   <Details>
-                    <ProductName>
-                      <b>Producto:</b> {product.title}
-                    </ProductName>
-                    <ProductID>
-                      <b>ID:</b> {product._id}
-                    </ProductID>
-                    <ProductColor color={product.color} />
+                    <ProductHeader>
+                      <div>
+                        <ProductName>{product.title}</ProductName>
+                        <ProductID>SKU: {product._id}</ProductID>
+                      </div>
+                      <RemoveButton
+                        onClick={() =>
+                          dispatch(
+                            removeProduct({
+                              cartItemId: getCartItemId(product),
+                            })
+                          )
+                        }
+                        aria-label={`Eliminar ${product.title} del carrito`}
+                      >
+                        <DeleteOutline style={{ fontSize: 18 }} />
+                        Borrar
+                      </RemoveButton>
+                    </ProductHeader>
+
+                    <VariationRow>
+                      <VariationBadge>
+                        <span>Talle</span>
+                        <ProductSize>{product.size}</ProductSize>
+                      </VariationBadge>
+                      <VariationBadge>
+                        <span>Color</span>
+                        <ProductColor color={product.color} />
+                        <span style={{ textTransform: "capitalize" }}>
+                          {product.color}
+                        </span>
+                      </VariationBadge>
+                    </VariationRow>
+
                     <div>
                       <SelectorLabel>Tamaño</SelectorLabel>
                       <Selector
@@ -400,9 +537,15 @@ const Cart: React.FC = () => {
                 </ProductDetail>
                 <PriceDetail>
                   <ProductAmountContainer>
-                    <Add onClick={() => handleQuantityChange(product, 1)} />
+                    <Add
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleQuantityChange(product, 1)}
+                    />
                     <ProductAmount>{product.quantity}</ProductAmount>
-                    <Remove onClick={() => handleQuantityChange(product, -1)} />
+                    <Remove
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleQuantityChange(product, -1)}
+                    />
                   </ProductAmountContainer>
                   <ProductPrice>
                     $ {product.price * product.quantity}

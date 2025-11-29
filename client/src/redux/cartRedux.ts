@@ -62,9 +62,28 @@ const cartSlice = createSlice({
   reducers: {
     addProduct: (state, action: PayloadAction<Product>) => {
       const payload = action.payload;
-      const cartItemId = payload.cartItemId || `${payload._id}-${Date.now()}`;
+      const baseId = payload._id || payload.productId;
+      const cartKey = `${baseId}-${payload.size || ""}-${payload.color || ""}`;
 
-      state.products.push({ ...payload, cartItemId });
+      const existingProductIndex = state.products.findIndex(
+        (product) =>
+          (product._id || product.productId) === baseId &&
+          (product.size || "") === (payload.size || "") &&
+          (product.color || "") === (payload.color || "")
+      );
+
+      if (existingProductIndex !== -1) {
+        const existingProduct = state.products[existingProductIndex];
+        state.products[existingProductIndex] = {
+          ...existingProduct,
+          quantity: (existingProduct.quantity || 0) + payload.quantity,
+          cartItemId: existingProduct.cartItemId || cartKey,
+        };
+      } else {
+        const cartItemId = payload.cartItemId || cartKey;
+        state.products.push({ ...payload, cartItemId });
+      }
+
       recalculateTotals(state);
     },
     updateProduct: (

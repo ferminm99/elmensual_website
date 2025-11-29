@@ -288,6 +288,9 @@ const FilterSizeOption = styled.option`
   font-size: 16px;
   color: #333;
   background-color: white;
+  &:disabled {
+    color: #9ca3af;
+  }
 `;
 
 const AddContainer = styled.div`
@@ -353,9 +356,11 @@ const Button = styled.button`
     background: #555;
   }
   &:disabled {
-    background: #c7c7c7;
-    color: #f3f3f3;
+    background: #9ca3af;
+    color: #e5e7eb;
     cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
   }
 `;
 
