@@ -1,12 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import styled, { keyframes } from "styled-components";
 import Navbar from "../components/Navbar";
 import Announcement from "../components/Announcement";
 import Newsletter from "../components/Newsletter";
 import Footer from "../components/Footer";
-import { ArrowBackIos, ArrowForwardIos } from "@material-ui/icons";
+import {
+  ArrowBackIos,
+  ArrowForwardIos,
+  InfoOutlined,
+} from "@material-ui/icons";
 import { mobile } from "../responsive";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { addProduct } from "../redux/cartRedux";
 import { useDispatch } from "react-redux";
 import { Product as ProductType } from "../types";
@@ -336,7 +340,6 @@ const Modal = styled.div`
   flex-direction: column;
   gap: 15px;
 `;
-
 const Button = styled.button`
   padding: 10px 20px;
   font-size: 16px;
@@ -350,8 +353,32 @@ const Button = styled.button`
     background: #555;
   }
   &:disabled {
-    background: #aaa;
+    background: #c7c7c7;
+    color: #f3f3f3;
     cursor: not-allowed;
+  }
+`;
+
+const AddHint = styled.div<{ $variant?: "error" | "info" }>`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: ${({ $variant }) => ($variant === "error" ? "#b00020" : "#444")};
+`;
+
+const AddModalActions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+`;
+
+const SecondaryButton = styled(Button)`
+  background: #f2f2f2;
+  color: #333;
+
+  &:hover {
+    background: #e3e3e3;
   }
 `;
 
@@ -443,9 +470,14 @@ const Product: React.FC = () => {
   const [contactType, setContactType] = useState<
     "minorista" | "mayorista" | ""
   >("");
+  const [addMessage, setAddMessage] = useState("");
+  const [addMessageVariant, setAddMessageVariant] = useState<"error" | "info">(
+    "info"
+  );
+  const [showAddOptions, setShowAddOptions] = useState(false);
 
   const dispatch = useDispatch();
-
+  const navigate = useNavigate();
   // Funciones de contacto
   const handleWhatsAppContact = () => {
     const phoneNumber = "2345687094";
@@ -533,8 +565,21 @@ const Product: React.FC = () => {
     updateColorImages(color, product.images);
   }, [color, product]);
 
+  useEffect(() => {
+    setAddMessage("");
+    setAddMessageVariant("info");
+  }, [color, size]);
+
   const availableColors =
     product && size ? getAvailableColorsForSize(product, size) : [];
+  const addButtonTooltip = useMemo(() => {
+    if (!product) return "Cargando producto";
+    if (!size || !color) return "Elegí un talle y color con stock";
+    if (!hasStockForVariant(product, size, color))
+      return "No queda stock para esta combinación";
+    return "Agregar al carrito";
+  }, [color, product, size]);
+
   const canAddToCart = Boolean(
     product && size && color && hasStockForVariant(product, size, color)
   );
@@ -569,10 +614,19 @@ const Product: React.FC = () => {
   };
 
   const handleClick = () => {
-    if (!product || !size || !color) return;
+    if (!product) return;
+    if (!size || !color) {
+      setAddMessageVariant("error");
+      setAddMessage("Elegí un talle y color con stock antes de agregar.");
+      return;
+    }
 
     const variantAvailable = hasStockForVariant(product, size, color);
-    if (!variantAvailable) return;
+    if (!variantAvailable) {
+      setAddMessageVariant("error");
+      setAddMessage("No queda stock para este color y talle.");
+      return;
+    }
 
     dispatch(
       addProduct({
@@ -590,6 +644,10 @@ const Product: React.FC = () => {
         availableColors: product.colors as string[],
       })
     );
+
+    setAddMessageVariant("info");
+    setAddMessage("Producto agregado al carrito.");
+    setShowAddOptions(true);
   };
 
   const handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
@@ -722,10 +780,22 @@ const Product: React.FC = () => {
                   <Remove onClick={() => handleQuantity("dec")} />
                   <Amount>{quantity}</Amount>
                   <Add onClick={() => handleQuantity("inc")} />
-                </AmountContainer> */}
-                  <Button onClick={handleClick} disabled={!canAddToCart}>
+             </AmountContainer> */}
+                  <Button
+                    onClick={handleClick}
+                    disabled={!canAddToCart}
+                    title={addButtonTooltip}
+                  >
                     AGREGAR AL CARRITO
                   </Button>
+                  {(addMessage || !canAddToCart) && (
+                    <AddHint
+                      $variant={!canAddToCart ? "error" : addMessageVariant}
+                    >
+                      <InfoOutlined style={{ fontSize: 18 }} />
+                      <span>{addMessage || addButtonTooltip}</span>
+                    </AddHint>
+                  )}
                   <Button onClick={() => setShowModal(true)}>CONTACTAR</Button>
                 </AddContainer>
                 <Desc>
@@ -777,6 +847,22 @@ const Product: React.FC = () => {
             <p>Cargando producto...</p>
           )}
         </Wrapper>
+
+        {showAddOptions && (
+          <>
+            <Overlay onClick={() => setShowAddOptions(false)} />
+            <Modal>
+              <h2>Producto agregado</h2>
+              <p>¿Querés seguir comprando o ir al carrito?</p>
+              <AddModalActions>
+                <Button onClick={() => navigate("/cart")}>Ir al carrito</Button>
+                <SecondaryButton onClick={() => setShowAddOptions(false)}>
+                  Seguir comprando
+                </SecondaryButton>
+              </AddModalActions>
+            </Modal>
+          </>
+        )}
 
         {/* Modal de selección de contacto */}
         {showModal && (

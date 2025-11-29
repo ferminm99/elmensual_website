@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { Search, ViewList } from "@material-ui/icons";
+import { Search, ShoppingCartOutlined, ViewList } from "@material-ui/icons";
 import { Link, useNavigate } from "react-router-dom";
 import Tooltip from "@mui/material/Tooltip";
 import { mobile } from "../responsive";
 import axios from "axios";
 import baseUrl from "../apiConfig";
 import { Product as ProductComplete } from "../types";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
 
 interface Product {
   displayName: string;
@@ -319,7 +321,38 @@ const Right = styled.div`
   })}
 `;
 
+const CartButton = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 8px;
+  color: #111;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    background-color: #f2f2f2;
+    transform: translateY(-1px);
+  }
+`;
+
+const CartBadge = styled.span`
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background-color: #111;
+  color: #fff;
+  border-radius: 999px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+`;
+
 const MenuItem = styled.div`
+  display: flex;
+  align-items: center;
   font-size: 16px;
   cursor: pointer;
   margin-left: 20px;
@@ -329,7 +362,8 @@ const MenuItem = styled.div`
     color: #555;
   }
   ${mobile({
-    display: "none", // Visible en móviles
+    display: "flex",
+    marginLeft: "10px",
   })}
 `;
 
@@ -372,6 +406,23 @@ const MobileMenu = styled.div`
   ${mobile({
     display: "flex",
   })}
+`;
+
+const MobileCartShortcut = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+  position: relative;
+`;
+
+const MobileCartLink = styled(Link)`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #111;
+  font-weight: 600;
 `;
 
 const MobileCategoryTitle = styled.div`
@@ -862,7 +913,7 @@ const Navbar: React.FC = () => {
 
   const [isModalOpen, setModalOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
-  //const quantity = useSelector((state: RootState) => state.cart.quantity);
+  const cartQuantity = useSelector((state: RootState) => state.cart.quantity);
   const [isMobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [activeCategory, setActiveCategory] = React.useState<string | null>(
     null
@@ -1164,12 +1215,13 @@ const Navbar: React.FC = () => {
           </Center>
         )}
         <Right>
-          <Link to="/all-products">
-            <MenuItem>
-              <Tooltip title="Ver Productos">
-                <ViewList style={{ fontSize: 24 }} />
-              </Tooltip>
-            </MenuItem>
+          <Link to="/cart">
+            <Tooltip title="Ver carrito">
+              <CartButton>
+                <ShoppingCartOutlined style={{ fontSize: 24 }} />
+                {cartQuantity > 0 && <CartBadge>{cartQuantity}</CartBadge>}
+              </CartButton>
+            </Tooltip>
           </Link>
           <MenuToggle onClick={toggleMobileMenu}>
             <ViewList />
@@ -1181,6 +1233,16 @@ const Navbar: React.FC = () => {
       {isMobileMenuOpen && (
         <MobileMenu>
           <MobileMenuContent>
+            <MobileCartShortcut>
+              <MobileCartLink
+                to="/cart"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <ShoppingCartOutlined style={{ fontSize: 22 }} />
+                <span>Carrito</span>
+              </MobileCartLink>
+              {cartQuantity > 0 && <CartBadge>{cartQuantity}</CartBadge>}
+            </MobileCartShortcut>
             {Object.entries(categories).map(([mainCategory, sections]) => (
               <div key={mainCategory}>
                 {/* CATEGORIA */}

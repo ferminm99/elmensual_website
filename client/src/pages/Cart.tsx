@@ -309,11 +309,19 @@ const Cart: React.FC = () => {
     }));
 
     try {
-      await userRequest.post("/orders", {
+      const response = await userRequest.post("/checkout", {
         items,
         paymentMetadata: { source: "web" },
       });
-      navigate("/success");
+
+      const { checkoutUrl, orderId } = response.data;
+
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
+        return;
+      }
+
+      navigate(`/checkout/result?orderId=${orderId}`);
     } catch (error) {
       console.error("Error al crear la orden", error);
       alert("No se pudo crear la orden. Revisa el stock e intenta nuevamente.");
