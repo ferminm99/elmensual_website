@@ -647,6 +647,7 @@ const Product: React.FC = () => {
         variants: product.variants,
         availableSizes: product.size as string[],
         availableColors: product.colors as string[],
+        images: product.images, // 🔥 NUEVO
       })
     );
 

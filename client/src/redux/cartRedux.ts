@@ -21,6 +21,7 @@ interface Product {
   variants?: VariantOption[];
   availableSizes?: string[];
   availableColors?: string[];
+  images?: { [key: string]: string }; // 🔥 NUEVO
 }
 
 // Define la interfaz del estado inicial

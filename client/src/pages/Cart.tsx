@@ -31,6 +31,7 @@ interface Product {
   variants?: VariantOption[];
   availableSizes?: string[];
   availableColors?: string[];
+  images?: { [key: string]: string }; // 🔥 NUEVO
 }
 
 interface CartState {
@@ -215,6 +216,74 @@ const ProductColor = styled.div<ProductColorProps>`
   box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.6);
 `;
 
+const mapColorNameToHex = (colorName: string): string => {
+  if (!colorName) return "#000000";
+
+  // Ej: "Beige2" -> "beige"
+  const normalized = colorName.toLowerCase().replace(/[0-9]/g, "");
+
+  const colorMap: Record<string, string> = {
+    rojo: "#ff0000",
+    azul: "#0000ff",
+    verde: "#008000",
+    amarillo: "#ffff00",
+    negro: "#000000",
+    blanco: "#ffffff",
+    gris: "#9a98b9",
+    marron: "#875833",
+    rosa: "#ffc0cb",
+    naranja: "#ffa500",
+    beige: "#f0e5e5",
+    celeste: "#5050d4",
+    chocolate: "#632b00",
+    marronoscuro: "#3b220f",
+    tiza: "#f7ebeb",
+  };
+
+  return colorMap[normalized] || "#000000";
+};
+
+const getProductImageUrl = (product: Product) => {
+  if (product.images && product.color) {
+    const target = product.color.toLowerCase();
+    const matchingKey = Object.keys(product.images)
+      .filter((key) => key.toLowerCase().startsWith(target))
+      .sort()[0];
+
+    if (matchingKey) {
+      return normalizeProductImageUrl(product.images[matchingKey]);
+    }
+  }
+
+  // fallback a imagen principal
+  return normalizeProductImageUrl(product.img);
+};
+
+const SelectorsRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 4px;
+`;
+
+const ColorDotsRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+`;
+
+const ColorDot = styled.button<{ color: string; selected: boolean }>`
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background-color: ${({ color }) => color};
+  border: ${({ selected }) =>
+    selected ? "2px solid #111827" : "1px solid #e5e7eb"};
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+`;
+
 const ProductSize = styled.span`
   font-weight: 700;
 `;
@@ -260,7 +329,7 @@ const PriceDetail = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 10px;
   ${mobile({ alignItems: "flex-start" })}
 `;
@@ -466,21 +535,7 @@ const Cart: React.FC = () => {
                     <ProductHeader>
                       <div>
                         <ProductName>{product.title}</ProductName>
-                        <ProductID>SKU: {product._id}</ProductID>
                       </div>
-                      <RemoveButton
-                        onClick={() =>
-                          dispatch(
-                            removeProduct({
-                              cartItemId: getCartItemId(product),
-                            })
-                          )
-                        }
-                        aria-label={`Eliminar ${product.title} del carrito`}
-                      >
-                        <DeleteOutline style={{ fontSize: 18 }} />
-                        Borrar
-                      </RemoveButton>
                     </ProductHeader>
 
                     <VariationRow>
@@ -490,52 +545,71 @@ const Cart: React.FC = () => {
                       </VariationBadge>
                       <VariationBadge>
                         <span>Color</span>
-                        <ProductColor color={product.color} />
+                        <ProductColor
+                          color={mapColorNameToHex(product.color)}
+                        />
                         <span style={{ textTransform: "capitalize" }}>
                           {product.color}
                         </span>
                       </VariationBadge>
                     </VariationRow>
 
-                    <div>
-                      <SelectorLabel>Tamaño</SelectorLabel>
-                      <Selector
-                        value={product.size}
-                        onChange={(e) =>
-                          handleSizeChange(product, e.target.value)
-                        }
-                      >
-                        {getSizeOptions(product).map((size) => (
-                          <option
-                            key={`${product.cartItemId}-${size}`}
-                            value={size}
-                          >
-                            {size}
-                          </option>
-                        ))}
-                      </Selector>
-                    </div>
-                    <div>
-                      <SelectorLabel>Color</SelectorLabel>
-                      <Selector
-                        value={product.color}
-                        onChange={(e) =>
-                          handleColorChange(product, e.target.value)
-                        }
-                      >
-                        {getColorOptions(product, product.size).map((color) => (
-                          <option
-                            key={`${product.cartItemId}-${color}`}
-                            value={color}
-                          >
-                            {color}
-                          </option>
-                        ))}
-                      </Selector>
-                    </div>
+                    <SelectorsRow>
+                      <div>
+                        <SelectorLabel>Talle</SelectorLabel>
+                        <Selector
+                          value={product.size}
+                          onChange={(e) =>
+                            handleSizeChange(product, e.target.value)
+                          }
+                        >
+                          {getSizeOptions(product).map((size) => (
+                            <option
+                              key={`${product.cartItemId}-${size}`}
+                              value={size}
+                            >
+                              {size}
+                            </option>
+                          ))}
+                        </Selector>
+                      </div>
+
+                      <div>
+                        <SelectorLabel>Color</SelectorLabel>
+                        <ColorDotsRow>
+                          {getColorOptions(product, product.size).map(
+                            (optionColor) => (
+                              <ColorDot
+                                key={`${product.cartItemId}-${optionColor}`}
+                                color={mapColorNameToHex(optionColor)}
+                                selected={optionColor === product.color}
+                                onClick={() =>
+                                  handleColorChange(product, optionColor)
+                                }
+                                aria-label={optionColor}
+                              />
+                            )
+                          )}
+                        </ColorDotsRow>
+                      </div>
+                    </SelectorsRow>
                   </Details>
                 </ProductDetail>
                 <PriceDetail>
+                  <RemoveButton
+                    onClick={() =>
+                      dispatch(
+                        removeProduct({
+                          cartItemId: getCartItemId(product),
+                        })
+                      )
+                    }
+                    aria-label={`Eliminar ${product.title} del carrito`}
+                  >
+                    <DeleteOutline style={{ fontSize: 18 }} />
+                    Borrar
+                  </RemoveButton>
+
                   <ProductAmountContainer>
                     <Add
                       style={{ cursor: "pointer" }}
@@ -547,6 +621,7 @@ const Cart: React.FC = () => {
                       onClick={() => handleQuantityChange(product, -1)}
                     />
                   </ProductAmountContainer>
+
                   <ProductPrice>
                     $ {product.price * product.quantity}
                   </ProductPrice>
