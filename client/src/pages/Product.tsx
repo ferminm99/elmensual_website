@@ -18,7 +18,7 @@ import { createGlobalStyle } from "styled-components";
 import { useCachedFetch } from "../hooks/useCachedFetch";
 import { normalizeProductImageUrl } from "../utils/imageUrl";
 import {
-  getAvailableColorsForSize,
+  getPrimaryColorsForSize,
   getAvailableSizes,
   hasStockForSize,
   hasStockForVariant,
@@ -250,7 +250,11 @@ const FilterTitle = styled.span`
   margin-bottom: 5px; /* Añade espacio debajo del título */
 `;
 
-const FilterColor = styled.div<{ color: string; selected: boolean }>`
+const FilterColor = styled.div<{
+  color: string;
+  selected: boolean;
+  $available: boolean;
+}>`
   width: 25px;
   height: 25px;
   border-radius: 50%;
@@ -258,6 +262,7 @@ const FilterColor = styled.div<{ color: string; selected: boolean }>`
   cursor: pointer;
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
   border: ${({ selected }) => (selected ? "2px solid #333" : "none")};
+  opacity: ${({ $available }) => ($available ? 1 : 0.45)};
 `;
 
 const FilterSize = styled.select`
@@ -290,6 +295,7 @@ const FilterSizeOption = styled.option`
   background-color: white;
   &:disabled {
     color: #9ca3af;
+    opacity: 0.6;
   }
 `;
 
@@ -555,9 +561,12 @@ const Product: React.FC = () => {
 
     const initialSize = getAvailableSizes(product)[0] || "";
     setSize(initialSize);
-
-    const colorsForSize = getAvailableColorsForSize(product, initialSize);
-    const initialColor = colorsForSize[0] || "";
+    const colorsForSize = getPrimaryColorsForSize(product, initialSize);
+    const initialColor =
+      colorsForSize.find((option: { available: any }) => option.available)
+        ?.name ||
+      colorsForSize[0]?.name ||
+      "";
     setColor(initialColor);
   }, [product]);
 
@@ -574,19 +583,28 @@ const Product: React.FC = () => {
     setAddMessage("");
     setAddMessageVariant("info");
   }, [color, size]);
+  const colorOptions = useMemo(
+    () =>
+      product && size ? getPrimaryColorsForSize(product, size, color) : [],
+    [color, product, size]
+  );
 
-  const availableColors =
-    product && size ? getAvailableColorsForSize(product, size) : [];
+  const availableColors = colorOptions.map(
+    (option: { name: any }) => option.name
+  );
+  const selectedColorHasStock = Boolean(
+    product && size && color && hasStockForVariant(product, size, color)
+  );
+
   const addButtonTooltip = useMemo(() => {
     if (!product) return "Cargando producto";
     if (!size || !color) return "Elegí un talle y color con stock";
-    if (!hasStockForVariant(product, size, color))
-      return "No queda stock para esta combinación";
+    if (!selectedColorHasStock) return "No queda stock para esta combinación";
     return "Agregar al carrito";
-  }, [color, product, size]);
+  }, [color, product, selectedColorHasStock, size]);
 
   const canAddToCart = Boolean(
-    product && size && color && hasStockForVariant(product, size, color)
+    product && size && color && selectedColorHasStock
   );
 
   const handleColorChange = (selectedColor: string) => {
@@ -598,10 +616,20 @@ const Product: React.FC = () => {
     setSize(selectedSize);
 
     if (product) {
-      const validColors = getAvailableColorsForSize(product, selectedSize);
-      const nextColor = validColors.includes(color)
+      const validColorOptions = getPrimaryColorsForSize(
+        product,
+        selectedSize,
+        color
+      );
+      const nextColor = validColorOptions.find(
+        (option: { name: string }) => option.name === color
+      )
         ? color
-        : validColors[0] || "";
+        : validColorOptions.find(
+            (option: { available: any }) => option.available
+          )?.name ||
+          validColorOptions[0]?.name ||
+          "";
       setColor(nextColor);
     }
   };
@@ -743,13 +771,19 @@ const Product: React.FC = () => {
                   <Filter>
                     <FilterTitle>Color</FilterTitle>
                     <FilterColorsContainer>
-                      {availableColors.length > 0 ? (
-                        availableColors.map((uniqueColor) => (
+                      {colorOptions.length > 0 ? (
+                        colorOptions.map((option) => (
                           <FilterColor
-                            color={translateColor(uniqueColor)}
-                            key={uniqueColor}
-                            onClick={() => handleColorChange(uniqueColor)}
-                            selected={color === uniqueColor}
+                            color={translateColor(option.name)}
+                            key={option.name}
+                            onClick={() => handleColorChange(option.name)}
+                            selected={color === option.name}
+                            $available={option.available}
+                            title={
+                              option.available
+                                ? "Disponible en este talle"
+                                : "Sin stock para este color en el talle seleccionado"
+                            }
                           />
                         ))
                       ) : (

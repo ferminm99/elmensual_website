@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { normalizeProductImageUrl } from "../utils/imageUrl";
 import { removeProduct, updateProduct } from "../redux/cartRedux";
 import { userRequest } from "../requestMethods";
+import { getPrimaryColorsForSize } from "../utils/productVariants";
 
 // Define los tipos para los productos y el estado del carrito
 interface VariantOption {
@@ -216,8 +217,8 @@ const ProductColor = styled.div<ProductColorProps>`
   box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.6);
 `;
 
-const mapColorNameToHex = (colorName: string): string => {
-  if (!colorName) return "#000000";
+const mapColorNameToHex = (colorName?: string): string => {
+  if (!colorName) return "#000000"; // fallback seguro
 
   // Ej: "Beige2" -> "beige"
   const normalized = colorName.toLowerCase().replace(/[0-9]/g, "");
@@ -272,7 +273,11 @@ const ColorDotsRow = styled.div`
   gap: 8px;
 `;
 
-const ColorDot = styled.button<{ color: string; selected: boolean }>`
+const ColorDot = styled.button<{
+  color: string;
+  selected: boolean;
+  $available: boolean;
+}>`
   width: 22px;
   height: 22px;
   border-radius: 999px;
@@ -282,6 +287,7 @@ const ColorDot = styled.button<{ color: string; selected: boolean }>`
   cursor: pointer;
   padding: 0;
   outline: none;
+  opacity: ${({ $available }) => ($available ? 1 : 0.4)};
 `;
 
 const ProductSize = styled.span`
@@ -406,19 +412,10 @@ const getSizeOptions = (product: Product) => {
 };
 
 const getColorOptions = (product: Product, size?: string) => {
-  if (product.variants && product.variants.length) {
-    const filtered = size
-      ? product.variants.filter((variant) => variant.size === size)
-      : product.variants;
+  const targetSize = size || product.size;
+  if (!targetSize) return [] as { name: string; available: boolean }[];
 
-    return uniqueValues(filtered.map((variant) => variant.color));
-  }
-
-  if (product.availableColors && product.availableColors.length) {
-    return uniqueValues(product.availableColors);
-  }
-
-  return product.color ? [product.color] : [];
+  return getPrimaryColorsForSize(product as any, targetSize, product.color);
 };
 
 const getVariantStock = (product: Product, size?: string, color?: string) => {
@@ -441,9 +438,14 @@ const Cart: React.FC = () => {
 
   const handleSizeChange = (product: Product, newSize: string) => {
     const colorOptions = getColorOptions(product, newSize);
-    const nextColor = colorOptions.includes(product.color)
+    const nextColor = colorOptions.find(
+      (option: { name: string }) => option.name === product.color
+    )
       ? product.color
-      : colorOptions[0] || "";
+      : colorOptions.find((option: { available: any }) => option.available)
+          ?.name ||
+        colorOptions[0]?.name ||
+        "";
 
     dispatch(
       updateProduct({
@@ -453,7 +455,12 @@ const Cart: React.FC = () => {
     );
   };
 
-  const handleColorChange = (product: Product, newColor: string) => {
+  const handleColorChange = (product: Product, newColor?: string) => {
+    if (!newColor) return; // si viene undefined, no hacemos nada
+
+    const colorOptions = getColorOptions(product, product.size);
+    if (!colorOptions.some((option) => option.name === newColor)) return;
+
     dispatch(
       updateProduct({
         cartItemId: getCartItemId(product),
@@ -578,15 +585,24 @@ const Cart: React.FC = () => {
                         <SelectorLabel>Color</SelectorLabel>
                         <ColorDotsRow>
                           {getColorOptions(product, product.size).map(
-                            (optionColor) => (
+                            (option: {
+                              name: string | undefined;
+                              available: boolean;
+                            }) => (
                               <ColorDot
-                                key={`${product.cartItemId}-${optionColor}`}
-                                color={mapColorNameToHex(optionColor)}
-                                selected={optionColor === product.color}
+                                key={`${product.cartItemId}-${option.name}`}
+                                color={mapColorNameToHex(option.name)}
+                                selected={option.name === product.color}
                                 onClick={() =>
-                                  handleColorChange(product, optionColor)
+                                  handleColorChange(product, option.name)
                                 }
-                                aria-label={optionColor}
+                                aria-label={option.name}
+                                title={
+                                  option.available
+                                    ? "Disponible"
+                                    : "Sin stock en este talle y color"
+                                }
+                                $available={option.available}
                               />
                             )
                           )}
