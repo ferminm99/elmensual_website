@@ -20,6 +20,7 @@ import { normalizeProductImageUrl } from "../utils/imageUrl";
 import {
   getPrimaryColorsForSize,
   getAvailableSizes,
+  getPrimaryColors,
   hasStockForSize,
   hasStockForVariant,
 } from "../utils/productVariants";
@@ -358,6 +359,7 @@ const Button = styled.button`
   cursor: pointer;
   background: #333;
   color: #fff;
+  transition: background 0.2s ease, opacity 0.2s ease;
   &:hover {
     background: #555;
   }
@@ -367,6 +369,7 @@ const Button = styled.button`
     cursor: not-allowed;
     box-shadow: none;
     transform: none;
+    opacity: 0.65;
   }
 `;
 
@@ -559,13 +562,17 @@ const Product: React.FC = () => {
   useEffect(() => {
     if (!product) return;
 
-    const initialSize = getAvailableSizes(product)[0] || "";
+    const availableSizes = getAvailableSizes(product);
+    const initialSize = availableSizes[0] || "";
     setSize(initialSize);
-    const colorsForSize = getPrimaryColorsForSize(product, initialSize);
+
+    const colorsForSelection = initialSize
+      ? getPrimaryColorsForSize(product, initialSize)
+      : getPrimaryColors(product);
     const initialColor =
-      colorsForSize.find((option: { available: any }) => option.available)
+      colorsForSelection.find((option: { available: any }) => option.available)
         ?.name ||
-      colorsForSize[0]?.name ||
+      colorsForSelection[0]?.name ||
       "";
     setColor(initialColor);
   }, [product]);
@@ -583,28 +590,46 @@ const Product: React.FC = () => {
     setAddMessage("");
     setAddMessageVariant("info");
   }, [color, size]);
-  const colorOptions = useMemo(
-    () =>
-      product && size ? getPrimaryColorsForSize(product, size, color) : [],
-    [color, product, size]
-  );
+  const colorOptions = useMemo(() => {
+    if (!product) return [];
+    if (!size) return getPrimaryColors(product, color);
+    return getPrimaryColorsForSize(product, size, color);
+  }, [color, product, size]);
 
   const availableColors = colorOptions.map(
     (option: { name: any }) => option.name
   );
+  const hasColorOptions = colorOptions.length > 0;
   const selectedColorHasStock = Boolean(
     product && size && color && hasStockForVariant(product, size, color)
   );
+  const hasSizesForSelectedColor = useMemo(() => {
+    if (!product || !color || !product.size) return false;
+    return product.size.some((s) => hasStockForVariant(product, s, color));
+  }, [color, product]);
 
   const addButtonTooltip = useMemo(() => {
     if (!product) return "Cargando producto";
-    if (!size || !color) return "Elegí un talle y color con stock";
-    if (!selectedColorHasStock) return "No queda stock para esta combinación";
+    if (!hasColorOptions)
+      return "No hay colores disponibles para este producto";
+    if (!color) return "Elegí un color";
+    if (!hasSizesForSelectedColor)
+      return "No hay talles disponibles para este color";
+    if (!size) return "Elegí un talle y color con stock";
+    if (!selectedColorHasStock)
+      return "No hay más stock de este producto en ese talle y color";
     return "Agregar al carrito";
-  }, [color, product, selectedColorHasStock, size]);
+  }, [
+    color,
+    hasColorOptions,
+    hasSizesForSelectedColor,
+    product,
+    selectedColorHasStock,
+    size,
+  ]);
 
   const canAddToCart = Boolean(
-    product && size && color && selectedColorHasStock
+    product && hasColorOptions && size && color && selectedColorHasStock
   );
 
   const handleColorChange = (selectedColor: string) => {
@@ -801,7 +826,9 @@ const Product: React.FC = () => {
                         Selecciona un talle
                       </FilterSizeOption>
                       {product.size.map((s) => {
-                        const sizeIsAvailable = hasStockForSize(product, s);
+                        const sizeIsAvailable = color
+                          ? hasStockForVariant(product, s, color)
+                          : hasStockForSize(product, s);
                         return (
                           <FilterSizeOption
                             key={s}

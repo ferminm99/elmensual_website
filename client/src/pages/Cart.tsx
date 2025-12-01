@@ -181,7 +181,8 @@ const Image = styled.img`
   width: 100%;
   max-width: 160px;
   aspect-ratio: 1;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
   border-radius: 12px;
   border: 1px solid #e5e7eb;
   background: #f8fafc;
@@ -246,13 +247,21 @@ const mapColorNameToHex = (colorName?: string): string => {
 
 const getProductImageUrl = (product: Product) => {
   if (product.images && product.color) {
-    const target = product.color.toLowerCase();
-    const matchingKey = Object.keys(product.images)
-      .filter((key) => key.toLowerCase().startsWith(target))
-      .sort()[0];
+    const normalizeKey = (value: string) =>
+      value.toLowerCase().replace(/\s+/g, "");
+    const targetBase = normalizeKey(product.color).replace(/\d+/g, "");
 
-    if (matchingKey) {
-      return normalizeProductImageUrl(product.images[matchingKey]);
+    const matchingKeys = Object.keys(product.images)
+      .map((key) => ({ key, normalized: normalizeKey(key) }))
+      .filter(({ normalized }) => normalized.startsWith(targetBase))
+      .map(({ key }) => key)
+      .sort();
+
+    const primaryKey =
+      matchingKeys.find((key) => /1(\.|-|$)/.test(key)) || matchingKeys[0];
+
+    if (primaryKey) {
+      return normalizeProductImageUrl(product.images[primaryKey]);
     }
   }
 
@@ -537,7 +546,10 @@ const Cart: React.FC = () => {
             {cart.products.map((product) => (
               <ProductContainer key={getCartItemId(product)}>
                 <ProductDetail>
-                  <Image src={normalizeProductImageUrl(product.img)} />
+                  <Image
+                    src={getProductImageUrl(product)}
+                    alt={product.title}
+                  />
                   <Details>
                     <ProductHeader>
                       <div>
