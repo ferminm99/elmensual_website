@@ -178,21 +178,21 @@ const getOptimizedCloudinaryURL = (url: string, width: number = 500) => {
   return optimized;
 };
 const Product: React.FC<ProductProps> = ({ item }) => {
-  const hasStock =
-    (typeof item.totalStock === "number"
-      ? item.totalStock
-      : item.inStock
-      ? 1
-      : 0) > 0;
+  // const hasStock =
+  //   (typeof item.totalStock === "number"
+  //     ? item.totalStock
+  //     : item.inStock
+  //     ? 1
+  //     : 0) > 0;
 
-  const availabilityText =
-    typeof item.totalStock === "number"
-      ? item.totalStock > 0
-        ? `Stock: ${item.totalStock}`
-        : "Sin stock"
-      : hasStock
-      ? "Disponible"
-      : "Sin stock";
+  // const availabilityText =
+  //   typeof item.totalStock === "number"
+  //     ? item.totalStock > 0
+  //       ? `Stock: ${item.totalStock}`
+  //       : "Sin stock"
+  //     : hasStock
+  //     ? "Disponible"
+  //     : "Sin stock";
 
   const sizeSummary = item.size?.length ? item.size.join(", ") : "";
 
@@ -204,12 +204,15 @@ const Product: React.FC<ProductProps> = ({ item }) => {
       >
         <ImageContainer>
           <Image src={normalizeProductImageUrl(item.img)} alt={item.title} />
-          <Overlay>{hasStock ? "Ver Producto" : "Sin stock"}</Overlay>
+          {/* <Overlay>{hasStock ? "Ver Producto" : "Sin stock"}</Overlay> */}
+          {/* Overlay no longer shows stock availability */}
+          <Overlay>Ver Producto</Overlay>
         </ImageContainer>
       </Link>
       <Details>
         <Title>{item.title}</Title>
-        <Availability $available={hasStock}>{availabilityText}</Availability>
+        {/* Availability indicator hidden to avoid showing stock info */}
+        {/* <Availability $available={hasStock}>{availabilityText}</Availability> */}
         {sizeSummary && <SizeSummary>Talles: {sizeSummary}</SizeSummary>}
       </Details>
     </Card>
