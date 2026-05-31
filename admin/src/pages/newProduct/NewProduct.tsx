@@ -1,4 +1,5 @@
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
+// @ts-ignore
 import "./newProduct.css";
 import { addProduct, updateProduct, Product } from "../../redux/apiCalls";
 import { useDispatch } from "react-redux";
@@ -57,7 +58,20 @@ export default function NewProduct() {
     stock: 0,
   });
   const [editingVariantIndex, setEditingVariantIndex] = useState<number | null>(
-    null
+    null,
+  );
+  const normalizeColorName = (color: string) =>
+    color.replace(/\d+/g, "").trim();
+  const availableVariantSizes = sizes
+    .map((size) => String(size))
+    .filter((size, index, self) => self.indexOf(size) === index)
+    .sort((a, b) => Number(a) - Number(b));
+  const availableVariantColors = Array.from(
+    new Set(
+      colorImages
+        .map((ci) => normalizeColorName(ci.color))
+        .filter((colorName) => colorName.length > 0),
+    ),
   );
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -71,7 +85,7 @@ export default function NewProduct() {
             color: color.replace(/\d+/g, ""), // Remueve los números
             url,
             productName: product.title,
-          }))
+          })),
         );
         setExistingImages(images);
       } catch (error) {
@@ -85,13 +99,13 @@ export default function NewProduct() {
     setSizes((prevSizes) =>
       prevSizes.includes(size)
         ? prevSizes.filter((s) => s !== size)
-        : [...prevSizes, size]
+        : [...prevSizes, size],
     );
   };
 
   const handleExistingImageSelect = (event: ChangeEvent<HTMLSelectElement>) => {
     const selectedImage = existingImages.find(
-      (img) => img.url === event.target.value
+      (img) => img.url === event.target.value,
     );
     setSelectedExistingImage(selectedImage || null);
   };
@@ -99,13 +113,13 @@ export default function NewProduct() {
   const handleSelectCommonSizes = () => {
     const commonSizes = Array.from(
       { length: (54 - 32) / 2 + 1 },
-      (_, i) => 32 + i * 2
+      (_, i) => 32 + i * 2,
     );
     setSizes(commonSizes);
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     if (name === "inStock") {
@@ -128,7 +142,7 @@ export default function NewProduct() {
   };
 
   const handleVariantChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setVariantForm((prev) => ({
@@ -156,7 +170,7 @@ export default function NewProduct() {
       (variant, index) =>
         index !== editingVariantIndex &&
         variant.size.trim().toLowerCase() === trimmedSize.toLowerCase() &&
-        variant.color.trim().toLowerCase() === trimmedColor.toLowerCase()
+        variant.color.trim().toLowerCase() === trimmedColor.toLowerCase(),
     );
 
     if (duplicateIndex !== -1) {
@@ -174,8 +188,8 @@ export default function NewProduct() {
     if (editingVariantIndex !== null) {
       setVariants((prev) =>
         prev.map((variant, index) =>
-          index === editingVariantIndex ? normalizedVariant : variant
-        )
+          index === editingVariantIndex ? normalizedVariant : variant,
+        ),
       );
     } else {
       setVariants((prev) => [...prev, normalizedVariant]);
@@ -192,7 +206,7 @@ export default function NewProduct() {
     const variant = variants[index];
     setVariantForm({
       size: variant.size,
-      color: variant.color,
+      color: normalizeColorName(variant.color),
       stock: variant.stock,
     });
     setEditingVariantIndex(index);
@@ -239,7 +253,7 @@ export default function NewProduct() {
   const uploadToPublicStorage = async (
     productId: string,
     key: string,
-    file: File
+    file: File,
   ): Promise<string> => {
     const formData = new FormData();
     formData.append("file", file);
@@ -251,7 +265,7 @@ export default function NewProduct() {
       formData,
       {
         headers: { "Content-Type": "multipart/form-data" },
-      }
+      },
     );
 
     return response.data.path as string;
@@ -298,7 +312,7 @@ export default function NewProduct() {
 
   const totalVariantStock = variants.reduce(
     (sum, variant) => sum + Number(variant.stock || 0),
-    0
+    0,
   );
   const handleClick = async (e: FormEvent) => {
     e.preventDefault();
@@ -321,7 +335,7 @@ export default function NewProduct() {
         })),
         totalStock: variants.reduce(
           (sum, variant) => sum + Number(variant.stock),
-          0
+          0,
         ),
       };
 
@@ -330,16 +344,22 @@ export default function NewProduct() {
           ?.map((variant) => String(variant.size).trim())
           .filter(Boolean) || [];
       const variantColors =
-        baseProduct.variants?.map((variant) => variant.color).filter(Boolean) ||
-        [];
-      const finalSizes = variantSizes.length ? variantSizes : baseProduct.size;
-      const finalColors = variantColors.length
-        ? variantColors
-        : baseProduct.colors;
+        baseProduct.variants
+          ?.map((variant) => variant.color?.trim())
+          .filter(Boolean) || [];
+      const imageColors = colorImages
+        .map(({ color }) => color?.trim())
+        .filter(Boolean);
+      const finalSizes = variantSizes.length
+        ? Array.from(new Set(variantSizes))
+        : baseProduct.size;
+      const finalColors = Array.from(
+        new Set(variantColors.length ? variantColors : imageColors),
+      );
 
       const savedProduct: Product | undefined = await addProduct(
         { ...baseProduct, size: finalSizes, colors: finalColors },
-        dispatch
+        dispatch,
       );
       const productId = savedProduct?._id;
 
@@ -350,16 +370,22 @@ export default function NewProduct() {
 
       const imageMap: { [key: string]: string } = {};
       for (const { color, imageFile, imageUrl } of colorImages) {
+        const normalizedColor = color?.trim();
+        if (!normalizedColor) continue;
         if (imageUrl) {
-          imageMap[color] = normalizeImagePath(imageUrl, productId, color);
+          imageMap[normalizedColor] = normalizeImagePath(
+            imageUrl,
+            productId,
+            normalizedColor,
+          );
         } else if (imageFile) {
           const compressedFile = await handleFileUpload(imageFile);
           const uploadedUrl = await uploadToPublicStorage(
             productId,
-            color,
-            compressedFile
+            normalizedColor,
+            compressedFile,
           );
-          imageMap[color] = uploadedUrl;
+          imageMap[normalizedColor] = uploadedUrl;
         }
       }
 
@@ -369,10 +395,8 @@ export default function NewProduct() {
         _id: productId,
         images: imageMap,
         img: firstImageUrl || buildStaticPath(productId, "img"),
-        colors: Array.from(
-          new Set([...Object.keys(imageMap), ...variantColors, ...finalColors])
-        ),
-        size: Array.from(new Set([...finalSizes, ...variantSizes])),
+        colors: finalColors,
+        size: finalSizes,
       };
 
       await updateProduct(productId, updatedProduct as any, dispatch);
@@ -447,20 +471,32 @@ export default function NewProduct() {
         <div className="addProductItem">
           <label>Variantes</label>
           <div className="variantForm">
-            <input
+            <select
               name="size"
-              type="text"
-              placeholder="Talle"
               value={variantForm.size}
               onChange={handleVariantChange}
-            />
-            <input
+              disabled={availableVariantSizes.length === 0}
+            >
+              <option value="">Selecciona un talle</option>
+              {availableVariantSizes.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+            <select
               name="color"
-              type="text"
-              placeholder="Color"
-              value={variantForm.color}
+              value={normalizeColorName(String(variantForm.color || ""))}
               onChange={handleVariantChange}
-            />
+              disabled={availableVariantColors.length === 0}
+            >
+              <option value="">Selecciona un color</option>
+              {availableVariantColors.map((colorName) => (
+                <option key={colorName} value={colorName}>
+                  {colorName}
+                </option>
+              ))}
+            </select>
             <input
               name="stock"
               type="number"

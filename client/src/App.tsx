@@ -12,7 +12,7 @@ import Product from "./pages/Product";
 import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Success from "./pages/Success"; // Asegúrate de importar el componente
+import CheckoutResult from "./pages/CheckoutResult";
 import AllProducts from "./pages/AllProducts";
 import "./App.css";
 
@@ -38,7 +38,8 @@ const App: React.FC = () => {
         <Route path="/cart" element={<Cart />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/success" element={<Success />} />
+        <Route path="/checkout/result" element={<CheckoutResult />} />
+        <Route path="/success" element={<CheckoutResult />} />
         <Route path="/acercade" element={<AcercaDe />} />
         <Route path="/admin" element={<Navigate to="/admin" />} />
       </Routes>

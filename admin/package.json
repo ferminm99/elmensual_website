@@ -13,7 +13,7 @@
     "@mui/system": "^6.1.10",
     "@mui/x-data-grid": "5.17.0",
     "@reduxjs/toolkit": "^1.9.5",
-    "axios": "^1.5.0",
+    "axios": "^1.7.13",
     "compressorjs": "^1.2.1",
     "firebase": "^11.0.1",
     "react": "18.2.0",

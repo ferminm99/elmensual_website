@@ -16,6 +16,7 @@ const productRoute = require("./routes/product");
 const cartRoute = require("./routes/cart");
 const orderRoute = require("./routes/order");
 const uploadRoute = require("./routes/upload");
+const paymentsRoute = require("./routes/payments");
 
 // (Render suele estar detrás de proxy)
 app.set("trust proxy", 1);
@@ -49,7 +50,7 @@ app.use(
       "Authorization",
     ],
     exposedHeaders: ["Content-Length"],
-  })
+  }),
 );
 
 // Responder explícito a TODOS los preflight
@@ -62,11 +63,11 @@ app.options("*", (req, res) => {
   res.header("Vary", "Origin");
   res.header(
     "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization",
   );
   res.header(
     "Access-Control-Allow-Methods",
-    "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+    "GET,POST,PUT,PATCH,DELETE,OPTIONS",
   );
   return res.sendStatus(204);
 });
@@ -93,7 +94,7 @@ const PUBLIC_STORAGE_ROOT =
   path.join(__dirname, "..", "client", "public");
 app.use(
   "/products",
-  express.static(path.join(PUBLIC_STORAGE_ROOT, "products"))
+  express.static(path.join(PUBLIC_STORAGE_ROOT, "products")),
 );
 
 // ---------- API ----------
@@ -103,6 +104,8 @@ app.use("/api/products", productRoute);
 app.use("/api/carts", cartRoute);
 app.use("/api/orders", orderRoute);
 app.use("/api/uploads", uploadRoute);
+app.use("/api/checkout", paymentsRoute);
+app.use("/api/payments", paymentsRoute);
 
 // ---------- CLOUDINARY ----------
 cloudinary.config({
@@ -115,7 +118,7 @@ app.get("/generate-signature", (req, res) => {
   const timestamp = Math.round(new Date().getTime() / 1000);
   const signature = cloudinary.utils.api_sign_request(
     { timestamp, format: "png" },
-    process.env.CLOUDINARY_API_SECRET
+    process.env.CLOUDINARY_API_SECRET,
   );
   res.json({
     signature,

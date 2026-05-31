@@ -6,6 +6,7 @@ import React, {
   FormEvent,
 } from "react";
 import { Link as RouterLink, useLocation } from "react-router-dom";
+// @ts-ignore
 import "./product.css";
 import Chart from "../../components/chart/Chart";
 import { Publish, Delete } from "@mui/icons-material";
@@ -31,6 +32,7 @@ const normalizeImagePath = (url: string, productId: string, key: string) => {
   if (url.startsWith("/products/")) return url;
   return buildStaticPath(productId, key);
 };
+const normalizeColorName = (color: string) => color.replace(/\d+/g, "").trim();
 
 interface ProductState {
   product: {
@@ -188,12 +190,24 @@ const Product: React.FC = () => {
     stock: 0,
   });
   const [editingVariantIndex, setEditingVariantIndex] = useState<number | null>(
-    null
+    null,
   );
   const dispatch = useDispatch();
-
+  const normalizeColorName = (color: string) =>
+    color.replace(/\d+/g, "").trim();
+  const availableVariantSizes = sizes
+    .map((size) => String(size))
+    .filter((size, index, self) => self.indexOf(size) === index)
+    .sort((a, b) => Number(a) - Number(b));
+  const availableVariantColors = Array.from(
+    new Set(
+      Object.keys(colorImages)
+        .map((key) => normalizeColorName(key))
+        .filter((colorName) => colorName.length > 0),
+    ),
+  );
   const product = useSelector((state: ProductState) =>
-    state.product.products.find((product) => product._id === productId)
+    state.product.products.find((product) => product._id === productId),
   );
 
   useEffect(() => {
@@ -216,16 +230,20 @@ const Product: React.FC = () => {
       setInStock(product.inStock ? "true" : "false");
       setCategories(product.categories.join(", "));
       setSizes(product.size.map((size) => Number(size)));
-      const variantSizes = (product.variants || [])
+      const normalizedVariants = (product.variants || []).map((variant) => ({
+        ...variant,
+        size: String(variant.size || "").trim(),
+        color: normalizeColorName(String(variant.color || "")),
+      }));
+      const variantSizes = normalizedVariants
         .map((variant) => Number(variant.size))
         .filter((size) => Number.isFinite(size));
       const sizeList = variantSizes.length
         ? variantSizes
         : product.size.map((size) => Number(size));
-      setSizes(sizeList);
+      setSizes(Array.from(new Set(sizeList)));
       setColorImages(product.images);
-      setVariants(product.variants || []);
-      setColorImages(product.images);
+      setVariants(normalizedVariants);
     }
   }, [product]);
 
@@ -238,7 +256,7 @@ const Product: React.FC = () => {
             color: color.replace(/\d+/g, ""),
             url,
             productName: product.title,
-          }))
+          })),
         );
         setExistingImages(images);
       } catch (error) {
@@ -247,6 +265,92 @@ const Product: React.FC = () => {
     };
     fetchExistingImages();
   }, []);
+
+  useEffect(() => {
+    if (!product) return;
+
+    const sizeList = Array.from(
+      new Set(
+        (sizes.length ? sizes : product.size || [])
+          .map((size) => String(size).trim())
+          .filter(Boolean),
+      ),
+    );
+
+    const baseColors = Object.keys(colorImages).length
+      ? Object.keys(colorImages)
+      : product.colors || [];
+
+    const normalizedColors = Array.from(
+      new Set(
+        baseColors
+          .map((color) => normalizeColorName(String(color)))
+          .filter(Boolean),
+      ),
+    );
+
+    if (!sizeList.length || !normalizedColors.length) return;
+
+    const aggregatedExisting = new Map<string, Variant>();
+
+    variants.forEach((variant) => {
+      const size = String(variant.size || "").trim();
+      const color = normalizeColorName(String(variant.color || ""));
+      if (!size || !color) return;
+
+      const key = `${size.toLowerCase()}|${color.toLowerCase()}`;
+      const prev = aggregatedExisting.get(key);
+      const stock = Math.max(0, Number(variant.stock) || 0);
+
+      aggregatedExisting.set(key, {
+        ...variant,
+        size,
+        color,
+        stock: prev ? prev.stock + stock : stock,
+      });
+    });
+
+    const nextVariants: Variant[] = [];
+
+    sizeList.forEach((size) => {
+      normalizedColors.forEach((color) => {
+        const key = `${size.toLowerCase()}|${color.toLowerCase()}`;
+        const existing = aggregatedExisting.get(key);
+
+        nextVariants.push(
+          existing ?? {
+            size,
+            color,
+            stock: 0,
+          },
+        );
+
+        if (existing) {
+          aggregatedExisting.delete(key);
+        }
+      });
+    });
+
+    aggregatedExisting.forEach((variant) => {
+      nextVariants.push(variant);
+    });
+
+    const variantsChanged =
+      nextVariants.length !== variants.length ||
+      nextVariants.some((variant, index) => {
+        const current = variants[index];
+        return (
+          !current ||
+          current.size !== variant.size ||
+          current.color !== variant.color ||
+          Number(current.stock) !== Number(variant.stock)
+        );
+      });
+
+    if (variantsChanged) {
+      setVariants(nextVariants);
+    }
+  }, [product, colorImages, sizes]);
 
   const MONTHS = useMemo(
     () => [
@@ -263,7 +367,7 @@ const Product: React.FC = () => {
       "Nov",
       "Dec",
     ],
-    []
+    [],
   );
 
   useEffect(() => {
@@ -275,7 +379,7 @@ const Product: React.FC = () => {
           list.map((item: any) => ({
             name: MONTHS[item._id - 1],
             Sales: item.total,
-          }))
+          })),
         );
       } catch (err) {
         console.error(err);
@@ -286,13 +390,13 @@ const Product: React.FC = () => {
 
   const handleSizeChange = (size: number) => {
     setSizes((prev) =>
-      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
+      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size],
     );
   };
 
   const handleExistingImageSelect = (event: ChangeEvent<HTMLSelectElement>) => {
     const selectedImage = existingImages.find(
-      (img) => img.url === event.target.value
+      (img) => img.url === event.target.value,
     );
     setSelectedExistingImage(selectedImage || null);
   };
@@ -308,7 +412,7 @@ const Product: React.FC = () => {
   };
 
   const handleVariantChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setVariantForm((prev) => ({
@@ -316,10 +420,11 @@ const Product: React.FC = () => {
       [name]: name === "stock" ? Number(value) : value,
     }));
   };
-
   const handleVariantSubmit = () => {
     const trimmedSize = String(variantForm.size || "").trim();
-    const trimmedColor = String(variantForm.color || "").trim();
+    const trimmedColor = normalizeColorName(
+      String(variantForm.color || "").trim(),
+    );
     const stockValue = Number(variantForm.stock);
 
     if (!trimmedSize || !trimmedColor) {
@@ -337,10 +442,9 @@ const Product: React.FC = () => {
         index !== editingVariantIndex &&
         String(variant.size).trim().toLowerCase() ===
           trimmedSize.toLowerCase() &&
-        String(variant.color).trim().toLowerCase() ===
-          trimmedColor.toLowerCase()
+        normalizeColorName(String(variant.color)).trim().toLowerCase() ===
+          trimmedColor.toLowerCase(),
     );
-
     if (duplicateIndex !== -1) {
       alert("Ya existe una variante con ese talle y color.");
       return;
@@ -356,8 +460,8 @@ const Product: React.FC = () => {
     if (editingVariantIndex !== null) {
       setVariants((prev) =>
         prev.map((variant, index) =>
-          index === editingVariantIndex ? normalizedVariant : variant
-        )
+          index === editingVariantIndex ? normalizedVariant : variant,
+        ),
       );
     } else {
       setVariants((prev) => [...prev, normalizedVariant]);
@@ -374,7 +478,7 @@ const Product: React.FC = () => {
     const variant = variants[index];
     setVariantForm({
       size: variant.size || "",
-      color: variant.color || "",
+      color: normalizeColorName(String(variant.color || "")),
       stock: variant.stock || 0,
       _id: variant._id,
     });
@@ -394,14 +498,14 @@ const Product: React.FC = () => {
       return;
     }
     const selectedProduct = allProducts.find(
-      (prod) => prod._id === selectedProductForImages
+      (prod) => prod._id === selectedProductForImages,
     );
     if (selectedProduct && selectedProduct.images) {
       const normalized = Object.fromEntries(
         Object.entries(selectedProduct.images).map(([color, url]) => [
           color,
           toSmart34(url as string),
-        ])
+        ]),
       );
       setColorImages((prev) => ({ ...prev, ...normalized }));
       alert("Imágenes copiadas exitosamente.");
@@ -425,7 +529,7 @@ const Product: React.FC = () => {
         imageUrl = normalizeImagePath(
           selectedExistingImage.url,
           product._id,
-          newColor
+          newColor,
         );
       } else if (file) {
         try {
@@ -453,7 +557,7 @@ const Product: React.FC = () => {
           imageUrl = await uploadToPublicStorage(
             product._id,
             newColor,
-            compressedFile
+            compressedFile,
           );
         } catch (error) {
           console.error("Error al comprimir/subir la imagen:", error);
@@ -476,7 +580,7 @@ const Product: React.FC = () => {
   const uploadToPublicStorage = async (
     productId: string,
     key: string,
-    fileToUpload: File
+    fileToUpload: File,
   ): Promise<string> => {
     const formData = new FormData();
     formData.append("file", fileToUpload);
@@ -488,7 +592,7 @@ const Product: React.FC = () => {
       formData,
       {
         headers: { "Content-Type": "multipart/form-data" },
-      }
+      },
     );
 
     return response.data.path as string;
@@ -519,8 +623,15 @@ const Product: React.FC = () => {
     if (!product) return;
     setErrorMessage(null);
 
-    const uniqueSizes = Array.from(new Set(sizes.map(String)));
+    const selectedSizes = Array.from(
+      new Set(
+        sizes
+          .map((size) => String(size).trim())
+          .filter((size) => size.length > 0),
+      ),
+    );
 
+    const uniqueSizes = Array.from(new Set(sizes.map(String)));
     const orderedArray = Object.entries(colorImages).map(([color, url]) => ({
       color,
       url,
@@ -533,27 +644,32 @@ const Product: React.FC = () => {
 
     const normalizedVariants: Variant[] = variants.map((variant) => ({
       _id: variant._id,
-      size: String(variant.size),
-      color: variant.color,
+      size: String(variant.size).trim(),
+      color: normalizeColorName(String(variant.color || "")),
       stock: Math.max(0, Number(variant.stock) || 0),
     }));
 
     const totalStock = normalizedVariants.reduce(
       (sum, variant) => sum + Number(variant.stock || 0),
-      0
+      0,
     );
 
     const variantSizes = normalizedVariants
       .map((variant) => String(variant.size).trim())
       .filter(Boolean);
     const variantColors = normalizedVariants
-      .map((variant) => variant.color)
+      .map((variant) => normalizeColorName(String(variant.color)))
       .filter(Boolean) as string[];
 
     const finalSizes = Array.from(new Set([...variantSizes, ...uniqueSizes]));
 
     const finalColors = Array.from(
-      new Set([...variantColors, ...Object.keys(colorImages)])
+      new Set([
+        ...variantColors,
+        ...Object.keys(colorImages).map((color) =>
+          normalizeColorName(String(color)),
+        ),
+      ]),
     );
     const updatedProduct = {
       _id: product._id,
@@ -577,14 +693,19 @@ const Product: React.FC = () => {
     console.log("Producto actualizado:", updatedProduct);
     try {
       await updateProduct(productId, updatedProduct as any, dispatch);
+
+      const refreshedSizes = finalSizes
+        .map((size) => Number(size))
+        .filter((size) => Number.isFinite(size))
+        .sort((a, b) => a - b);
+      setSizes(refreshedSizes);
     } catch (error: any) {
       setErrorMessage(error.message || "No se pudo actualizar el producto.");
     }
   };
-
   const totalVariantStock = variants.reduce(
     (sum, variant) => sum + Number(variant.stock || 0),
-    0
+    0,
   );
 
   // const uploadToCloudinary = async (formData: FormData): Promise<string> => {
@@ -702,20 +823,32 @@ const Product: React.FC = () => {
 
             <label>Variantes</label>
             <div className="variantForm">
-              <input
+              <select
                 name="size"
-                type="text"
-                placeholder="Talle"
                 value={variantForm.size}
                 onChange={handleVariantChange}
-              />
-              <input
+                disabled={availableVariantSizes.length === 0}
+              >
+                <option value="">Selecciona un talle</option>
+                {availableVariantSizes.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+              <select
                 name="color"
-                type="text"
-                placeholder="Color"
-                value={variantForm.color}
+                value={normalizeColorName(String(variantForm.color || ""))}
                 onChange={handleVariantChange}
-              />
+                disabled={availableVariantColors.length === 0}
+              >
+                <option value="">Selecciona un color</option>
+                {availableVariantColors.map((colorName) => (
+                  <option key={colorName} value={colorName}>
+                    {colorName}
+                  </option>
+                ))}
+              </select>
               <input
                 name="stock"
                 type="number"
